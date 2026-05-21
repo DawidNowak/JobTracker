@@ -63,14 +63,14 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 1 — Local Config Fixes
 > Changes to committed files before any deploy happens.
 
-- [ ] **1.1** Rename Worker: edit `wrangler.jsonc`, change `"name"` from `"10x-astro-starter"` → `"job-tracker"`
+- [x] **1.1** Rename Worker: edit `wrangler.jsonc`, change `"name"` from `"10x-astro-starter"` → `"job-tracker"`
   - File: `wrangler.jsonc`
   - This becomes the `workers.dev` subdomain and Worker identity in the dashboard.
 
-- [ ] **1.2** Rename `package.json` project name from `"10x-astro-starter"` → `"job-tracker"` (cosmetic, avoids confusion)
+- [x] **1.2** Rename `package.json` project name from `"10x-astro-starter"` → `"job-tracker"` (cosmetic, avoids confusion)
   - File: `package.json`
 
-- [ ] **1.3** Commit both changes on `master` with message: `chore: rename worker and package to job-tracker`
+- [x] **1.3** Commit both changes on `master` with message: `chore: rename worker and package to job-tracker`
 
 ---
 
