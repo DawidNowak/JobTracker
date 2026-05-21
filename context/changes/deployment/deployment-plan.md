@@ -85,12 +85,12 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
   ```
   (Copy from Supabase dashboard → Settings → API)
 
-- [ ] **2.2** Run `npm run build && npx wrangler dev` and manually test:
-  - [ ] Home page loads
-  - [ ] Sign-up flow completes (email sent or auto-confirmed in dev)
-  - [ ] Sign-in flow sets a session cookie
-  - [ ] `/dashboard` redirects unauthenticated → `/auth/signin`
-  - [ ] Sign-out clears the session
+- [x] **2.2** Run `npm run build && npx wrangler dev` and manually test:
+  - [x] Home page loads
+  - [x] Sign-up flow completes (email sent or auto-confirmed in dev)
+  - [x] Sign-in flow sets a session cookie
+  - [x] `/dashboard` redirects unauthenticated → `/auth/signin`
+  - [x] Sign-out clears the session
 
 - [ ] **2.3** Check `nodejs_compat` necessity: after the build, scan `dist/_worker.js` for any Node.js built-in references (`require('fs')`, `require('net')`, etc.).
   - If none found: `nodejs_compat` flag is safe to leave as-is (no harm, just a precaution).
@@ -103,7 +103,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 3 — Cloudflare Account Setup
 > One-time human steps (require a browser and a Cloudflare login).
 
-- [ ] **3.1** Log into [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile → API Tokens → Create Token**
+- [x] **3.1** Log into [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile → API Tokens → Create Token**
   - Use the **"Edit Cloudflare Workers"** template
   - Permissions needed: `Workers Scripts:Edit` + `Workers Routes:Edit`
   - Copy the token immediately (shown only once)
