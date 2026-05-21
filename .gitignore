@@ -15,11 +15,24 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
+.env.*.local
 .env.production
 
 # cloudflare
 .dev.vars
 .wrangler/
+
+# private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# local claude settings (personal overrides, not for sharing)
+.claude/settings.local.json
 
 # macOS-specific files
 .DS_Store
