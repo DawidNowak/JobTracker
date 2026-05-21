@@ -191,17 +191,17 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 
 ## Phase 6 — Post-Deploy Validation & Monitoring
 
-- [ ] **6.1** Error log monitoring: run for 2 minutes after deploy, confirm no 5xx errors:
+- [x] **6.1** Error log monitoring: run for 2 minutes after deploy, confirm no 5xx errors:
   ```
   npx wrangler tail job-tracker --status error
   ```
 
-- [ ] **6.2** CPU time check (edge case — free tier 10ms CPU limit):
+- [x] **6.2** CPU time check (edge case — free tier 10ms CPU limit):
   - In Cloudflare dashboard → Workers & Pages → `job-tracker` → Metrics
   - Check **CPU Time** P50/P99 for auth routes
   - If P99 approaches 8ms: upgrade to Workers Paid ($5/month) before adding any CPU-intensive routes
 
-- [ ] **6.3** Preview worker for future PRs (optional, follow-up):
+- [x] **6.3** Preview worker for future PRs (optional, follow-up):
   ```
   npx wrangler deploy --name job-tracker-preview
   ```

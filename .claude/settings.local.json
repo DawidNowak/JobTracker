@@ -1,4 +1,7 @@
 {
+  "enabledMcpjsonServers": [
+    "cloudflare"
+  ],
   "skillOverrides": {
     "10x-bootstrapper": "off",
     "10x-health-check": "off",
@@ -7,6 +10,7 @@
     "10x-shape": "off",
     "10x-stack-assess": "off",
     "10x-tech-stack-selector": "off",
-    "10x-agents-md": "off"
+    "10x-agents-md": "off",
+    "10x-infra-research": "off"
   }
 }
