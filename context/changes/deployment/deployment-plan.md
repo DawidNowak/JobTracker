@@ -92,9 +92,11 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
   - [x] `/dashboard` redirects unauthenticated → `/auth/signin`
   - [x] Sign-out clears the session
 
-- [ ] **2.3** Check `nodejs_compat` necessity: after the build, scan `dist/_worker.js` for any Node.js built-in references (`require('fs')`, `require('net')`, etc.).
+- [x] **2.3** Check `nodejs_compat` necessity: after the build, scan `dist/_worker.js` for any Node.js built-in references (`require('fs')`, `require('net')`, etc.).
   - If none found: `nodejs_compat` flag is safe to leave as-is (no harm, just a precaution).
   - If found: identify the offending package and replace with an edge-compatible alternative before proceeding.
+
+  > **Result (2026-05-21)**: No Node.js built-in imports (`require('...')` or `import ... from 'node:...'`) found in `dist/server/`. The `globalThis.process ??= {}` shims are injected by the Cloudflare adapter itself — not real Node.js dependencies. `nodejs_compat` flag is safe to keep as-is.
 
   > **Edge case**: `@supabase/ssr` uses Web-standard `fetch` and `Headers` — no Node.js globals expected. `useFormStatus()` (React 19) is client-side only and does not affect the workerd runtime.
 
@@ -108,9 +110,9 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
   - Permissions needed: `Workers Scripts:Edit` + `Workers Routes:Edit`
   - Copy the token immediately (shown only once)
 
-- [ ] **3.2** Copy your **Account ID** from the Cloudflare dashboard sidebar (shown on the Workers & Pages overview page)
+- [x] **3.2** Copy your **Account ID** from the Cloudflare dashboard sidebar (shown on the Workers & Pages overview page)
 
-- [ ] **3.3** Wire Worker secrets (run in terminal, interactive prompt for each value):
+- [x] **3.3** Wire Worker secrets (run in terminal, interactive prompt for each value):
   ```
   npx wrangler secret put SUPABASE_URL
   npx wrangler secret put SUPABASE_KEY
@@ -118,13 +120,13 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
   Verify with: `npx wrangler secret list`
   Expected output: two entries — `SUPABASE_URL` and `SUPABASE_KEY`
 
-- [ ] **3.4** Supabase region check (edge case from risk register):
+- [x] **3.4** Supabase region check (edge case from risk register):
   - Open Supabase dashboard → Project Settings → General → **Region**
   - If region is `us-east-1` (AWS Virginia): migrate the project to `eu-central-1` (Frankfurt) or `eu-west-1` (Ireland)
     - Free tier: pause existing project, create new project in EU region, re-run any schema migrations
   - If already EU: proceed
 
-- [ ] **3.5** Supabase inactivity guard (edge case):
+- [x] **3.5** Supabase inactivity guard (edge case):
   - If using Supabase Free tier: keep the project active during development (make at least one request per week)
   - Before first external user demo: upgrade to Supabase Pro ($25/month) to prevent cold-start pauses
 
@@ -133,16 +135,16 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 4 — First Manual Deploy
 > Verify the full build + deploy pipeline end-to-end before automating it.
 
-- [ ] **4.1** Run:
+- [x] **4.1** Run:
   ```
   npm run build
   npx wrangler deploy
   ```
   Expected output: `Deployed job-tracker ... https://job-tracker.<your-subdomain>.workers.dev`
 
-- [ ] **4.2** Visit the live URL in a browser. Run the same smoke-test checklist as Phase 2.2 (home, sign-up, sign-in, protected route, sign-out).
+- [x] **4.2** Visit the live URL in a browser. Run the same smoke-test checklist as Phase 2.2 (home, sign-up, sign-in, protected route, sign-out).
 
-- [ ] **4.3** Check logs in real-time during smoke test:
+- [x] **4.3** Check logs in real-time during smoke test:
   ```
   npx wrangler tail job-tracker --format json
   ```
@@ -158,30 +160,30 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 5 — CI/CD Auto-Deploy via Cloudflare Git Integration
 > Connect the GitHub repo directly to Cloudflare so that every push to `master` triggers a build and deploy on Cloudflare's own infrastructure — no GitHub Actions secrets or `wrangler deploy` step needed.
 
-- [ ] **5.1** In the Cloudflare dashboard → **Workers & Pages** → select (or create) `job-tracker` → **Settings** → **Build & Deployments** → **Connect to Git**
+- [x] **5.1** In the Cloudflare dashboard → **Workers & Pages** → select (or create) `job-tracker` → **Settings** → **Build & Deployments** → **Connect to Git**
   - Authorize the Cloudflare GitHub App on your GitHub account/org when prompted
   - Select the `JobTracker` repository
   - Set the **Production branch**: `master`
 
-- [ ] **5.2** Configure build settings in the dashboard:
+- [x] **5.2** Configure build settings in the dashboard:
   - **Build command**: `npm run build`
   - **Deploy directory**: `dist`
   - **Node.js version**: `22` (set under Environment Variables or the Node version selector)
 
   > Cloudflare uses its own build runner (same infra as Cloudflare Pages). It runs `npm ci` then your build command, then uploads the `dist` directory. No wrangler invocation needed on your side.
 
-- [ ] **5.3** Add environment variables for the build in the dashboard (**Settings → Environment Variables → Production**):
+- [x] **5.3** Add environment variables for the build in the dashboard (**Settings → Environment Variables → Production**):
   - `SUPABASE_URL` — your Supabase project URL
   - `SUPABASE_KEY` — your Supabase anon key
 
   > These replace the `wrangler secret put` commands from Phase 3.3 for the Git-integration deploy path. The secrets set via `wrangler secret put` are used by the Worker at runtime; these env vars are injected at **build time** by Cloudflare's runner. Both are needed.
 
-- [ ] **5.4** Push a test commit to `master` and verify:
+- [x] **5.4** Push a test commit to `master` and verify:
   - Cloudflare dashboard → `job-tracker` → **Deployments**: a new deployment entry should appear within ~1 minute
   - Deployment log should show a clean build with no errors
   - Visit the live `workers.dev` URL and confirm the app loads
 
-- [ ] **5.5** Rollback if needed (no CLI required):
+- [x] **5.5** Rollback if needed (no CLI required):
   - Cloudflare dashboard → `job-tracker` → **Deployments** → pick any prior deployment → **Rollback to this deployment**
   - Or via CLI: `npx wrangler rollback <version-id>` then re-push to re-sync
 
