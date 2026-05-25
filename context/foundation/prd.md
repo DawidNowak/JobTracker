@@ -91,8 +91,8 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 ## Functional Requirements
 
 ### Authentication
-- FR-001: User can register and log in via Google OAuth. Priority: must-have
-  > Socrates: Counter-argument considered: "email+password is more self-contained, no provider dependency." Resolution: Google OAuth only in MVP — eliminates credential storage, password reset flow, and session hardening. LinkedIn OAuth restricted and slow to approve. Add email+password in v2 if users request it.
+- FR-001: User can register and log in via email and password. Priority: must-have
+  > Socrates: Original shaping decision was "Google OAuth only in MVP" (see shape-notes.md). Revised on 2026-05-25 during roadmap planning: the 10x Astro Starter already ships a working email+password flow (Supabase Auth, sign-in/sign-up/sign-out endpoints, session middleware). Google OAuth has no functional unlock — RLS uses `auth.uid()` which is provider-agnostic — so adding it inside the 4-week MVP is pure setup cost for UX polish. Google OAuth deferred to v2.
 - FR-002: User can log out. Priority: must-have
   > Socrates: No counter-argument; it stands as written.
 
@@ -165,7 +165,7 @@ Status transitions between active columns are unrestricted in both directions (I
 
 ## Access Control
 
-Multi-user web app. Each account is isolated — a user sees only their own applications. Auth model: Google OAuth only in MVP — no email+password, no other OAuth providers. No roles, no admin, no sharing — flat user model. Unauthenticated users see only the login screen; all application data is gated behind authentication.
+Multi-user web app. Each account is isolated — a user sees only their own applications. Auth model: email and password in MVP — Google OAuth and other providers deferred to v2 (see Non-Goals). No roles, no admin, no sharing — flat user model. Unauthenticated users see only the login screen; all application data is gated behind authentication.
 
 ## Non-Goals
 
@@ -176,6 +176,7 @@ Multi-user web app. Each account is isolated — a user sees only their own appl
 - **No candidate profile or job-match scoring**: no profile page, no skills-to-job-requirements matching, no scoring. The tool tracks applications, not the candidate.
 - **No analytics or pattern detection**: no charts, no aggregation views, no "you get rejected most often at stage X" insights. Raw tracking only.
 - **No search, filter, or sort in the archive view**: the archive is a simple chronological list with read-only card views; no search bar, no date filtering, no sorting controls in MVP.
+- **No Google OAuth (or other OAuth providers) in MVP**: deferred to v2. Email+password (already wired in the 10x Astro Starter) is the MVP auth path. Google OAuth adds setup work without a functional unlock — RLS uses `auth.uid()` which is provider-agnostic, so the data-isolation guardrail is satisfied regardless of provider. Revisit in v2 if a real onboarding-friction signal materializes.
 
 ## Open Questions
 
