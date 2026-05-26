@@ -335,10 +335,10 @@ Phase 1 runbook (RLS isolation + trigger correctness) and Phase 2 runbook (Zod s
 
 #### Automated
 
-- [x] 3.1 `npm run typecheck` step appears in the `ci` job's run log and passes
-- [x] 3.2 Overall PR check status is green
+- [x] 3.1 `npm run typecheck` step appears in the `ci` job's run log and passes — f1cf35b
+- [x] 3.2 Overall PR check status is green — f1cf35b
 
 #### Manual
 
-- [x] 3.3 Deliberate type error in a scratch branch fails CI on the `typecheck` step
-- [x] 3.4 Revert returns CI to green
+- [x] 3.3 Deliberate type error in a scratch branch fails CI on the `typecheck` step — f1cf35b
+- [x] 3.4 Revert returns CI to green — f1cf35b

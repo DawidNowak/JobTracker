@@ -1,7 +1,7 @@
 ---
 change_id: applications-schema-and-rls
 title: Applications schema and RLS foundation (F-01)
-status: implementing
+status: implemented
 created: 2026-05-26
 updated: 2026-05-26
 archived_at: null
