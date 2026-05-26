@@ -1,0 +1,17 @@
+# Enforce LF line endings for all text files across platforms.
+# Prevents CRLF-on-Windows checkouts from tripping prettier/eslint locally
+# while CI (Ubuntu, LF) passes silently.
+* text=auto eol=lf
+
+# Explicit binary types — never normalize these.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.svg  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.eot  binary
+*.pdf  binary
