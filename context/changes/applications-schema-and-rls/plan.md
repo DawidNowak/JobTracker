@@ -305,19 +305,19 @@ Phase 1 runbook (RLS isolation + trigger correctness) and Phase 2 runbook (Zod s
 
 #### Automated
 
-- [ ] 1.1 `supabase db reset` applies the migration without errors
-- [ ] 1.2 `supabase db lint` reports no errors against the migration
-- [ ] 1.3 `npm run lint` and `npm run build` continue to pass
+- [x] 1.1 `supabase db reset` applies the migration without errors
+- [x] 1.2 `supabase db lint` reports no errors against the migration
+- [x] 1.3 `npm run lint` and `npm run build` continue to pass
 
 #### Manual
 
-- [ ] 1.4 Supabase Studio shows both tables with all columns, constraints, and RLS enabled
-- [ ] 1.5 Two-user RLS isolation verified (user B sees zero of user A's rows)
-- [ ] 1.6 `last_action_at` equals `created_at` on insert
-- [ ] 1.7 Non-status field edit does NOT change `last_action_at`
-- [ ] 1.8 Status change DOES advance `last_action_at`
-- [ ] 1.9 Note insert advances parent `last_action_at`
-- [ ] 1.10 Cross-user note insert rejected by RLS
+- [x] 1.4 Supabase Studio shows both tables with all columns, constraints, and RLS enabled
+- [x] 1.5 Two-user RLS isolation verified (user B sees zero of user A's rows)
+- [x] 1.6 `last_action_at` equals `created_at` on insert
+- [x] 1.7 Non-status field edit does NOT change `last_action_at`
+- [x] 1.8 Status change DOES advance `last_action_at`
+- [x] 1.9 Note insert advances parent `last_action_at`
+- [x] 1.10 Cross-user note insert rejected by RLS
 
 ### Phase 2: Generated types, Zod write-shapes, npm scripts
 
