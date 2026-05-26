@@ -19,7 +19,7 @@ Land the data foundation for JobTracker MVP: two PostgreSQL tables (`application
 - `src/lib/database.types.ts` is committed and reflects the migration; `npm run typecheck` passes.
 - `src/lib/validation/applications.ts` exports `applicationCreateSchema`, `applicationUpdateSchema`, `applicationNoteCreateSchema` as Zod schemas matching the table write-shapes.
 - `npm run db:reset`, `npm run db:types`, and `npm run typecheck` exist as documented scripts.
-- CI (`.github/workflows/ci.yml`) gains a `db-lint` job that runs `supabase db lint` against the migrations folder, and a `typecheck` step on the existing `ci` job. PRs cannot merge when either fails.
+- CI (`.github/workflows/ci.yml`) gains a `typecheck` step on the existing `ci` job. PRs cannot merge when it fails.
 
 ### Key Discoveries:
 
@@ -35,7 +35,8 @@ Land the data foundation for JobTracker MVP: two PostgreSQL tables (`application
 - No UI surface — S-01 (kanban shell) consumes the schema for reads first.
 - No analytics columns, no `archived_from_status`, no soft-delete on notes. PRD parks all of this.
 - No pgTAP, no Vitest, no Playwright. RLS/trigger correctness is verified via a manual runbook in Phase 2.
-- No CI drift check that regenerates types and diffs. Adding Supabase-in-CI is a separate decision; the lightweight gate is `db lint` + committed types + typecheck.
+- No CI drift check that regenerates types and diffs. Adding Supabase-in-CI is a separate decision; the lightweight gate is committed types + typecheck.
+- No `supabase db lint` job in CI. The CLI's `db lint` requires a live DB connection (`--linked`, `--local`, or `--db-url`) and cannot statically lint migration files. The realistic options — boot Docker in CI or wire a hosted-DB connection secret — both add infrastructure that outweighs the marginal value over `astro check` + committed `database.types.ts` for a small, frozen foundation migration.
 - No service role key in the app. F-01 stays on the anon key + RLS — the SECURITY DEFINER function is the only escalation point and it's owned by `postgres`, callable from the trigger.
 
 ## Implementation Approach
@@ -44,7 +45,7 @@ Three phases, each independently verifiable:
 
 1. **Schema migration**: one SQL file applying tables, constraints, RLS, trigger function, triggers. Verified by `supabase db reset` succeeding.
 2. **Tooling and contracts**: generated types + Zod write-shapes + npm scripts. Verified by `astro check` and a manual runbook against the local DB.
-3. **CI gate**: extend `.github/workflows/ci.yml` with `db lint` + typecheck. Verified by green CI on the foundation branch.
+3. **CI gate**: extend `.github/workflows/ci.yml` with a `typecheck` step. Verified by green CI on the foundation branch.
 
 The migration is monolithic on purpose. Splitting "tables" from "RLS" creates a transient window where tables exist without isolation — even on a greenfield database that's a bad habit to encode in the migration history. The single migration locks the invariant from the first apply.
 
@@ -220,11 +221,13 @@ Also export the inferred TypeScript types: `export type ApplicationCreate = z.in
 
 ---
 
-## Phase 3: CI gate — `supabase db lint` job + typecheck step
+## Phase 3: CI gate — typecheck step
 
 ### Overview
 
-Extend `.github/workflows/ci.yml` so the schema and type contract are enforced on every PR. Two changes: a new lightweight job that runs `supabase db lint` against the migrations folder, and a typecheck step in the existing `ci` job that runs after `npm ci` and before `npm run build`.
+Extend `.github/workflows/ci.yml` so the type contract between the committed `database.types.ts` and its consumers (`src/lib/validation/applications.ts` and onward) is enforced on every PR. Single change: a `typecheck` step in the existing `ci` job that runs after `npx astro sync` and before `npm run lint`.
+
+**Revision note**: An earlier version of this plan also proposed a parallel `db-lint` job running `supabase db lint`. During implementation we confirmed the Supabase CLI 2.101.0's `db lint` requires a live DB connection (`--linked`, `--local`, or `--db-url`) — it does not statically lint migration files. The two viable shapes for running it in CI both have downsides outweighing the marginal value here: booting Docker per PR adds 30–60s and a Docker-capable runner requirement, and linting against the hosted Supabase project introduces a new CI secret plus a hard dependency on the project not being auto-paused. For F-01's small, frozen foundation migration whose trickiest part (the SECURITY DEFINER trigger function) was already verified manually in Phase 1, the cost did not justify the gain. `astro check` against the committed types remains the load-bearing CI gate; type drift is the most likely silent failure mode. If migration linting is wanted later, `squawk` against the raw SQL file (no DB connection, ~5s) is a better fit than `supabase db lint` for this workflow and can be added in a future change.
 
 ### Changes Required:
 
@@ -234,29 +237,22 @@ Extend `.github/workflows/ci.yml` so the schema and type contract are enforced o
 
 **Intent**: Add `npm run typecheck` as an explicit step in the existing `ci` job. Build implicitly type-checks today, but `astro check` surfaces a cleaner failure and catches drift between `database.types.ts` and consumers earlier.
 
-**Contract**: New step inserted between line 19 (`npx astro sync`) and line 20 (`npm run lint`): `- run: npm run typecheck`. Same env block on the build step is unchanged.
-
-#### 2. New `db-lint` job
-
-**File**: `.github/workflows/ci.yml`
-
-**Intent**: Add a parallel job that installs the Supabase CLI and runs `supabase db lint` against the migrations folder. Does not boot a real database — `db lint` is static analysis.
-
-**Contract**: Sibling job under `jobs:` named `db-lint`. Steps: checkout, install Supabase CLI via the official action (`supabase/setup-cli@v1`) or via `npm ci` (which already installs `supabase`), then `npx supabase db lint --linked=false --schema public`. Job is not gated by `ci` — runs in parallel.
+**Contract**: New step inserted between line 19 (`npx astro sync`) and line 20 (`npm run lint`): `- run: npm run typecheck`. The env block on the build step is unchanged. No new jobs.
 
 ### Success Criteria:
 
 #### Automated Verification:
 
-- Push the branch; both `ci` and `db-lint` jobs run.
-- `ci` job: `npm run typecheck` step appears in the run log and passes.
-- `db-lint` job: runs to completion and reports no lint errors against the migration from Phase 1.
-- Both jobs are green; PR check status is green.
+- Push the branch; the `ci` job runs.
+- `npm run typecheck` step appears in the `ci` job's run log and passes.
+- Overall PR check status is green.
 
 #### Manual Verification:
 
-- Introduce a deliberate error (e.g., drop a column reference) in a scratch branch; push; confirm CI fails on the expected step.
+- Introduce a deliberate type error in a scratch branch (e.g., rename a column in `database.types.ts` so the Zod module's inferred type no longer matches a downstream usage — or, simpler, mistype an identifier in `src/lib/validation/applications.ts`); push; confirm CI fails on the `typecheck` step specifically.
 - Revert and confirm CI returns to green.
+
+**Dormant-gate note**: During Phase 3 implementation we confirmed empirically that renaming a column in the committed `src/lib/database.types.ts` does NOT fail `npm run typecheck` today, because nothing in `src/` currently imports those generated types — Phase 2's Zod module only imports `z`. The typecheck gate is therefore **dormant for `database.types.ts` drift in F-01** and becomes load-bearing the moment S-02 lands an endpoint that imports `Database['public']['Tables']['applications']['Row']` (or similar). Within F-01 the gate is still useful: any type error inside `src/lib/validation/applications.ts` or other `src/` files is caught.
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation that CI is green on the foundation branch before considering F-01 complete and unlocking S-01.
 
@@ -323,28 +319,26 @@ Phase 1 runbook (RLS isolation + trigger correctness) and Phase 2 runbook (Zod s
 
 #### Automated
 
-- [x] 2.1 `npm run typecheck` passes
-- [x] 2.2 `npm run lint` passes
-- [x] 2.3 `npm run build` passes
-- [x] 2.4 `npm run db:reset && npm run db:types` produces a byte-identical `database.types.ts`
+- [x] 2.1 `npm run typecheck` passes — 65c7f3a
+- [x] 2.2 `npm run lint` passes — 65c7f3a
+- [x] 2.3 `npm run build` passes — 65c7f3a
+- [x] 2.4 `npm run db:reset && npm run db:types` produces a byte-identical `database.types.ts` — 65c7f3a
 
 #### Manual
 
-- [x] 2.5 `applicationCreateSchema.parse(...)` succeeds on a valid payload
-- [x] 2.6 Invalid status enum rejected with a clear Zod error
-- [x] 2.7 Missing `source` rejected with a clear Zod error
-- [x] 2.8 `npm run db:types` regenerates cleanly against a freshly reset local DB
+- [x] 2.5 `applicationCreateSchema.parse(...)` succeeds on a valid payload — 65c7f3a
+- [x] 2.6 Invalid status enum rejected with a clear Zod error — 65c7f3a
+- [x] 2.7 Missing `source` rejected with a clear Zod error — 65c7f3a
+- [x] 2.8 `npm run db:types` regenerates cleanly against a freshly reset local DB — 65c7f3a
 
-### Phase 3: CI gate — `supabase db lint` job + typecheck step
+### Phase 3: CI gate — typecheck step
 
 #### Automated
 
-- [ ] 3.1 Both `ci` and `db-lint` jobs run on the foundation branch
-- [ ] 3.2 `npm run typecheck` step in the `ci` job passes
-- [ ] 3.3 `db-lint` job passes against the Phase 1 migration
-- [ ] 3.4 Overall PR check status is green
+- [x] 3.1 `npm run typecheck` step appears in the `ci` job's run log and passes
+- [x] 3.2 Overall PR check status is green
 
 #### Manual
 
-- [ ] 3.5 Deliberate error in a scratch branch fails CI on the expected step
-- [ ] 3.6 Revert returns CI to green
+- [x] 3.3 Deliberate type error in a scratch branch fails CI on the `typecheck` step
+- [x] 3.4 Revert returns CI to green

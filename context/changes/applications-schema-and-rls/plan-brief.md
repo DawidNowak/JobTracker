@@ -12,7 +12,7 @@ Supabase is wired (`src/lib/supabase.ts:9` SSR client, `src/middleware.ts:13` ex
 
 ## Desired End State
 
-A developer runs `npm run db:reset` and gets a local Supabase instance with both tables, RLS, and triggers in place. `src/lib/database.types.ts` is committed and reflects the migration. `src/lib/validation/applications.ts` exports Zod schemas ready for S-02's first endpoint. CI runs `supabase db lint` + `astro check` on every PR. S-01 can now write its empty-board read query against a typed, isolated, performant schema.
+A developer runs `npm run db:reset` and gets a local Supabase instance with both tables, RLS, and triggers in place. `src/lib/database.types.ts` is committed and reflects the migration. `src/lib/validation/applications.ts` exports Zod schemas ready for S-02's first endpoint. CI runs `astro check` (via `npm run typecheck`) on every PR to catch drift between the committed types and their consumers. S-01 can now write its empty-board read query against a typed, isolated, performant schema.
 
 ## Key Decisions Made
 
@@ -26,7 +26,7 @@ A developer runs `npm run db:reset` and gets a local Supabase instance with both
 | Note → parent timestamp update    | `SECURITY DEFINER` function owned by `postgres`, called from AFTER INSERT trigger      | Trigger must update parent row across RLS; SECURITY DEFINER is the standard pattern. RLS still gates the note insert itself. | Plan   |
 | Zod placement                    | Ship in F-01 as `src/lib/validation/applications.ts`; no consumers until S-02         | Roadmap F-01 outcome names Zod schemas as part of the foundation; S-02 imports rather than defines.                          | Roadmap |
 | Verification                     | Lightweight: `db reset` + committed types + manual RLS/trigger runbook                 | Foundation correctness is verified once; no pgTAP/Vitest+Docker scope inflation inside the 4-week MVP budget.                | Plan   |
-| CI additions                     | `db lint` job + `astro check` typecheck step                                          | Cheap static gates that catch real failure modes (malformed SQL, type drift) without booting a real DB in CI.                 | Plan   |
+| CI additions                     | `astro check` typecheck step only; no `db lint` job                                   | `supabase db lint` (CLI 2.101.0) requires a live DB and cannot statically lint SQL files. Booting Docker per PR or wiring a hosted-DB secret outweighs the marginal value for a small, frozen foundation migration. Type drift is the highest-value gate; `astro check` catches it. | Plan (revised during impl) |
 
 ## Scope
 
@@ -39,7 +39,7 @@ A developer runs `npm run db:reset` and gets a local Supabase instance with both
 - `src/lib/validation/applications.ts` with three Zod schemas
 - `db:reset`, `db:types`, `typecheck` npm scripts
 - `zod` dependency added
-- `.github/workflows/ci.yml` extended with `db-lint` job and typecheck step
+- `.github/workflows/ci.yml` extended with a typecheck step in the existing `ci` job
 - Manual verification runbook in plan
 
 **Out of scope:**
@@ -89,7 +89,7 @@ App layer (this slice ships, S-02+ consumes):
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | 1. Schema migration with RLS and triggers                    | Tables, constraints, RLS, SECURITY DEFINER function, two triggers, config.toml | Trigger / RLS interaction wrong → silently broken `last_action_at` for note inserts   |
 | 2. Generated types, Zod write-shapes, npm scripts            | `database.types.ts`, Zod module, `db:reset` / `db:types` / `typecheck` scripts | Generated types drift from migration silently — closed by Phase 3 CI typecheck        |
-| 3. CI gate — `supabase db lint` job + typecheck step         | New CI job + step that prevent broken migrations from merging                  | `supabase/setup-cli` action or CLI invocation differences across runners              |
+| 3. CI gate — typecheck step                                  | `npm run typecheck` step in the existing `ci` job catches type drift on every PR | Type errors that only surface at runtime (e.g., Polish-diacritic enum mishandling) are still uncaught — astro check is static |
 
 **Prerequisites:** Supabase CLI on the developer's machine (Docker required for `supabase start`); foundation auth (already in baseline).
 **Estimated effort:** ~1 focused session (3-5 hours) across the three phases. Phase 1 is the bulk; Phases 2 and 3 are mechanical.
@@ -97,7 +97,7 @@ App layer (this slice ships, S-02+ consumes):
 ## Open Risks & Assumptions
 
 - Assumes Polish diacritic literals in CHECK constraints and SECURITY DEFINER trigger function interact cleanly with `supabase gen types typescript` — string literal unions in TS support arbitrary unicode, but verifying the generated output matches the expected union is part of Phase 2's automated verification.
-- Assumes `supabase db lint` runs offline (static analysis) and does not require a real database in CI. The implementer should confirm this against the current CLI version (`2.101.0`) during Phase 3.
+- Resolved during Phase 3 planning: `supabase db lint` does require a live DB and the job was dropped. The CI gate is now `astro check` only. If migration-level lint is wanted later, `squawk` against the raw SQL file is the right fit.
 - Assumes future migrations (S-10 archive flow, any later columns) will follow the same pattern. If a v2 OAuth migration changes how `auth.uid()` resolves, RLS remains correct because the policy is provider-agnostic.
 
 ## Success Criteria (Summary)
@@ -105,4 +105,4 @@ App layer (this slice ships, S-02+ consumes):
 - A signed-in user can only see, modify, and delete their own applications and notes — verified by the two-user runbook in Phase 1.
 - `last_action_at` advances only on status change or note insert; non-status edits leave it untouched — verified by the runbook.
 - S-02 can `import { applicationCreateSchema } from '@/lib/validation/applications'` and validate a POST body without writing any schema code locally.
-- Every future PR runs `supabase db lint` + `astro check` and fails fast on schema or type errors.
+- Every future PR runs `astro check` and fails fast on type drift between the committed `database.types.ts` and its consumers.
