@@ -254,23 +254,23 @@ Not applicable — no schema or data changes in this slice.
 
 #### Manual
 
-- [x] 1.4 `AppShell.astro` and `AppNav.astro` exist at the documented paths and use `@/*` aliases for internal imports
-- [x] 1.5 `AppNav.astro` reads `Astro.locals.user` and renders the email when present
+- [x] 1.4 `AppShell.astro` and `AppNav.astro` exist at the documented paths and use `@/*` aliases for internal imports — 95563e6
+- [x] 1.5 `AppNav.astro` reads `Astro.locals.user` and renders the email when present — 95563e6
 
 ### Phase 2: Board and archive routes
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint`
-- [x] 2.2 Type checking passes: `npm run typecheck`
-- [x] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint` — 95563e6
+- [x] 2.2 Type checking passes: `npm run typecheck` — 95563e6
+- [x] 2.3 Build succeeds: `npm run build` — 95563e6
 
 #### Manual
 
-- [x] 2.4 Signing in lands the user on /dashboard (not /)
-- [x] 2.5 Authenticated /dashboard renders three columns labeled Interesujące, Zaaplikowano, Rozmowa with "Brak aplikacji" placeholders
-- [x] 2.6 Top nav shows JobTracker, Tablica, Archiwum, user email, and Wyloguj; Tablica is marked active on /dashboard
-- [x] 2.7 Clicking Archiwum navigates to /archive; active state moves; body shows "Wkrótce" placeholder
-- [x] 2.8 Clicking Wyloguj signs out and lands on `/`
-- [x] 2.9 Unauthenticated visits to /dashboard and /archive both redirect to /auth/signin
-- [x] 2.10 Public landing page and auth pages still render with the original cosmic theme
+- [x] 2.4 Signing in lands the user on /dashboard (not /) — 95563e6
+- [x] 2.5 Authenticated /dashboard renders three columns labeled Interesujące, Zaaplikowano, Rozmowa with "Brak aplikacji" placeholders — 95563e6
+- [x] 2.6 Top nav shows JobTracker, Tablica, Archiwum, user email, and Wyloguj; Tablica is marked active on /dashboard — 95563e6
+- [x] 2.7 Clicking Archiwum navigates to /archive; active state moves; body shows "Wkrótce" placeholder — 95563e6
+- [x] 2.8 Clicking Wyloguj signs out and lands on `/` — 95563e6
+- [x] 2.9 Unauthenticated visits to /dashboard and /archive both redirect to /auth/signin — 95563e6
+- [x] 2.10 Public landing page and auth pages still render with the original cosmic theme — 95563e6
