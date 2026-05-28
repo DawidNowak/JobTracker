@@ -74,48 +74,18 @@ npm run dev
 
 This project uses [Supabase](https://supabase.com/) for authentication. Environment variables are declared via Astro's `astro:env` schema and are treated as **server-only secrets** — they are never exposed to the client.
 
-### First-time setup (local, no cloud project needed)
+### First-time setup
 
-Requires [Docker](https://www.docker.com/) and ~7 GB RAM.
+This project uses a hosted Supabase project. Create one at [supabase.com](https://supabase.com/) (or get the project ref from an existing one), then:
 
-1. Create your `.env` file:
+1. Create your `.env` and `.dev.vars` files:
 
 ```bash
 cp .env.example .env
+cp .env.example .dev.vars
 ```
 
-2. Initialize the local Supabase project (creates a `supabase/` config folder):
-
-```bash
-npx supabase init
-```
-
-3. Start the local stack (downloads Docker images on first run):
-
-```bash
-npx supabase start
-```
-
-4. Copy the credentials printed by the CLI into your `.env` and `.dev.vars`:
-
-```
-SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_KEY=<anon key from CLI output>
-```
-
-5. To stop the stack when done:
-
-```bash
-npx supabase stop
-```
-
-The local Studio UI is available at `http://localhost:54323`.
-
-No database tables or migrations are required — this project uses Supabase Auth's built-in `auth.users` table only.
-
-### Using a cloud Supabase project instead
-
-If you prefer to use a hosted Supabase project, add these variables to your `.env` and `.dev.vars` files:
+2. Fill in the Supabase credentials in both files:
 
 | Variable       | Description                                                |
 | -------------- | ---------------------------------------------------------- |
@@ -125,6 +95,19 @@ If you prefer to use a hosted Supabase project, add these variables to your `.en
 ```
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_KEY=<anon-key>
+```
+
+3. Link the Supabase CLI to your project (one-time, required before `db:push` / `db:types` work):
+
+```bash
+npx supabase link --project-ref <project-ref>
+```
+
+4. Apply the committed migrations and regenerate types:
+
+```bash
+npm run db:push    # applies supabase/migrations/*.sql to your linked project
+npm run db:types   # regenerates src/lib/database.types.ts from the linked schema
 ```
 
 ### Email confirmation in local development

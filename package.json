@@ -12,7 +12,6 @@
     "format": "prettier --write .",
     "typecheck": "astro check",
     "db:push": "supabase db push",
-    "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts"
   },
   "dependencies": {
