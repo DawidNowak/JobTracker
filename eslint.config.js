@@ -64,7 +64,9 @@ const astroConfig = tseslint.config({
   rules: {
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",
-    "astro/prefer-class-list-directive": "warn",
+    // Project standardizes on cn() from @/lib/utils in .astro and .tsx alike
+    // for tailwind-merge conflict resolution; class:list lacks it. See AGENTS.md.
+    "astro/prefer-class-list-directive": "off",
   },
 });
 

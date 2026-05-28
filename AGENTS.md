@@ -5,7 +5,7 @@ Job tracking application built with Astro 6 SSR, React 19, Tailwind CSS 4, Supab
 ## Hard Rules
 
 - API routes **must** export `const prerender = false`; all other pages are SSR by default (`output: "server"`).
-- Use `cn()` from `@/lib/utils` for all class name merging — never concatenate Tailwind class strings manually.
+- Use `cn()` from `@/lib/utils` for all class name merging — never concatenate Tailwind class strings manually. Applies inside `.astro` templates too; we deliberately do not use Astro's `class:list` directive because it lacks `tailwind-merge` conflict resolution.
 - We enforce strict island architecture: React components are only permitted when browser events, state, or hooks are required. Do not default to React for static content.
 - Do not use Next.js-style directives (`"use client"`, `"use server"`).
 - Every new Supabase table must have RLS enabled with separate SELECT, INSERT, UPDATE, and DELETE policies for each relevant role (`anon`, `authenticated`), each using `auth.uid()` or an explicit role clause — never `USING (true)`. Define all policies in the table's migration file.
