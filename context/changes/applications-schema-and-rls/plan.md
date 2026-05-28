@@ -148,6 +148,10 @@ $$;
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation that the runbook above has been executed against a local Supabase instance before proceeding to Phase 2.
 
+**Post-implementation addendum (2026-05-28, search_path on trigger helpers)**: A second follow-up migration `20260528153903_lock_trigger_function_search_path.sql` `create or replace`s the two SECURITY INVOKER trigger helpers (`applications_bump_last_action_at_on_status_change`, `application_notes_bump_parent_trigger`) with `set search_path = ''` added. The original Phase 1 migration locked search_path only on the SECURITY DEFINER function. The helpers reference no tables by name today (one writes only NEW; the other PERFORMs a fully qualified function), so the live risk is low — this is defense-in-depth and clears Supabase's `function_search_path_mutable` linter warning the Phase 1 db lint criterion implicitly relied on.
+
+**Post-implementation addendum (2026-05-28, RLS hole)**: A follow-up migration `20260526132205_harden_application_notes_rls.sql` was added after Phase 1 landed. The Phase 1 INSERT/UPDATE policies on `application_notes` only checked `user_id = auth.uid()`, which let user B insert a note owned by themselves but pointed at user A's `application_id` — a cross-user write leak. The follow-up tightens both policies with an additional `exists (select 1 from public.applications where id = application_id and user_id = auth.uid())` predicate. SELECT and DELETE policies keep the direct-equality form since the writer-side check now guarantees note ownership is consistent with the parent application. The hole and the fix are both surfaced by the Phase 1 manual runbook step "Attempt to insert a note referencing user A's application while signed in as user B" — the runbook caught it post-merge, not before.
+
 ---
 
 ## Phase 2: Generated types, Zod write-shapes, npm scripts
@@ -218,6 +222,8 @@ Also export the inferred TypeScript types: `export type ApplicationCreate = z.in
 - Confirm `npm run db:types` regenerates the file without errors against a freshly reset local DB.
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation that the Zod schemas have been smoke-tested against the local DB before proceeding to Phase 3.
+
+**Post-implementation addendum (2026-05-28)**: This project has no local Docker Supabase stack — development runs against the hosted Supabase Postgres project via `supabase link`. The `db:types` script therefore shipped as `supabase gen types typescript --linked > src/lib/database.types.ts` (not `--local` as written above). Success criterion 2.4's byte-identical-after-`db:reset` check is infeasible with this workflow and is interpreted as "rerunning `npm run db:types` against the linked project produces no diff" — i.e., the committed types match what the linked project currently exposes. Manual Verification step "freshly reset local DB" is similarly read as "against the linked project". If a local Docker stack is ever introduced, revisit the script (and this addendum) to switch back to `--local`.
 
 ---
 
