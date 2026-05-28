@@ -248,29 +248,29 @@ Not applicable — no schema or data changes in this slice.
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint`
-- [x] 1.2 Type checking passes: `npm run typecheck`
-- [x] 1.3 Build succeeds: `npm run build`
+- [x] 1.1 Linting passes: `npm run lint` — e217c67
+- [x] 1.2 Type checking passes: `npm run typecheck` — e217c67
+- [x] 1.3 Build succeeds: `npm run build` — e217c67
 
 #### Manual
 
-- [ ] 1.4 `AppShell.astro` and `AppNav.astro` exist at the documented paths and use `@/*` aliases for internal imports
-- [ ] 1.5 `AppNav.astro` reads `Astro.locals.user` and renders the email when present
+- [x] 1.4 `AppShell.astro` and `AppNav.astro` exist at the documented paths and use `@/*` aliases for internal imports
+- [x] 1.5 `AppNav.astro` reads `Astro.locals.user` and renders the email when present
 
 ### Phase 2: Board and archive routes
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type checking passes: `npm run typecheck`
-- [ ] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type checking passes: `npm run typecheck`
+- [x] 2.3 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 Signing in lands the user on /dashboard (not /)
-- [ ] 2.5 Authenticated /dashboard renders three columns labeled Interesujące, Zaaplikowano, Rozmowa with "Brak aplikacji" placeholders
-- [ ] 2.6 Top nav shows JobTracker, Tablica, Archiwum, user email, and Wyloguj; Tablica is marked active on /dashboard
-- [ ] 2.7 Clicking Archiwum navigates to /archive; active state moves; body shows "Wkrótce" placeholder
-- [ ] 2.8 Clicking Wyloguj signs out and lands on `/`
-- [ ] 2.9 Unauthenticated visits to /dashboard and /archive both redirect to /auth/signin
-- [ ] 2.10 Public landing page and auth pages still render with the original cosmic theme
+- [x] 2.4 Signing in lands the user on /dashboard (not /)
+- [x] 2.5 Authenticated /dashboard renders three columns labeled Interesujące, Zaaplikowano, Rozmowa with "Brak aplikacji" placeholders
+- [x] 2.6 Top nav shows JobTracker, Tablica, Archiwum, user email, and Wyloguj; Tablica is marked active on /dashboard
+- [x] 2.7 Clicking Archiwum navigates to /archive; active state moves; body shows "Wkrótce" placeholder
+- [x] 2.8 Clicking Wyloguj signs out and lands on `/`
+- [x] 2.9 Unauthenticated visits to /dashboard and /archive both redirect to /auth/signin
+- [x] 2.10 Public landing page and auth pages still render with the original cosmic theme
