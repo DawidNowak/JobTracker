@@ -1,0 +1,20 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import AppNav from "@/components/app/AppNav.astro";
+
+interface Props {
+  title?: string;
+  activeNav: "tablica" | "archiwum";
+}
+
+const { title, activeNav } = Astro.props;
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-neutral-50">
+    <AppNav activeNav={activeNav} />
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <slot />
+    </main>
+  </div>
+</Layout>

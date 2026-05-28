@@ -1,0 +1,35 @@
+---
+import { cn } from "@/lib/utils";
+
+interface Props {
+  activeNav: "tablica" | "archiwum";
+}
+
+const { activeNav } = Astro.props;
+const { user } = Astro.locals;
+
+const linkBase = "text-sm transition-colors";
+const linkInactive = "text-neutral-600 hover:text-neutral-900";
+const linkActive = "font-semibold text-neutral-900 border-b-2 border-neutral-900 pb-0.5";
+---
+
+<header class="border-b border-neutral-200 bg-white">
+  <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <div class="flex items-center gap-6">
+      <a href="/dashboard" class="text-base font-bold text-neutral-900">JobTracker</a>
+      <a href="/dashboard" class={cn(linkBase, activeNav === "tablica" ? linkActive : linkInactive)}>Tablica</a>
+      <a href="/archive" class={cn(linkBase, activeNav === "archiwum" ? linkActive : linkInactive)}>Archiwum</a>
+    </div>
+    <div class="flex items-center gap-4">
+      {user && <span class="text-sm text-neutral-600">{user.email}</span>}
+      <form method="POST" action="/api/auth/signout">
+        <button
+          type="submit"
+          class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-100"
+        >
+          Wyloguj
+        </button>
+      </form>
+    </div>
+  </nav>
+</header>
