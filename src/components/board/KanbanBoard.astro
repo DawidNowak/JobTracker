@@ -1,8 +1,16 @@
 ---
 import { applicationStatusValues } from "@/lib/validation/applications";
+import type { ApplicationStatus } from "@/lib/validation/applications";
 import KanbanColumn from "@/components/board/KanbanColumn.astro";
+import type { ApplicationRow } from "@/types";
+
+interface Props {
+  applications: Record<ApplicationStatus, ApplicationRow[]>;
+}
+
+const { applications } = Astro.props;
 ---
 
 <div class="flex gap-4">
-  {applicationStatusValues.map((status) => <KanbanColumn title={status} />)}
+  {applicationStatusValues.map((status) => <KanbanColumn title={status} applications={applications[status]} />)}
 </div>

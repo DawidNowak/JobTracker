@@ -373,17 +373,17 @@ No schema changes. F-01 already provides every column this slice writes to.
 
 #### Automated
 
-- [ ] 1.1 Linting passes: `npm run lint`
-- [ ] 1.2 Type checking passes: `npm run typecheck`
-- [ ] 1.3 Build succeeds: `npm run build`
+- [x] 1.1 Linting passes: `npm run lint`
+- [x] 1.2 Type checking passes: `npm run typecheck`
+- [x] 1.3 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 1.4 Zero rows: `/dashboard` renders three columns with "Brak aplikacji" (no regression)
-- [ ] 1.5 Hand-inserted plain-text row appears in Interesujące with company bold, position below, no "Link do oferty", no work-mode badge, "dodano przed chwilą"
-- [ ] 1.6 Updating the row to a LinkedIn URL + Zdalna shows "Link do oferty" anchor (new tab) and Zdalna badge
-- [ ] 1.7 Second row at status Zaaplikowano puts that card in Zaaplikowano; Rozmowa stays empty
-- [ ] 1.8 User B sees empty columns — none of user A's cards leak
+- [x] 1.4 Zero rows: `/dashboard` renders three columns with "Brak aplikacji" (no regression)
+- [x] 1.5 Hand-inserted plain-text row appears in Interesujące with company bold, position below, no "Link do oferty", no work-mode badge, "dodano przed chwilą"
+- [x] 1.6 Updating the row to a LinkedIn URL + Zdalna shows "Link do oferty" anchor (new tab) and Zdalna badge
+- [x] 1.7 Second row at status Zaaplikowano puts that card in Zaaplikowano; Rozmowa stays empty
+- [x] 1.8 User B sees empty columns — none of user A's cards leak
 
 ### Phase 2: POST /api/applications endpoint
 
