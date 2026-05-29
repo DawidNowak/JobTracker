@@ -347,35 +347,35 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 
 #### Automated
 
-- [x] 1.1 Lint passes: `npm run lint`
-- [x] 1.2 Type-check passes: `npm run typecheck` (or `astro check`)
-- [x] 1.3 Build passes: `npm run build`
+- [x] 1.1 Lint passes: `npm run lint` — 0c7a2c1
+- [x] 1.2 Type-check passes: `npm run typecheck` (or `astro check`) — 0c7a2c1
+- [x] 1.3 Build passes: `npm run build` — 0c7a2c1
 
 #### Manual
 
-- [x] 1.4 PATCH happy path returns 200 with updated row and bumped `last_action_at`
-- [x] 1.5 PATCH with invalid status body returns 422 with field-keyed errors
-- [x] 1.6 PATCH without session cookie returns 401
-- [x] 1.7 PATCH with random UUID returns 404
-- [x] 1.8 PATCH with user B's cookie against user A's id returns 404 (RLS)
-- [x] 1.9 GET / DELETE on `/api/applications/[id]` return Astro's default 405 / 404 (no route file)
+- [x] 1.4 PATCH happy path returns 200 with updated row and bumped `last_action_at` — 0c7a2c1
+- [x] 1.5 PATCH with invalid status body returns 422 with field-keyed errors — 0c7a2c1
+- [x] 1.6 PATCH without session cookie returns 401 — 0c7a2c1
+- [x] 1.7 PATCH with random UUID returns 404 — 0c7a2c1
+- [x] 1.8 PATCH with user B's cookie against user A's id returns 404 (RLS) — 0c7a2c1
+- [x] 1.9 GET / DELETE on `/api/applications/[id]` return Astro's default 405 / 404 (no route file) — 0c7a2c1
 
 ### Phase 2: Port board to React (no DnD wiring yet)
 
 #### Automated
 
-- [ ] 2.1 Lint passes
-- [ ] 2.2 Type-check passes
-- [ ] 2.3 Build passes
-- [ ] 2.4 No references to deleted Astro board files remain in `src/`
+- [x] 2.1 Lint passes
+- [x] 2.2 Type-check passes
+- [x] 2.3 Build passes
+- [x] 2.4 No references to deleted Astro board files remain in `src/`
 
 #### Manual
 
-- [ ] 2.5 Dashboard renders three columns with identical layout to S-02
-- [ ] 2.6 Existing cards appear in their correct columns by `status`
-- [ ] 2.7 Card timestamps reflect `last_action_at` (verify by PATCH + reload)
-- [ ] 2.8 `+` add flow still works in Interesujące and Zaaplikowano; Rozmowa has no `+`
-- [ ] 2.9 No React hydration warnings in the browser console
+- [x] 2.5 Dashboard renders three columns with identical layout to S-02
+- [x] 2.6 Existing cards appear in their correct columns by `status`
+- [x] 2.7 Card timestamps reflect `last_action_at` (verify by PATCH + reload)
+- [x] 2.8 `+` add flow still works in Interesujące and Zaaplikowano; Rozmowa has no `+`
+- [x] 2.9 No React hydration warnings in the browser console
 
 ### Phase 3: Wire drag-and-drop with optimistic move + snap-back
 
