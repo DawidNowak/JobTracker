@@ -381,28 +381,28 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 
 #### Automated
 
-- [x] 2.1 Lint passes: `npm run lint`
-- [x] 2.2 Build succeeds: `npm run build`
+- [x] 2.1 Lint passes: `npm run lint` — b441a6b
+- [x] 2.2 Build succeeds: `npm run build` — b441a6b
 
 #### Manual
 
-- [x] 2.3 POSTing the JJIT reference URL returns 200 with `status: "ok"` and a populated `result` (position, company, description with skills prepended, salary string in `"… – … PLN/mies. (B2B); …"` format, work_mode from the enum).
-- [x] 2.4 POSTing a JJIT URL whose slug returns 404 from JJIT returns 200 with `status: "fetch_failed"`.
-- [x] 2.5 A JJIT posting that genuinely has no salary still returns `status: "partial"` (no salary key) without failing.
-- [x] 2.6 The description HTML is preserved verbatim (paragraph tags, lists, etc.) — no stripping.
+- [x] 2.3 POSTing the JJIT reference URL returns 200 with `status: "ok"` and a populated `result` (position, company, description with skills prepended, salary string in `"… – … PLN/mies. (B2B); …"` format, work_mode from the enum). — b441a6b
+- [x] 2.4 POSTing a JJIT URL whose slug returns 404 from JJIT returns 200 with `status: "fetch_failed"`. — b441a6b
+- [x] 2.5 A JJIT posting that genuinely has no salary still returns `status: "partial"` (no salary key) without failing. — b441a6b
+- [x] 2.6 The description HTML is preserved verbatim (paragraph tags, lists, etc.) — no stripping. — b441a6b
 
 ### Phase 3: LinkedIn parser
 
 #### Automated
 
-- [ ] 3.1 Lint passes: `npm run lint`
-- [ ] 3.2 Build succeeds: `npm run build`
+- [x] 3.1 Lint passes: `npm run lint`
+- [x] 3.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 3.3 POSTing the LinkedIn reference URL returns 200 with `status: "ok"` or `status: "partial"` on success days; the `result` contains at minimum a populated `position` and either `company` or `description`.
-- [ ] 3.4 POSTing the canonical authwall URL `/jobs/view/{id}` returns 200 with `status: "fetch_failed"` or `status: "empty"` — never a hard error.
-- [ ] 3.5 The work_mode sniffer returns one of `"Zdalna" | "Hybrydowa" | "Stacjonarna"` or undefined; never an invalid value.
+- [x] 3.3 POSTing the LinkedIn reference URL returns 200 with `status: "ok"` or `status: "partial"` on success days; the `result` contains at minimum a populated `position` and either `company` or `description`.
+- [x] 3.4 POSTing the canonical authwall URL `/jobs/view/{id}` returns 200 with `status: "fetch_failed"` or `status: "empty"` — never a hard error.
+- [x] 3.5 The work_mode sniffer returns one of `"Zdalna" | "Hybrydowa" | "Stacjonarna"` or undefined; never an invalid value.
 
 ### Phase 4: Form integration
 
