@@ -3,27 +3,11 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase";
 import { applicationStatusUpdateSchema } from "@/lib/validation/applications";
 import { updateApplicationStatus } from "@/lib/services/applications";
+import { jsonResponse, formatZodErrors } from "@/lib/http";
 
 export const prerender = false;
 
 const uuidSchema = z.uuid();
-
-function jsonResponse(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function formatStatusErrors(error: z.ZodError): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = issue.path[0];
-    if (typeof key !== "string" || key in errors) continue;
-    errors[key] = issue.message;
-  }
-  return errors;
-}
 
 export const PATCH: APIRoute = async (context) => {
   const user = context.locals.user;
@@ -45,7 +29,7 @@ export const PATCH: APIRoute = async (context) => {
 
   const parsed = applicationStatusUpdateSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonResponse(422, { errors: formatStatusErrors(parsed.error) });
+    return jsonResponse(422, { errors: formatZodErrors(parsed.error) });
   }
 
   const supabase = createClient(context.request.headers, context.cookies);

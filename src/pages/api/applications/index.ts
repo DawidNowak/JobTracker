@@ -1,30 +1,19 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
 import { createClient } from "@/lib/supabase";
 import { applicationCreateSchema } from "@/lib/validation/applications";
 import { createApplication } from "@/lib/services/applications";
+import { jsonResponse, formatZodErrors } from "@/lib/http";
 
 export const prerender = false;
 
-function jsonResponse(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function formatApplicationErrors(error: z.ZodError): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) {
+function formatApplicationErrors(error: Parameters<typeof formatZodErrors>[0]) {
+  return formatZodErrors(error, (issue) => {
     const key = issue.path[0];
-    if (typeof key !== "string" || key in errors) continue;
     if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
-      errors[key] = "Źródło jest wymagane.";
-    } else {
-      errors[key] = issue.message;
+      return "Źródło jest wymagane.";
     }
-  }
-  return errors;
+    return undefined;
+  });
 }
 
 export const POST: APIRoute = async (context) => {

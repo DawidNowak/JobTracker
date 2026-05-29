@@ -131,7 +131,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** After this lands, the kanban is functionally a kanban — without S-05 the board is read-only. Bi-directional transitions are non-negotiable per PRD Business Logic; sequencing them in one slice avoids a "phase 1 forward-only, phase 2 add backward" regression risk.
-- **Status:** done (shipped 2026-05-29, commits 0c7a2c1 / a801964 / 98cf02b; awaiting archive)
+- **Status:** done (shipped 2026-05-29, commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed; awaiting archive)
 
 ### S-03: Edit and delete application
 
@@ -225,7 +225,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | S-01       | kanban-shell-and-nav               | Kanban shell with three columns + top nav (Tablica / Archiwum)     | no                    | Needs F-01                                  |
 | S-02       | manual-add-application             | Manual add-application form (source required, free text)           | yes                   | Shipped 2026-05-29 (impl_reviewed); awaiting archive          |
 | S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** S-02 shipped 2026-05-29     |
-| S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | yes                   | Shipped 2026-05-29 (commits 0c7a2c1 / a801964 / 98cf02b); awaiting archive |
+| S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | yes                   | Shipped 2026-05-29 (commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed); awaiting archive |
 | S-03       | edit-and-delete-application        | Edit any field + delete card (with warning dialogs)                | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05 |
 | S-06       | notes-and-card-detail              | Card detail view + follow-up notes (write + history)               | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05, S-03 |
 | S-07       | interesujace-decision-prompt       | "Zdecyduj — aplikujesz?" decision prompt (1-day threshold)         | no                    | Needs S-05, S-03                            |
