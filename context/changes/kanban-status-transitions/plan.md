@@ -57,6 +57,7 @@ The phasing means: if Phase 2's refactor turns out flaky (e.g., AddApplicationDi
 - **One `DndContext` covers the whole board.** `KanbanBoard.tsx` must be the parent of all three columns and their cards — there is no way to make cross-column DnD work with three sibling islands. This is the architectural reason the board (not just the card) becomes a `client:load` boundary.
 - **Optimistic move snapshot.** Capture the entire `applications` state object before mutating it. On error, `setState(snapshot)` restores both the source-column membership and the previous `last_action_at`. Do not try to patch fields back individually.
 - **Same-column drop short-circuits before any state change.** Compare `active.data.current.from === over?.id` at the top of `onDragEnd` — if true, return immediately; do not snapshot, do not mutate, do not PATCH.
+- **Single-flight: only one PATCH in flight at a time.** A board-level `isMutating` boolean is set `true` before the PATCH and cleared in `finally`. While true, `useDraggable({ disabled: isMutating })` prevents any card from being picked up. This avoids the snapshot-stomp where a slow PATCH-A reverts to a snapshot that predates a subsequent PATCH-B (single-tab self-collision under slow network). The pattern mirrors `AddApplicationDialog`'s `submitting` flag (`AddApplicationDialog.tsx:51`).
 - **AddApplicationDialog continues to reload on success.** Inside the React tree it is a regular child component (no `client:load` directive — directives are only meaningful at the Astro→React boundary). Its `window.location.reload()` path is unchanged; reload re-renders dashboard.astro with fresh data and re-hydrates the React island.
 
 ## Phase 1: PATCH endpoint + service + schema
@@ -211,7 +212,7 @@ Make the cards draggable and the columns droppable. Implement the `onDragEnd` st
 
 **Intent**: Wrap the column row in a single `DndContext` configured with a `PointerSensor` (activation constraint of ~5px so accidental clicks don't initiate a drag) and the `onDragEnd` handler. Add board-level UI state for the in-flight error banner. Render a `DragOverlay` that shows the card under the cursor during drag.
 
-**Contract**: New imports from `@dnd-kit/core`: `DndContext`, `DragOverlay`, `PointerSensor`, `useSensor`, `useSensors`, `DragEndEvent`, `DragStartEvent`. New local state: `applications` (already there from Phase 2), `error: string | null`, `activeDragId: string | null` (drives `DragOverlay`). `onDragStart` stores the active card id; `onDragEnd` runs the state machine described below. Error banner renders above the column flex row when `error` is non-null, with a dismiss button that clears it.
+**Contract**: New imports from `@dnd-kit/core`: `DndContext`, `DragOverlay`, `PointerSensor`, `useSensor`, `useSensors`, `DragEndEvent`, `DragStartEvent`. New local state: `applications` (already there from Phase 2), `error: string | null`, `activeDragId: string | null` (drives `DragOverlay`), `isMutating: boolean` (single-flight gate — true while a PATCH is in flight). `onDragStart` stores the active card id; `onDragEnd` runs the state machine described below. The `isMutating` flag is passed down to columns/cards so `useDraggable({ disabled: isMutating })` prevents a second drop while the first PATCH is still resolving. Error banner renders above the column flex row when `error` is non-null, with a dismiss button that clears it.
 
 **Contract (drag-end state machine)**: pseudocode for the non-obvious ordering, since the snapshot/PATCH/revert sequence matters:
 
@@ -231,6 +232,7 @@ function onDragEnd(event: DragEndEvent) {
     [to]:   [{ ...card, status: to, last_action_at: movedAt }, ...applications[to]],
   });
 
+  setIsMutating(true);                              // single-flight gate: cards can't be picked up while in flight
   fetch(`/api/applications/${card.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -243,6 +245,8 @@ function onDragEnd(event: DragEndEvent) {
   }).catch(() => {
     setApplications(snapshot);
     setError("Brak połączenia. Spróbuj ponownie.");
+  }).finally(() => {
+    setIsMutating(false);
   });
 }
 ```
@@ -255,7 +259,7 @@ function onDragEnd(event: DragEndEvent) {
 
 **Intent**: Make the card a draggable handle. Pass the source column id via `data.current.from` so `onDragEnd` doesn't need a separate lookup. Hide the card visually while it's being dragged (the `DragOverlay` shows a clone).
 
-**Contract**: Use `useDraggable({ id: application.id, data: { from: application.status } })`. Apply the returned `attributes`, `listeners`, and `setNodeRef` to the `<article>`. When `isDragging`, set `opacity-0` (or `visibility-hidden` — the overlay renders the real one). Add a subtle cursor-grab style.
+**Contract**: `KanbanCard` accepts `application: ApplicationRow` and an optional `isOverlay?: boolean`. When `isOverlay` is true, the component returns the plain `<article>` without calling `useDraggable` (used by `<DragOverlay>` in `KanbanBoard.tsx` — see step 4). Otherwise it calls `useDraggable({ id: application.id, data: { from: application.status }, disabled: isMutating })` — the `isMutating` prop is passed down from `KanbanBoard.tsx` via `KanbanColumn.tsx` so a second drag cannot start while a PATCH is in flight (see Critical Implementation Details for the single-flight rationale). Apply the returned `attributes`, `listeners`, and `setNodeRef` to the `<article>`. When `isDragging`, set `opacity-0` (or `visibility-hidden` — the overlay renders the real one). Add a subtle cursor-grab style.
 
 #### 3. Droppable columns
 
@@ -271,7 +275,7 @@ function onDragEnd(event: DragEndEvent) {
 
 **Intent**: Render the card under the cursor during a drag. Reuses `KanbanCard` but without the `useDraggable` wiring (a plain visual clone).
 
-**Contract**: `<DragOverlay>{activeDragId ? <KanbanCardClone application={lookup(activeDragId)} /> : null}</DragOverlay>` — implement `KanbanCardClone` either as a prop on `KanbanCard` (`isOverlay?: boolean`) that skips the draggable wiring, or as a tiny inline clone. Either approach is fine — the constraint is "the overlay must not call `useDraggable`".
+**Contract**: `<DragOverlay>{activeDragId ? <KanbanCard application={lookup(activeDragId)} isOverlay /> : null}</DragOverlay>`. `KanbanCard` accepts an optional `isOverlay?: boolean` prop; when true, it skips the `useDraggable` call (returning the plain `<article>` with no `attributes` / `listeners` / `setNodeRef`) so the overlay does not register a second draggable with the same id (which is a hard dnd-kit error). `lookup(activeDragId)` finds the card across all three columns of the current `applications` state.
 
 ### Success Criteria:
 
@@ -288,6 +292,7 @@ function onDragEnd(event: DragEndEvent) {
 - Drag the same card back to Interesujące (backward move). Same behavior; reload preserves it.
 - Drag Zaaplikowano → Rozmowa, then Rozmowa → Interesujące directly. Both work; both persist.
 - Pick up a card and drop it on its own column. No network call fires (verify in DevTools Network); no flash; card stays where it was.
+- With DevTools Network throttled to "Slow 3G", start a drag of card A → release on Zaaplikowano (PATCH-A in flight). Immediately try to drag card B. Cards cannot be picked up until PATCH-A resolves (single-flight gate); no snapshot stomp possible.
 - With DevTools Network throttled to "Offline", drag a card to another column. The card snaps back to its origin within ~1s; a red banner above the board reads (e.g.) "Brak połączenia. Spróbuj ponownie." The banner's × button dismisses it; nothing else on the board changes.
 - With DevTools Network set to send a 500 (e.g., by temporarily breaking the env), drag a card. Snap-back + banner with "Nie udało się zaktualizować aplikacji." or similar.
 - The `BEFORE UPDATE` trigger ran on the database: query `select id, status, last_action_at, created_at from applications where id = <moved-card-id>` shows `last_action_at > created_at`.
@@ -353,6 +358,7 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 - [ ] 1.6 PATCH without session cookie returns 401
 - [ ] 1.7 PATCH with random UUID returns 404
 - [ ] 1.8 PATCH with user B's cookie against user A's id returns 404 (RLS)
+- [ ] 1.9 GET / DELETE on `/api/applications/[id]` return Astro's default 405 / 404 (no route file)
 
 ### Phase 2: Port board to React (no DnD wiring yet)
 
@@ -383,9 +389,11 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 
 - [ ] 3.4 Forward chain (Interesujące → Zaaplikowano → Rozmowa) works and persists across reload
 - [ ] 3.5 Backward chain (Rozmowa → Zaaplikowano → Interesujące) works and persists
-- [ ] 3.6 Same-column drop is a no-op (no network call, no flash)
-- [ ] 3.7 Offline drag snaps the card back and shows a dismissible banner
-- [ ] 3.8 5xx drag snaps the card back and shows a dismissible banner
-- [ ] 3.9 DB shows `last_action_at > created_at` after a successful move
-- [ ] 3.10 Two-user RLS PATCH check (user B → user A's card id) returns 404
-- [ ] 3.11 No React hydration or DnD console errors during a normal drag
+- [ ] 3.6 Multi-hop sequence Zaaplikowano → Rozmowa → Interesujące persists across reload
+- [ ] 3.7 Same-column drop is a no-op (no network call, no flash)
+- [ ] 3.8 Offline drag snaps the card back and shows a dismissible banner
+- [ ] 3.9 5xx drag snaps the card back and shows a dismissible banner
+- [ ] 3.10 DB shows `last_action_at > created_at` after a successful move
+- [ ] 3.11 Two-user RLS PATCH check (user B → user A's card id) returns 404
+- [ ] 3.12 Single-flight: while a PATCH is in flight, no card can be picked up (verified with Slow 3G throttling)
+- [ ] 3.13 No React hydration or DnD console errors during a normal drag
