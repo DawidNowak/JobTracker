@@ -364,32 +364,32 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 
 #### Automated
 
-- [x] 1.1 Lint passes: `npm run lint`
-- [x] 1.2 TypeScript type-check passes via the build: `npm run build`
-- [x] 1.3 New files compile and the existing build still succeeds
+- [x] 1.1 Lint passes: `npm run lint` — c6c0dc1
+- [x] 1.2 TypeScript type-check passes via the build: `npm run build` — c6c0dc1
+- [x] 1.3 New files compile and the existing build still succeeds — c6c0dc1
 
 #### Manual
 
-- [x] 1.4 `curl -X POST http://localhost:4321/api/applications/parse` without an auth cookie returns 401.
-- [x] 1.5 With a valid session cookie, POSTing `{ "source": "" }` returns 422 with a `source` error key.
-- [x] 1.6 POSTing `{ "source": "https://example.com/foo" }` returns 200 with `status: "unsupported"`.
-- [x] 1.7 POSTing `{ "source": "https://justjoin.it/job-offer/foo-bar-warsaw-net" }` returns 200 with `status: "empty"` and `result: {}` (parser still stubbed).
-- [x] 1.8 POSTing `{ "source": "https://www.linkedin.com/jobs/view/4399262456" }` returns 200 with `status: "empty"`.
-- [x] 1.9 `recognize()` returns `null` for plain strings, `ftp://...`, `http://example.com`, and `https://linkedin.com/feed` (no jobId).
+- [x] 1.4 `curl -X POST http://localhost:4321/api/applications/parse` without an auth cookie returns 401. — c6c0dc1
+- [x] 1.5 With a valid session cookie, POSTing `{ "source": "" }` returns 422 with a `source` error key. — c6c0dc1
+- [x] 1.6 POSTing `{ "source": "https://example.com/foo" }` returns 200 with `status: "unsupported"`. — c6c0dc1
+- [x] 1.7 POSTing `{ "source": "https://justjoin.it/job-offer/foo-bar-warsaw-net" }` returns 200 with `status: "empty"` and `result: {}` (parser still stubbed). — c6c0dc1
+- [x] 1.8 POSTing `{ "source": "https://www.linkedin.com/jobs/view/4399262456" }` returns 200 with `status: "empty"`. — c6c0dc1
+- [x] 1.9 `recognize()` returns `null` for plain strings, `ftp://...`, `http://example.com`, and `https://linkedin.com/feed` (no jobId). — c6c0dc1
 
 ### Phase 2: JustJoinIT parser
 
 #### Automated
 
-- [ ] 2.1 Lint passes: `npm run lint`
-- [ ] 2.2 Build succeeds: `npm run build`
+- [x] 2.1 Lint passes: `npm run lint`
+- [x] 2.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.3 POSTing the JJIT reference URL returns 200 with `status: "ok"` and a populated `result` (position, company, description with skills prepended, salary string in `"… – … PLN/mies. (B2B); …"` format, work_mode from the enum).
-- [ ] 2.4 POSTing a JJIT URL whose slug returns 404 from JJIT returns 200 with `status: "fetch_failed"`.
-- [ ] 2.5 A JJIT posting that genuinely has no salary still returns `status: "partial"` (no salary key) without failing.
-- [ ] 2.6 The description HTML is preserved verbatim (paragraph tags, lists, etc.) — no stripping.
+- [x] 2.3 POSTing the JJIT reference URL returns 200 with `status: "ok"` and a populated `result` (position, company, description with skills prepended, salary string in `"… – … PLN/mies. (B2B); …"` format, work_mode from the enum).
+- [x] 2.4 POSTing a JJIT URL whose slug returns 404 from JJIT returns 200 with `status: "fetch_failed"`.
+- [x] 2.5 A JJIT posting that genuinely has no salary still returns `status: "partial"` (no salary key) without failing.
+- [x] 2.6 The description HTML is preserved verbatim (paragraph tags, lists, etc.) — no stripping.
 
 ### Phase 3: LinkedIn parser
 
