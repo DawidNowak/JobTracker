@@ -2,6 +2,7 @@
 import { applicationStatusValues } from "@/lib/validation/applications";
 import type { ApplicationStatus } from "@/lib/validation/applications";
 import KanbanColumn from "@/components/board/KanbanColumn.astro";
+import AddApplicationDialog from "@/components/board/AddApplicationDialog";
 import type { ApplicationRow } from "@/types";
 
 interface Props {
@@ -9,8 +10,22 @@ interface Props {
 }
 
 const { applications } = Astro.props;
+
+const addableStatuses: ApplicationStatus[] = ["Interesujące", "Zaaplikowano"];
 ---
 
 <div class="flex gap-4">
-  {applicationStatusValues.map((status) => <KanbanColumn title={status} applications={applications[status]} />)}
+  {
+    applicationStatusValues.map((status) => (
+      <KanbanColumn title={status} applications={applications[status]}>
+        {addableStatuses.includes(status) && (
+          <AddApplicationDialog
+            client:load
+            targetStatus={status as "Interesujące" | "Zaaplikowano"}
+            slot="header-action"
+          />
+        )}
+      </KanbanColumn>
+    ))
+  }
 </div>

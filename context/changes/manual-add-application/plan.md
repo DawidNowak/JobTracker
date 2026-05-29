@@ -389,34 +389,34 @@ No schema changes. F-01 already provides every column this slice writes to.
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint`
-- [x] 2.2 Type checking passes: `npm run typecheck`
-- [x] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint` — f33ed9e
+- [x] 2.2 Type checking passes: `npm run typecheck` — f33ed9e
+- [x] 2.3 Build succeeds: `npm run build` — f33ed9e
 
 #### Manual
 
-- [x] 2.4 Valid curl returns 201 with the new row
-- [x] 2.5 Missing `source` returns 422 with `{ errors: { source: 'Źródło jest wymagane.' } }`
-- [x] 2.6 No-cookie curl returns 401 `{ error: 'Unauthorized.' }`
-- [x] 2.7 Malformed JSON returns 400 `{ error: 'Invalid JSON body.' }`
-- [x] 2.8 Cross-user read isolation: user B GETs `/dashboard` and sees only own rows, never user A's
+- [x] 2.4 Valid curl returns 201 with the new row — f33ed9e
+- [x] 2.5 Missing `source` returns 422 with `{ errors: { source: 'Źródło jest wymagane.' } }` — f33ed9e
+- [x] 2.6 No-cookie curl returns 401 `{ error: 'Unauthorized.' }` — f33ed9e
+- [x] 2.7 Malformed JSON returns 400 `{ error: 'Invalid JSON body.' }` — f33ed9e
+- [x] 2.8 Cross-user read isolation: user B GETs `/dashboard` and sees only own rows, never user A's — f33ed9e
 
 ### Phase 3: Add modal UI and `+` trigger
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
-- [ ] 3.2 Type checking passes: `npm run typecheck`
-- [ ] 3.3 Build succeeds: `npm run build`
+- [x] 3.1 Linting passes: `npm run lint`
+- [x] 3.2 Type checking passes: `npm run typecheck`
+- [x] 3.3 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 `+` button appears on Interesujące and Zaaplikowano headers; Rozmowa has none
-- [ ] 3.5 Clicking `+` opens modal titled "Nowa aplikacja w kolumnie {status}" with all 7 fields visible and Anuluj + Dodaj buttons in the footer
-- [ ] 3.6 Empty-`Źródło` submit shows field error and keeps modal open with values intact
-- [ ] 3.7 LinkedIn-URL-only submit creates a card in Interesujące with the link anchor, "przed chwilą" timestamp
-- [ ] 3.8 Submitting from Zaaplikowano `+` puts the card in Zaaplikowano (not Interesujące)
-- [ ] 3.9 Dev-server-down submit shows the red banner; fields preserved; restarting and resubmitting succeeds
-- [ ] 3.10 Two-user RLS check: user B never sees user A's added cards
-- [ ] 3.11 Escape and outside-click close the dialog; reopening starts with fresh form state
-- [ ] 3.12 No React warnings in browser console (no hydration mismatches, no missing keys)
+- [x] 3.4 `+` button appears on Interesujące and Zaaplikowano headers; Rozmowa has none
+- [x] 3.5 Clicking `+` opens modal titled "Nowa aplikacja w kolumnie {status}" with all 7 fields visible and Anuluj + Dodaj buttons in the footer
+- [x] 3.6 Empty-`Źródło` submit shows field error and keeps modal open with values intact
+- [x] 3.7 LinkedIn-URL-only submit creates a card in Interesujące with the link anchor, "przed chwilą" timestamp
+- [x] 3.8 Submitting from Zaaplikowano `+` puts the card in Zaaplikowano (not Interesujące)
+- [x] 3.9 Dev-server-down submit shows the red banner; fields preserved; restarting and resubmitting succeeds
+- [x] 3.10 Two-user RLS check: user B never sees user A's added cards
+- [x] 3.11 Escape and outside-click close the dialog; reopening starts with fresh form state
+- [x] 3.12 No React warnings in browser console (no hydration mismatches, no missing keys)
