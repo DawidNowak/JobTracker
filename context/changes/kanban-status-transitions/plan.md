@@ -347,18 +347,18 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 
 #### Automated
 
-- [ ] 1.1 Lint passes: `npm run lint`
-- [ ] 1.2 Type-check passes: `npm run typecheck` (or `astro check`)
-- [ ] 1.3 Build passes: `npm run build`
+- [x] 1.1 Lint passes: `npm run lint`
+- [x] 1.2 Type-check passes: `npm run typecheck` (or `astro check`)
+- [x] 1.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 1.4 PATCH happy path returns 200 with updated row and bumped `last_action_at`
-- [ ] 1.5 PATCH with invalid status body returns 422 with field-keyed errors
-- [ ] 1.6 PATCH without session cookie returns 401
-- [ ] 1.7 PATCH with random UUID returns 404
-- [ ] 1.8 PATCH with user B's cookie against user A's id returns 404 (RLS)
-- [ ] 1.9 GET / DELETE on `/api/applications/[id]` return Astro's default 405 / 404 (no route file)
+- [x] 1.4 PATCH happy path returns 200 with updated row and bumped `last_action_at`
+- [x] 1.5 PATCH with invalid status body returns 422 with field-keyed errors
+- [x] 1.6 PATCH without session cookie returns 401
+- [x] 1.7 PATCH with random UUID returns 404
+- [x] 1.8 PATCH with user B's cookie against user A's id returns 404 (RLS)
+- [x] 1.9 GET / DELETE on `/api/applications/[id]` return Astro's default 405 / 404 (no route file)
 
 ### Phase 2: Port board to React (no DnD wiring yet)
 
