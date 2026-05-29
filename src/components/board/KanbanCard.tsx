@@ -1,22 +1,54 @@
+import { useDraggable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { formatRelative } from "@/lib/format";
 import type { ApplicationRow } from "@/types";
 
 interface Props {
   application: ApplicationRow;
+  isOverlay?: boolean;
+  isMutating?: boolean;
 }
 
-export default function KanbanCard({ application }: Props) {
-  let sourceHref: string | null = null;
+function parseSourceHref(source: string): string | null {
   try {
-    const url = new URL(application.source);
+    const url = new URL(source);
     if (url.protocol === "http:" || url.protocol === "https:") {
-      sourceHref = url.toString();
+      return url.toString();
     }
   } catch {
-    sourceHref = null;
+    // not a URL
   }
+  return null;
+}
 
+export default function KanbanCard({ application, isOverlay = false, isMutating = false }: Props) {
+  if (isOverlay) {
+    return <KanbanCardBody application={application} />;
+  }
+  return <KanbanCardDraggable application={application} isMutating={isMutating} />;
+}
+
+function KanbanCardDraggable({ application, isMutating }: { application: ApplicationRow; isMutating: boolean }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: application.id,
+    data: { from: application.status },
+    disabled: isMutating,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={cn("touch-none", isDragging ? "opacity-0" : "cursor-grab active:cursor-grabbing")}
+    >
+      <KanbanCardBody application={application} />
+    </div>
+  );
+}
+
+function KanbanCardBody({ application }: { application: ApplicationRow }) {
+  const sourceHref = parseSourceHref(application.source);
   const relative = formatRelative(application.last_action_at);
 
   return (

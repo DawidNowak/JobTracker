@@ -364,36 +364,36 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 
 #### Automated
 
-- [x] 2.1 Lint passes
-- [x] 2.2 Type-check passes
-- [x] 2.3 Build passes
-- [x] 2.4 No references to deleted Astro board files remain in `src/`
+- [x] 2.1 Lint passes — a801964
+- [x] 2.2 Type-check passes — a801964
+- [x] 2.3 Build passes — a801964
+- [x] 2.4 No references to deleted Astro board files remain in `src/` — a801964
 
 #### Manual
 
-- [x] 2.5 Dashboard renders three columns with identical layout to S-02
-- [x] 2.6 Existing cards appear in their correct columns by `status`
-- [x] 2.7 Card timestamps reflect `last_action_at` (verify by PATCH + reload)
-- [x] 2.8 `+` add flow still works in Interesujące and Zaaplikowano; Rozmowa has no `+`
-- [x] 2.9 No React hydration warnings in the browser console
+- [x] 2.5 Dashboard renders three columns with identical layout to S-02 — a801964
+- [x] 2.6 Existing cards appear in their correct columns by `status` — a801964
+- [x] 2.7 Card timestamps reflect `last_action_at` (verify by PATCH + reload) — a801964
+- [x] 2.8 `+` add flow still works in Interesujące and Zaaplikowano; Rozmowa has no `+` — a801964
+- [x] 2.9 No React hydration warnings in the browser console — a801964
 
 ### Phase 3: Wire drag-and-drop with optimistic move + snap-back
 
 #### Automated
 
-- [ ] 3.1 Lint passes
-- [ ] 3.2 Type-check passes
-- [ ] 3.3 Build passes
+- [x] 3.1 Lint passes
+- [x] 3.2 Type-check passes
+- [x] 3.3 Build passes
 
 #### Manual
 
-- [ ] 3.4 Forward chain (Interesujące → Zaaplikowano → Rozmowa) works and persists across reload
-- [ ] 3.5 Backward chain (Rozmowa → Zaaplikowano → Interesujące) works and persists
-- [ ] 3.6 Multi-hop sequence Zaaplikowano → Rozmowa → Interesujące persists across reload
-- [ ] 3.7 Same-column drop is a no-op (no network call, no flash)
-- [ ] 3.8 Offline drag snaps the card back and shows a dismissible banner
-- [ ] 3.9 5xx drag snaps the card back and shows a dismissible banner
-- [ ] 3.10 DB shows `last_action_at > created_at` after a successful move
-- [ ] 3.11 Two-user RLS PATCH check (user B → user A's card id) returns 404
-- [ ] 3.12 Single-flight: while a PATCH is in flight, no card can be picked up (verified with Slow 3G throttling)
-- [ ] 3.13 No React hydration or DnD console errors during a normal drag
+- [x] 3.4 Forward chain (Interesujące → Zaaplikowano → Rozmowa) works and persists across reload
+- [x] 3.5 Backward chain (Rozmowa → Zaaplikowano → Interesujące) works and persists
+- [x] 3.6 Multi-hop sequence Zaaplikowano → Rozmowa → Interesujące persists across reload
+- [x] 3.7 Same-column drop is a no-op (no network call, no flash)
+- [x] 3.8 Offline drag snaps the card back and shows a dismissible banner
+- [x] 3.9 5xx drag snaps the card back and shows a dismissible banner
+- [x] 3.10 DB shows `last_action_at > created_at` after a successful move
+- [x] 3.11 Two-user RLS PATCH check (user B → user A's card id) returns 404
+- [x] 3.12 Single-flight: while a PATCH is in flight, no card can be picked up (verified with Slow 3G throttling)
+- [x] 3.13 No React hydration or DnD console errors during a normal drag
