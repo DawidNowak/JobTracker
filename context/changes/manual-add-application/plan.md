@@ -420,3 +420,18 @@ No schema changes. F-01 already provides every column this slice writes to.
 - [x] 3.10 Two-user RLS check: user B never sees user A's added cards — 0e185da
 - [x] 3.11 Escape and outside-click close the dialog; reopening starts with fresh form state — 0e185da
 - [x] 3.12 No React warnings in browser console (no hydration mismatches, no missing keys) — 0e185da
+
+## Post-implementation fixes
+
+### Dialog overflowed viewport on long description paste
+
+**Symptom**: pasting a long job description into "Opis i wymagane umiejętności" made the `Textarea` (which uses Tailwind's `field-sizing-content`) grow to fit content. `DialogContent` had no max-height, so the modal grew past the viewport and the Anuluj / Dodaj footer fell below the fold with no way to scroll to it inside the modal — save became unreachable.
+
+**Fix** (all in `src/components/board/AddApplicationDialog.tsx`; shadcn primitives untouched so future `npx shadcn add` upstream changes can still diff-merge):
+
+- `DialogContent` className: `flex max-h-[90vh] flex-col gap-0 overflow-hidden sm:max-w-lg` — caps the modal at 90% viewport height and switches its layout to a vertical flex column so we can pin header + footer and scroll the middle.
+- Inner wrapper `<div className="flex flex-col gap-4 overflow-y-auto pr-1">` around the banner + all seven field blocks — the only region that scrolls. `pr-1` keeps the scrollbar off the field borders.
+- `DialogFooter` className: `mt-4 shrink-0 border-t pt-4` — never shrinks; the top border visually separates it from the scrolled content above.
+- Description `Textarea` className: `max-h-48` (~12rem) — `field-sizing-content` continues growing until this cap, then the textarea shows its own scrollbar. This keeps the description field from dominating the dialog's scroll area on short viewports.
+
+No changes to validation, submit, or state logic — purely layout.

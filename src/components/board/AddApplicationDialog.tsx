@@ -123,118 +123,121 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
           <Plus className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Nowa aplikacja w kolumnie {targetStatus}</DialogTitle>
           <DialogDescription className="sr-only">Formularz dodawania nowej aplikacji.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {bannerError && (
-            <div role="alert" className={cn("rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700")}>
-              {bannerError}
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+            {bannerError && (
+              <div role="alert" className={cn("rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700")}>
+                {bannerError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-source">Źródło *</Label>
+              <Input
+                id="add-application-source"
+                aria-required="true"
+                value={form.source}
+                onChange={(e) => {
+                  update("source", e.target.value);
+                }}
+                autoFocus
+              />
+              {errors.source && <p className="text-xs text-red-600">{errors.source}</p>}
             </div>
-          )}
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-source">Źródło *</Label>
-            <Input
-              id="add-application-source"
-              aria-required="true"
-              value={form.source}
-              onChange={(e) => {
-                update("source", e.target.value);
-              }}
-              autoFocus
-            />
-            {errors.source && <p className="text-xs text-red-600">{errors.source}</p>}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-position">Stanowisko</Label>
+              <Input
+                id="add-application-position"
+                value={form.position}
+                onChange={(e) => {
+                  update("position", e.target.value);
+                }}
+              />
+              {errors.position && <p className="text-xs text-red-600">{errors.position}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-company">Firma</Label>
+              <Input
+                id="add-application-company"
+                value={form.company}
+                onChange={(e) => {
+                  update("company", e.target.value);
+                }}
+              />
+              {errors.company && <p className="text-xs text-red-600">{errors.company}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-description">Opis i wymagane umiejętności</Label>
+              <Textarea
+                id="add-application-description"
+                rows={5}
+                className="max-h-48"
+                value={form.description}
+                onChange={(e) => {
+                  update("description", e.target.value);
+                }}
+              />
+              <p className="text-xs text-neutral-500">Wklej opis oferty wraz z listą wymaganych umiejętności.</p>
+              {errors.description && <p className="text-xs text-red-600">{errors.description}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-salary">Widełki wynagrodzenia</Label>
+              <Input
+                id="add-application-salary"
+                value={form.salary}
+                onChange={(e) => {
+                  update("salary", e.target.value);
+                }}
+              />
+              {errors.salary && <p className="text-xs text-red-600">{errors.salary}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-work-mode">Tryb pracy</Label>
+              <Select
+                value={form.work_mode === "" ? NO_WORK_MODE : form.work_mode}
+                onValueChange={(value) => {
+                  update("work_mode", value === NO_WORK_MODE ? "" : (value as WorkMode));
+                }}
+              >
+                <SelectTrigger id="add-application-work-mode">
+                  <SelectValue placeholder="Nie wybrano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_WORK_MODE}>Nie wybrano</SelectItem>
+                  {workModeValues.map((mode) => (
+                    <SelectItem key={mode} value={mode}>
+                      {mode}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.work_mode && <p className="text-xs text-red-600">{errors.work_mode}</p>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="add-application-recruiter">Kontakt do rekrutera</Label>
+              <Input
+                id="add-application-recruiter"
+                value={form.recruiter_contact}
+                onChange={(e) => {
+                  update("recruiter_contact", e.target.value);
+                }}
+              />
+              {errors.recruiter_contact && <p className="text-xs text-red-600">{errors.recruiter_contact}</p>}
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-position">Stanowisko</Label>
-            <Input
-              id="add-application-position"
-              value={form.position}
-              onChange={(e) => {
-                update("position", e.target.value);
-              }}
-            />
-            {errors.position && <p className="text-xs text-red-600">{errors.position}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-company">Firma</Label>
-            <Input
-              id="add-application-company"
-              value={form.company}
-              onChange={(e) => {
-                update("company", e.target.value);
-              }}
-            />
-            {errors.company && <p className="text-xs text-red-600">{errors.company}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-description">Opis i wymagane umiejętności</Label>
-            <Textarea
-              id="add-application-description"
-              rows={5}
-              value={form.description}
-              onChange={(e) => {
-                update("description", e.target.value);
-              }}
-            />
-            <p className="text-xs text-neutral-500">Wklej opis oferty wraz z listą wymaganych umiejętności.</p>
-            {errors.description && <p className="text-xs text-red-600">{errors.description}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-salary">Widełki wynagrodzenia</Label>
-            <Input
-              id="add-application-salary"
-              value={form.salary}
-              onChange={(e) => {
-                update("salary", e.target.value);
-              }}
-            />
-            {errors.salary && <p className="text-xs text-red-600">{errors.salary}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-work-mode">Tryb pracy</Label>
-            <Select
-              value={form.work_mode === "" ? NO_WORK_MODE : form.work_mode}
-              onValueChange={(value) => {
-                update("work_mode", value === NO_WORK_MODE ? "" : (value as WorkMode));
-              }}
-            >
-              <SelectTrigger id="add-application-work-mode">
-                <SelectValue placeholder="Nie wybrano" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_WORK_MODE}>Nie wybrano</SelectItem>
-                {workModeValues.map((mode) => (
-                  <SelectItem key={mode} value={mode}>
-                    {mode}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.work_mode && <p className="text-xs text-red-600">{errors.work_mode}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="add-application-recruiter">Kontakt do rekrutera</Label>
-            <Input
-              id="add-application-recruiter"
-              value={form.recruiter_contact}
-              onChange={(e) => {
-                update("recruiter_contact", e.target.value);
-              }}
-            />
-            {errors.recruiter_contact && <p className="text-xs text-red-600">{errors.recruiter_contact}</p>}
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="mt-4 shrink-0 border-t pt-4">
             <Button
               type="button"
               variant="outline"
