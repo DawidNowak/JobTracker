@@ -405,18 +405,18 @@ No schema changes. F-01 already provides every column this slice writes to.
 
 #### Automated
 
-- [x] 3.1 Linting passes: `npm run lint`
-- [x] 3.2 Type checking passes: `npm run typecheck`
-- [x] 3.3 Build succeeds: `npm run build`
+- [x] 3.1 Linting passes: `npm run lint` — 0e185da
+- [x] 3.2 Type checking passes: `npm run typecheck` — 0e185da
+- [x] 3.3 Build succeeds: `npm run build` — 0e185da
 
 #### Manual
 
-- [x] 3.4 `+` button appears on Interesujące and Zaaplikowano headers; Rozmowa has none
-- [x] 3.5 Clicking `+` opens modal titled "Nowa aplikacja w kolumnie {status}" with all 7 fields visible and Anuluj + Dodaj buttons in the footer
-- [x] 3.6 Empty-`Źródło` submit shows field error and keeps modal open with values intact
-- [x] 3.7 LinkedIn-URL-only submit creates a card in Interesujące with the link anchor, "przed chwilą" timestamp
-- [x] 3.8 Submitting from Zaaplikowano `+` puts the card in Zaaplikowano (not Interesujące)
-- [x] 3.9 Dev-server-down submit shows the red banner; fields preserved; restarting and resubmitting succeeds
-- [x] 3.10 Two-user RLS check: user B never sees user A's added cards
-- [x] 3.11 Escape and outside-click close the dialog; reopening starts with fresh form state
-- [x] 3.12 No React warnings in browser console (no hydration mismatches, no missing keys)
+- [x] 3.4 `+` button appears on Interesujące and Zaaplikowano headers; Rozmowa has none — 0e185da
+- [x] 3.5 Clicking `+` opens modal titled "Nowa aplikacja w kolumnie {status}" with all 7 fields visible and Anuluj + Dodaj buttons in the footer — 0e185da
+- [x] 3.6 Empty-`Źródło` submit shows field error and keeps modal open with values intact — 0e185da
+- [x] 3.7 LinkedIn-URL-only submit creates a card in Interesujące with the link anchor, "przed chwilą" timestamp — 0e185da
+- [x] 3.8 Submitting from Zaaplikowano `+` puts the card in Zaaplikowano (not Interesujące) — 0e185da
+- [x] 3.9 Dev-server-down submit shows the red banner; fields preserved; restarting and resubmitting succeeds — 0e185da
+- [x] 3.10 Two-user RLS check: user B never sees user A's added cards — 0e185da
+- [x] 3.11 Escape and outside-click close the dialog; reopening starts with fresh form state — 0e185da
+- [x] 3.12 No React warnings in browser console (no hydration mismatches, no missing keys) — 0e185da
