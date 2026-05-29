@@ -223,11 +223,11 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | ---------- | ---------------------------------- | ------------------------------------------------------------------ | --------------------- | ------------------------------------------- |
 | F-01       | applications-schema-and-rls        | Foundation: applications schema, RLS, and lastActionAt enforcement | yes                   | No Prerequisites — auth is in baseline      |
 | S-01       | kanban-shell-and-nav               | Kanban shell with three columns + top nav (Tablica / Archiwum)     | no                    | Needs F-01                                  |
-| S-02       | manual-add-application             | Manual add-application form (source required, free text)           | yes                   | S-01 shipped (impl_reviewed); change folder opened 2026-05-29 |
-| S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | no                    | **North star.** Needs S-02                  |
-| S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | no                    | Needs S-02; parallel with S-04, S-03        |
-| S-03       | edit-and-delete-application        | Edit any field + delete card (with warning dialogs)                | no                    | Needs S-02; parallel with S-04, S-05        |
-| S-06       | notes-and-card-detail              | Card detail view + follow-up notes (write + history)               | no                    | Needs S-02; parallel with S-04, S-05, S-03  |
+| S-02       | manual-add-application             | Manual add-application form (source required, free text)           | yes                   | Shipped 2026-05-29 (impl_reviewed); awaiting archive          |
+| S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** S-02 shipped 2026-05-29     |
+| S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-03 |
+| S-03       | edit-and-delete-application        | Edit any field + delete card (with warning dialogs)                | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05 |
+| S-06       | notes-and-card-detail              | Card detail view + follow-up notes (write + history)               | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05, S-03 |
 | S-07       | interesujace-decision-prompt       | "Zdecyduj — aplikujesz?" decision prompt (1-day threshold)         | no                    | Needs S-05, S-03                            |
 | S-08       | zaaplikowano-followup-flag         | "Czas na follow-up z rekruterem" flag (7-day threshold)            | no                    | Needs S-06; parallel with S-07, S-09        |
 | S-09       | rozmowa-followup-flag              | "Czas na follow-up po rozmowie" flag (4-business-day threshold)    | no                    | Needs S-06; parallel with S-07, S-08        |
