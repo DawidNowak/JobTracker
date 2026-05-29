@@ -395,29 +395,29 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 
 #### Automated
 
-- [x] 3.1 Lint passes: `npm run lint`
-- [x] 3.2 Build succeeds: `npm run build`
+- [x] 3.1 Lint passes: `npm run lint` — 727d275
+- [x] 3.2 Build succeeds: `npm run build` — 727d275
 
 #### Manual
 
-- [x] 3.3 POSTing the LinkedIn reference URL returns 200 with `status: "ok"` or `status: "partial"` on success days; the `result` contains at minimum a populated `position` and either `company` or `description`.
-- [x] 3.4 POSTing the canonical authwall URL `/jobs/view/{id}` returns 200 with `status: "fetch_failed"` or `status: "empty"` — never a hard error.
-- [x] 3.5 The work_mode sniffer returns one of `"Zdalna" | "Hybrydowa" | "Stacjonarna"` or undefined; never an invalid value.
+- [x] 3.3 POSTing the LinkedIn reference URL returns 200 with `status: "ok"` or `status: "partial"` on success days; the `result` contains at minimum a populated `position` and either `company` or `description`. — 727d275
+- [x] 3.4 POSTing the canonical authwall URL `/jobs/view/{id}` returns 200 with `status: "fetch_failed"` or `status: "empty"` — never a hard error. — 727d275
+- [x] 3.5 The work_mode sniffer returns one of `"Zdalna" | "Hybrydowa" | "Stacjonarna"` or undefined; never an invalid value. — 727d275
 
 ### Phase 4: Form integration
 
 #### Automated
 
-- [ ] 4.1 Lint passes: `npm run lint`
-- [ ] 4.2 Build succeeds: `npm run build`
+- [x] 4.1 Lint passes: `npm run lint`
+- [x] 4.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 4.3 With an empty or non-URL source, the parser button is disabled.
-- [ ] 4.4 Live JJIT URL pasted → button enables → click pre-fills the form; missing salary or work_mode triggers the amber `"Wypełniono częściowo..."` inline message.
-- [ ] 4.5 Edits to pre-filled fields persist and the form submits successfully.
-- [ ] 4.6 LinkedIn URL with `currentJobId` either pre-fills position+company+description or shows the soft-failure message; manual fields remain usable.
-- [ ] 4.7 Plain text source keeps the button disabled; manual form is fully usable.
-- [ ] 4.8 Unsupported URL (e.g., `https://pracuj.pl/...`) keeps the button disabled.
-- [ ] 4.9 Closing and reopening the dialog resets parsing state and inline message.
-- [ ] 4.10 Submitting a parser-pre-filled form creates the card in the target column with the parsed values.
+- [x] 4.3 With an empty or non-URL source, the parser button is disabled.
+- [x] 4.4 Live JJIT URL pasted → button enables → click pre-fills the form; missing salary or work_mode triggers the amber `"Wypełniono częściowo..."` inline message.
+- [x] 4.5 Edits to pre-filled fields persist and the form submits successfully.
+- [x] 4.6 LinkedIn URL with `currentJobId` either pre-fills position+company+description or shows the soft-failure message; manual fields remain usable.
+- [x] 4.7 Plain text source keeps the button disabled; manual form is fully usable.
+- [x] 4.8 Unsupported URL (e.g., `https://pracuj.pl/...`) keeps the button disabled.
+- [x] 4.9 Closing and reopening the dialog resets parsing state and inline message.
+- [x] 4.10 Submitting a parser-pre-filled form creates the card in the target column with the parsed values.
