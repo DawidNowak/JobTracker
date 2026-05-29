@@ -33,7 +33,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | ----- | ---------------------------------- | ------------------------------------------------------------- | ---------------- | --------------------- | -------- |
 | F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | ready    |
 | S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | proposed |
-| S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | ready    |
+| S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
 | S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | proposed |
 | S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | proposed |
 | S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | proposed |
@@ -106,7 +106,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** First write-path slice. The form is reused in edit mode (S-03) and parser mode (S-04), so the form contract lands here. Adding "Kontakt do rekrutera" (FR-019) in this slice avoids a backfill edit when the follow-up slices need it later.
-- **Status:** ready
+- **Status:** done (shipped 2026-05-29, commit b3ff36b; awaiting archive)
 
 ### S-04: Parser-driven add  *(north star)*
 
