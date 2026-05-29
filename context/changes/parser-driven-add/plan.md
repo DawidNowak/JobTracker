@@ -408,16 +408,16 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 
 #### Automated
 
-- [x] 4.1 Lint passes: `npm run lint`
-- [x] 4.2 Build succeeds: `npm run build`
+- [x] 4.1 Lint passes: `npm run lint` — 0a08491
+- [x] 4.2 Build succeeds: `npm run build` — 0a08491
 
 #### Manual
 
-- [x] 4.3 With an empty or non-URL source, the parser button is disabled.
-- [x] 4.4 Live JJIT URL pasted → button enables → click pre-fills the form; missing salary or work_mode triggers the amber `"Wypełniono częściowo..."` inline message.
-- [x] 4.5 Edits to pre-filled fields persist and the form submits successfully.
-- [x] 4.6 LinkedIn URL with `currentJobId` either pre-fills position+company+description or shows the soft-failure message; manual fields remain usable.
-- [x] 4.7 Plain text source keeps the button disabled; manual form is fully usable.
-- [x] 4.8 Unsupported URL (e.g., `https://pracuj.pl/...`) keeps the button disabled.
-- [x] 4.9 Closing and reopening the dialog resets parsing state and inline message.
-- [x] 4.10 Submitting a parser-pre-filled form creates the card in the target column with the parsed values.
+- [x] 4.3 With an empty or non-URL source, the parser button is disabled. — 0a08491
+- [x] 4.4 Live JJIT URL pasted → button enables → click pre-fills the form; missing salary or work_mode triggers the amber `"Wypełniono częściowo..."` inline message. — 0a08491
+- [x] 4.5 Edits to pre-filled fields persist and the form submits successfully. — 0a08491
+- [x] 4.6 LinkedIn URL with `currentJobId` either pre-fills position+company+description or shows the soft-failure message; manual fields remain usable. — 0a08491
+- [x] 4.7 Plain text source keeps the button disabled; manual form is fully usable. — 0a08491
+- [x] 4.8 Unsupported URL (e.g., `https://pracuj.pl/...`) keeps the button disabled. — 0a08491
+- [x] 4.9 Closing and reopening the dialog resets parsing state and inline message. — 0a08491
+- [x] 4.10 Submitting a parser-pre-filled form creates the card in the target column with the parsed values. — 0a08491
