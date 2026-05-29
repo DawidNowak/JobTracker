@@ -28,6 +28,11 @@ function formatApplicationErrors(error: z.ZodError): Record<string, string> {
 }
 
 export const POST: APIRoute = async (context) => {
+  const user = context.locals.user;
+  if (!user) {
+    return jsonResponse(401, { error: "Unauthorized." });
+  }
+
   let body: unknown;
   try {
     body = await context.request.json();
@@ -38,11 +43,6 @@ export const POST: APIRoute = async (context) => {
   const parsed = applicationCreateSchema.safeParse(body);
   if (!parsed.success) {
     return jsonResponse(422, { errors: formatApplicationErrors(parsed.error) });
-  }
-
-  const user = context.locals.user;
-  if (!user) {
-    return jsonResponse(401, { error: "Unauthorized." });
   }
 
   const supabase = createClient(context.request.headers, context.cookies);

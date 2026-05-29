@@ -23,8 +23,10 @@ if (supabase) {
         grouped[row.status as ApplicationStatus].push(row);
       }
     }
-  } catch {
+  } catch (err) {
     // RLS or transient error — render an empty board. Surfacing is out of scope for S-02.
+    // eslint-disable-next-line no-console
+    console.error("Dashboard load failed", err);
   }
 }
 ---

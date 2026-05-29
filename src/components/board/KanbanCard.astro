@@ -12,7 +12,9 @@ const { application } = Astro.props;
 let sourceHref: string | null = null;
 try {
   const url = new URL(application.source);
-  sourceHref = url.toString();
+  if (url.protocol === "http:" || url.protocol === "https:") {
+    sourceHref = url.toString();
+  }
 } catch {
   sourceHref = null;
 }
