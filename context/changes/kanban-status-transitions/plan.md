@@ -381,19 +381,19 @@ No automated test framework is configured in this repo (AGENTS.md hard rule). Ve
 
 #### Automated
 
-- [x] 3.1 Lint passes
-- [x] 3.2 Type-check passes
-- [x] 3.3 Build passes
+- [x] 3.1 Lint passes — 98cf02b
+- [x] 3.2 Type-check passes — 98cf02b
+- [x] 3.3 Build passes — 98cf02b
 
 #### Manual
 
-- [x] 3.4 Forward chain (Interesujące → Zaaplikowano → Rozmowa) works and persists across reload
-- [x] 3.5 Backward chain (Rozmowa → Zaaplikowano → Interesujące) works and persists
-- [x] 3.6 Multi-hop sequence Zaaplikowano → Rozmowa → Interesujące persists across reload
-- [x] 3.7 Same-column drop is a no-op (no network call, no flash)
-- [x] 3.8 Offline drag snaps the card back and shows a dismissible banner
-- [x] 3.9 5xx drag snaps the card back and shows a dismissible banner
-- [x] 3.10 DB shows `last_action_at > created_at` after a successful move
-- [x] 3.11 Two-user RLS PATCH check (user B → user A's card id) returns 404
-- [x] 3.12 Single-flight: while a PATCH is in flight, no card can be picked up (verified with Slow 3G throttling)
-- [x] 3.13 No React hydration or DnD console errors during a normal drag
+- [x] 3.4 Forward chain (Interesujące → Zaaplikowano → Rozmowa) works and persists across reload — 98cf02b
+- [x] 3.5 Backward chain (Rozmowa → Zaaplikowano → Interesujące) works and persists — 98cf02b
+- [x] 3.6 Multi-hop sequence Zaaplikowano → Rozmowa → Interesujące persists across reload — 98cf02b
+- [x] 3.7 Same-column drop is a no-op (no network call, no flash) — 98cf02b
+- [x] 3.8 Offline drag snaps the card back and shows a dismissible banner — 98cf02b
+- [x] 3.9 5xx drag snaps the card back and shows a dismissible banner — 98cf02b
+- [x] 3.10 DB shows `last_action_at > created_at` after a successful move — 98cf02b
+- [x] 3.11 Two-user RLS PATCH check (user B → user A's card id) returns 404 — 98cf02b
+- [x] 3.12 Single-flight: while a PATCH is in flight, no card can be picked up (verified with Slow 3G throttling) — 98cf02b
+- [x] 3.13 No React hydration or DnD console errors during a normal drag — 98cf02b
