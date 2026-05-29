@@ -1,5 +1,5 @@
 import type { createClient } from "@/lib/supabase";
-import type { ApplicationCreate } from "@/lib/validation/applications";
+import type { ApplicationCreate, ApplicationStatus } from "@/lib/validation/applications";
 import type { ApplicationRow } from "@/types";
 
 type Client = NonNullable<ReturnType<typeof createClient>>;
@@ -10,6 +10,26 @@ export async function listActiveApplications(supabase: Client): Promise<Applicat
     .select("*")
     .is("archived_at", null)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export async function updateApplicationStatus(
+  supabase: Client,
+  id: string,
+  status: ApplicationStatus,
+  userId: string,
+): Promise<ApplicationRow | null> {
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ status })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select("*")
+    .maybeSingle();
 
   if (error) {
     throw error;
