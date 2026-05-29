@@ -1,8 +1,36 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
 import KanbanBoard from "@/components/board/KanbanBoard.astro";
+import { createClient } from "@/lib/supabase";
+import { listActiveApplications } from "@/lib/services/applications";
+import { applicationStatusValues } from "@/lib/validation/applications";
+import type { ApplicationStatus } from "@/lib/validation/applications";
+import type { ApplicationRow } from "@/types";
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+const grouped: Record<ApplicationStatus, ApplicationRow[]> = {
+  Interesujące: [],
+  Zaaplikowano: [],
+  Rozmowa: [],
+};
+
+if (supabase) {
+  try {
+    const rows = await listActiveApplications(supabase);
+    for (const row of rows) {
+      if ((applicationStatusValues as readonly string[]).includes(row.status)) {
+        grouped[row.status as ApplicationStatus].push(row);
+      }
+    }
+  } catch (err) {
+    // RLS or transient error — render an empty board. Surfacing is out of scope for S-02.
+    // eslint-disable-next-line no-console
+    console.error("Dashboard load failed", err);
+  }
+}
 ---
 
 <AppShell title="Tablica" activeNav="tablica">
-  <KanbanBoard />
+  <KanbanBoard applications={grouped} />
 </AppShell>
