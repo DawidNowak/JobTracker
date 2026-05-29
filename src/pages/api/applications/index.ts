@@ -30,14 +30,14 @@ function formatApplicationErrors(error: z.ZodError): Record<string, string> {
 export const POST: APIRoute = async (context) => {
   const user = context.locals.user;
   if (!user) {
-    return jsonResponse(401, { error: "Unauthorized." });
+    return jsonResponse(401, { error: "Brak autoryzacji." });
   }
 
   let body: unknown;
   try {
     body = await context.request.json();
   } catch {
-    return jsonResponse(400, { error: "Invalid JSON body." });
+    return jsonResponse(400, { error: "Nieprawidłowe żądanie" });
   }
 
   const parsed = applicationCreateSchema.safeParse(body);
@@ -47,7 +47,7 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    return jsonResponse(500, { error: "Supabase is not configured." });
+    return jsonResponse(500, { error: "Supabase nie jest skonfigurowany." });
   }
 
   try {

@@ -10,20 +10,14 @@ interface Props {
 }
 
 const { applications } = Astro.props;
-
-const addableStatuses: ApplicationStatus[] = ["Interesujące", "Zaaplikowano"];
 ---
 
 <div class="flex gap-4">
   {
     applicationStatusValues.map((status) => (
       <KanbanColumn title={status} applications={applications[status]}>
-        {addableStatuses.includes(status) && (
-          <AddApplicationDialog
-            client:load
-            targetStatus={status as "Interesujące" | "Zaaplikowano"}
-            slot="header-action"
-          />
+        {(status === "Interesujące" || status === "Zaaplikowano") && (
+          <AddApplicationDialog client:load targetStatus={status} slot="header-action" />
         )}
       </KanbanColumn>
     ))
