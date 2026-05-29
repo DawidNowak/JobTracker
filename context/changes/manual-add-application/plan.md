@@ -373,33 +373,33 @@ No schema changes. F-01 already provides every column this slice writes to.
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint`
-- [x] 1.2 Type checking passes: `npm run typecheck`
-- [x] 1.3 Build succeeds: `npm run build`
+- [x] 1.1 Linting passes: `npm run lint` — 6822ab0
+- [x] 1.2 Type checking passes: `npm run typecheck` — 6822ab0
+- [x] 1.3 Build succeeds: `npm run build` — 6822ab0
 
 #### Manual
 
-- [x] 1.4 Zero rows: `/dashboard` renders three columns with "Brak aplikacji" (no regression)
-- [x] 1.5 Hand-inserted plain-text row appears in Interesujące with company bold, position below, no "Link do oferty", no work-mode badge, "dodano przed chwilą"
-- [x] 1.6 Updating the row to a LinkedIn URL + Zdalna shows "Link do oferty" anchor (new tab) and Zdalna badge
-- [x] 1.7 Second row at status Zaaplikowano puts that card in Zaaplikowano; Rozmowa stays empty
-- [x] 1.8 User B sees empty columns — none of user A's cards leak
+- [x] 1.4 Zero rows: `/dashboard` renders three columns with "Brak aplikacji" (no regression) — 6822ab0
+- [x] 1.5 Hand-inserted plain-text row appears in Interesujące with company bold, position below, no "Link do oferty", no work-mode badge, "dodano przed chwilą" — 6822ab0
+- [x] 1.6 Updating the row to a LinkedIn URL + Zdalna shows "Link do oferty" anchor (new tab) and Zdalna badge — 6822ab0
+- [x] 1.7 Second row at status Zaaplikowano puts that card in Zaaplikowano; Rozmowa stays empty — 6822ab0
+- [x] 1.8 User B sees empty columns — none of user A's cards leak — 6822ab0
 
 ### Phase 2: POST /api/applications endpoint
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type checking passes: `npm run typecheck`
-- [ ] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type checking passes: `npm run typecheck`
+- [x] 2.3 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 Valid curl returns 201 with the new row
-- [ ] 2.5 Missing `source` returns 422 with `{ errors: { source: 'Źródło jest wymagane.' } }`
-- [ ] 2.6 No-cookie curl returns 401 `{ error: 'Unauthorized.' }`
-- [ ] 2.7 Malformed JSON returns 400 `{ error: 'Invalid JSON body.' }`
-- [ ] 2.8 Cross-user read isolation: user B GETs `/dashboard` and sees only own rows, never user A's
+- [x] 2.4 Valid curl returns 201 with the new row
+- [x] 2.5 Missing `source` returns 422 with `{ errors: { source: 'Źródło jest wymagane.' } }`
+- [x] 2.6 No-cookie curl returns 401 `{ error: 'Unauthorized.' }`
+- [x] 2.7 Malformed JSON returns 400 `{ error: 'Invalid JSON body.' }`
+- [x] 2.8 Cross-user read isolation: user B GETs `/dashboard` and sees only own rows, never user A's
 
 ### Phase 3: Add modal UI and `+` trigger
 
