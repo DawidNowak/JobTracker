@@ -1,14 +1,18 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
-import { applicationCreateSchema, formatApplicationFieldErrors } from "@/lib/validation/applications";
+import { applicationCreateSchema } from "@/lib/validation/applications";
 import { createApplication } from "@/lib/services/applications";
+import { jsonResponse, formatZodErrors } from "@/lib/http";
 
 export const prerender = false;
 
-function jsonResponse(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
+function formatApplicationErrors(error: Parameters<typeof formatZodErrors>[0]) {
+  return formatZodErrors(error, (issue) => {
+    const key = issue.path[0];
+    if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
+      return "Źródło jest wymagane.";
+    }
+    return undefined;
   });
 }
 
@@ -27,7 +31,7 @@ export const POST: APIRoute = async (context) => {
 
   const parsed = applicationCreateSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonResponse(422, { errors: formatApplicationFieldErrors(parsed.error) });
+    return jsonResponse(422, { errors: formatApplicationErrors(parsed.error) });
   }
 
   const supabase = createClient(context.request.headers, context.cookies);

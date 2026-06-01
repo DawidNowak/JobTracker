@@ -31,6 +31,10 @@ export const applicationUpdateSchema = z.object({
   status: applicationStatusSchema.optional(),
 });
 
+export const applicationStatusUpdateSchema = z.object({
+  status: applicationStatusSchema,
+});
+
 export const applicationNoteCreateSchema = z.object({
   application_id: z.uuid(),
   body: z.string().min(1),
@@ -42,19 +46,6 @@ export const applicationParseSchema = z.object({
 
 export type ApplicationCreate = z.infer<typeof applicationCreateSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;
+export type ApplicationStatusUpdate = z.infer<typeof applicationStatusUpdateSchema>;
 export type ApplicationNoteCreate = z.infer<typeof applicationNoteCreateSchema>;
 export type ApplicationParse = z.infer<typeof applicationParseSchema>;
-
-export function formatApplicationFieldErrors(error: z.ZodError): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = issue.path[0];
-    if (typeof key !== "string" || key in errors) continue;
-    if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
-      errors[key] = "Źródło jest wymagane.";
-    } else {
-      errors[key] = issue.message;
-    }
-  }
-  return errors;
-}

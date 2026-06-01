@@ -1,6 +1,6 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import KanbanBoard from "@/components/board/KanbanBoard.astro";
+import KanbanBoard from "@/components/board/KanbanBoard.tsx";
 import { createClient } from "@/lib/supabase";
 import { listActiveApplications } from "@/lib/services/applications";
 import { applicationStatusValues } from "@/lib/validation/applications";
@@ -32,5 +32,5 @@ if (supabase) {
 ---
 
 <AppShell title="Tablica" activeNav="tablica">
-  <KanbanBoard applications={grouped} />
+  <KanbanBoard client:load applications={grouped} />
 </AppShell>
