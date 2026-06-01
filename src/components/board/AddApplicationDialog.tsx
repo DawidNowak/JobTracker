@@ -17,6 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { ApplicationStatus, WorkMode } from "@/lib/validation/applications";
 import { workModeValues } from "@/lib/validation/applications";
+import { recognize } from "@/lib/parsers/recognize";
+import type { ParseEndpointResponse, ParseResult, ParseStatus } from "@/lib/parsers/types";
 
 type AddableStatus = Exclude<ApplicationStatus, "Rozmowa">;
 
@@ -49,6 +51,9 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parseStatus, setParseStatus] = useState<ParseStatus | null>(null);
+  const [parseMessage, setParseMessage] = useState<string | null>(null);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -68,6 +73,43 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
       setErrors({});
       setBannerError(null);
       setSubmitting(false);
+      setParsing(false);
+      setParseStatus(null);
+      setParseMessage(null);
+    }
+  };
+
+  const canParse = recognize(form.source.trim()) !== null && !parsing;
+
+  const handleParse = async () => {
+    setParsing(true);
+    setParseStatus(null);
+    setParseMessage(null);
+    try {
+      const res = await fetch("/api/applications/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: form.source.trim() }),
+      });
+      if (res.status !== 200) {
+        setParseStatus("fetch_failed");
+        setParseMessage("Nie udało się pobrać danych. Wypełnij ręcznie.");
+        return;
+      }
+      const payload = (await res.json()) as ParseEndpointResponse;
+      const result: ParseResult = payload.result;
+      if (result.position !== undefined) update("position", result.position);
+      if (result.company !== undefined) update("company", result.company);
+      if (result.description !== undefined) update("description", result.description);
+      if (result.salary !== undefined) update("salary", result.salary);
+      if (result.work_mode !== undefined) update("work_mode", result.work_mode);
+      setParseStatus(payload.status);
+      setParseMessage(payload.message ?? null);
+    } catch {
+      setParseStatus("fetch_failed");
+      setParseMessage("Nie udało się pobrać danych. Wypełnij ręcznie.");
+    } finally {
+      setParsing(false);
     }
   };
 
@@ -130,6 +172,14 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+            {parseMessage && parseStatus !== "ok" && (
+              <div
+                role="status"
+                className={cn("rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800")}
+              >
+                {parseMessage}
+              </div>
+            )}
             {bannerError && (
               <div role="alert" className={cn("rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700")}>
                 {bannerError}
@@ -148,6 +198,17 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
                 autoFocus
               />
               {errors.source && <p className="text-xs text-red-600">{errors.source}</p>}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  void handleParse();
+                }}
+                disabled={!canParse}
+                className="self-start"
+              >
+                {parsing ? "Pobieranie…" : "Pobierz dane oferty"}
+              </Button>
             </div>
 
             <div className="flex flex-col gap-1.5">

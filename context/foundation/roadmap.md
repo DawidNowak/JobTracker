@@ -34,7 +34,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | ready    |
 | S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | proposed |
 | S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
-| S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | proposed |
+| S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | implemented |
 | S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | done     |
 | S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | proposed |
 | S-06  | notes-and-card-detail              | write follow-up notes and read note history on a card         | S-02             | FR-013, FR-014        | proposed |
@@ -224,7 +224,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | F-01       | applications-schema-and-rls        | Foundation: applications schema, RLS, and lastActionAt enforcement | yes                   | No Prerequisites — auth is in baseline      |
 | S-01       | kanban-shell-and-nav               | Kanban shell with three columns + top nav (Tablica / Archiwum)     | no                    | Needs F-01                                  |
 | S-02       | manual-add-application             | Manual add-application form (source required, free text)           | yes                   | Shipped 2026-05-29 (impl_reviewed); awaiting archive          |
-| S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** S-02 shipped 2026-05-29     |
+| S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** Implemented 2026-05-29 (4 phases shipped) |
 | S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | yes                   | Shipped 2026-05-29 (commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed); awaiting archive |
 | S-03       | edit-and-delete-application        | Edit any field + delete card (with warning dialogs)                | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05 |
 | S-06       | notes-and-card-detail              | Card detail view + follow-up notes (write + history)               | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05, S-03 |
