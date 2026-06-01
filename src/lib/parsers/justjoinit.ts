@@ -105,6 +105,30 @@ function resolveTextRef(flight: string, ref: string): string | undefined {
   return flight.slice(start, start + len);
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&nbsp;": " ",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&apos;": "'",
+  "&lt;": "<",
+  "&gt;": ">",
+};
+
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<\/p>\s*<\/li>/gi, "</li>")
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|li|ul|ol|div|h[1-6])\s*>/gi, "\n")
+    .replace(/<\s*li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&[a-z#0-9]+;/gi, (m) => HTML_ENTITIES[m.toLowerCase()] ?? m)
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function sliceObjectAround(flight: string, keyIdx: number): string | null {
   // Walk backward from keyIdx (the opening `"` of a JSON key) to find the enclosing `{`.
   // keyIdx points at `"`; the char to its right is string content, so we start inString=true
@@ -235,7 +259,8 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
 
   let description = "";
   if (typeof offer.body === "string" && offer.body.length > 0) {
-    description = resolveTextRef(flight, offer.body) ?? "";
+    const raw = resolveTextRef(flight, offer.body) ?? "";
+    description = htmlToPlainText(raw);
   }
   if (Array.isArray(offer.requiredSkills) && offer.requiredSkills.length > 0) {
     const skills = offer.requiredSkills

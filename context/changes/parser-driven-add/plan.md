@@ -421,3 +421,8 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 - [x] 4.8 Unsupported URL (e.g., `https://pracuj.pl/...`) keeps the button disabled. — 0a08491
 - [x] 4.9 Closing and reopening the dialog resets parsing state and inline message. — 0a08491
 - [x] 4.10 Submitting a parser-pre-filled form creates the card in the target column with the parsed values. — 0a08491
+
+## Post-merge follow-ups
+
+- 2b9e722 — JJIT schema drift fix + impl-review triage (F1, F2, F4). See commit body.
+- _next_ — JJIT description HTML stripping. Phase 2 originally required the description to be preserved verbatim (see 2.6), but the field renders in a plain `<Textarea>` and tags showed through. Added a small `htmlToPlainText()` helper in `src/lib/parsers/justjoinit.ts` that converts `<br>`, `</p|li|ul|ol|div|hN>` to newlines, `<li>` to `- `, strips remaining tags, decodes common entities (`&amp;`, `&nbsp;`, `&quot;`, `&#39;`/`&apos;`, `&lt;`, `&gt;`, numeric `&#NNN;`), and collapses whitespace. The `</p></li>` pair is short-circuited to a single newline so list items aren't separated by a blank line.
