@@ -8,6 +8,9 @@ const CONTRACT_LABELS: Record<string, string> = {
   b2b: "B2B",
   permanent: "UoP",
   mandate_contract: "UZ",
+  contract: "UoD",
+  internship: "staż",
+  // legacy keys retained for forward-compat if JJIT ever flips back
   internship_contract: "staż",
 };
 
@@ -17,6 +20,7 @@ interface EmploymentType {
   to?: number | null;
   currency?: string | null;
   unit?: string | null;
+  // Legacy nested shape; current JJIT puts from/to/currency directly on the row.
   salary?: {
     from?: number | null;
     to?: number | null;
@@ -26,11 +30,13 @@ interface EmploymentType {
 
 interface OfferShape {
   title?: string;
-  company_name?: string;
+  companyName?: string;
+  // Body can be either a plain HTML string or a Flight text reference like "$48".
   body?: string;
-  workplace_type?: string;
-  required_skills?: unknown;
-  employment_types?: EmploymentType[];
+  // workplaceType is now an object { label, value }; older payloads were a plain string.
+  workplaceType?: string | { label?: string; value?: string };
+  requiredSkills?: unknown;
+  employmentTypes?: EmploymentType[];
 }
 
 function formatNumber(value: number): string {
@@ -69,40 +75,53 @@ function formatSalary(rows: EmploymentType[] | undefined): string | undefined {
 }
 
 function mapWorkplaceType(value: unknown): WorkMode | undefined {
-  if (typeof value !== "string") return undefined;
-  const v = value.toLowerCase();
-  if (v === "remote") return "Zdalna";
-  if (v === "hybrid" || v === "partly_remote") return "Hybrydowa";
-  if (v === "office") return "Stacjonarna";
+  let v: string | undefined;
+  if (typeof value === "string") v = value;
+  else if (value && typeof value === "object" && "value" in value) {
+    const raw = (value as { value: unknown }).value;
+    if (typeof raw === "string") v = raw;
+  }
+  if (!v) return undefined;
+  const lower = v.toLowerCase();
+  if (lower === "remote") return "Zdalna";
+  if (lower === "hybrid" || lower === "partly_remote") return "Hybrydowa";
+  if (lower === "office") return "Stacjonarna";
   return undefined;
 }
 
-function extractOfferObject(flight: string): OfferShape {
-  const titleIdx = flight.indexOf('"title"');
-  if (titleIdx < 0) throw new Error("offer marker not found");
+// Resolve a Flight text reference of the form "$<hex>" against the joined flight buffer.
+// Flight encoding writes the referenced text as "\n<id>:T<hex-length>,<text>" inside the buffer.
+// If `ref` does not look like a reference, return it unchanged (some payloads inline the HTML).
+function resolveTextRef(flight: string, ref: string): string | undefined {
+  if (!ref.startsWith("$")) return ref;
+  const id = ref.slice(1);
+  if (!/^[0-9a-fA-F]+$/.test(id)) return undefined;
+  const re = new RegExp(`(?:^|\\n)${id}:T([0-9a-fA-F]+),`);
+  const m = re.exec(flight);
+  if (!m) return undefined;
+  const len = Number.parseInt(m[1], 16);
+  if (!Number.isFinite(len) || len < 0) return undefined;
+  const start = m.index + m[0].length;
+  return flight.slice(start, start + len);
+}
 
+function sliceObjectAround(flight: string, keyIdx: number): string | null {
+  // Walk backward from keyIdx (the opening `"` of a JSON key) to find the enclosing `{`.
+  // keyIdx points at `"`; the char to its right is string content, so we start inString=true
+  // and the first `"` toggles us OUT of the string.
   let openIdx = -1;
   let depth = 0;
-  let inString = false;
-  let escape = false;
-  for (let i = titleIdx; i >= 0; i--) {
+  let inString = true;
+  for (let i = keyIdx; i >= 0; i--) {
     const ch = flight[i];
-    if (escape) {
-      escape = false;
-      continue;
-    }
-    if (ch === "\\") {
-      escape = true;
-      continue;
-    }
-    if (inString) {
-      if (ch === '"') inString = false;
-      continue;
-    }
     if (ch === '"') {
-      inString = true;
+      // A `"` is escaped iff preceded by an odd run of backslashes.
+      let bs = 0;
+      for (let j = i - 1; j >= 0 && flight[j] === "\\"; j--) bs++;
+      if (bs % 2 === 0) inString = !inString;
       continue;
     }
+    if (inString) continue;
     if (ch === "}") depth++;
     else if (ch === "{") {
       if (depth === 0) {
@@ -112,30 +131,20 @@ function extractOfferObject(flight: string): OfferShape {
       depth--;
     }
   }
-  if (openIdx < 0) throw new Error("offer object opening brace not found");
+  if (openIdx < 0) return null;
 
   let closeIdx = -1;
   depth = 0;
   inString = false;
-  escape = false;
   for (let i = openIdx; i < flight.length; i++) {
     const ch = flight[i];
-    if (escape) {
-      escape = false;
-      continue;
-    }
-    if (ch === "\\") {
-      escape = true;
-      continue;
-    }
-    if (inString) {
-      if (ch === '"') inString = false;
-      continue;
-    }
     if (ch === '"') {
-      inString = true;
+      let bs = 0;
+      for (let j = i - 1; j >= 0 && flight[j] === "\\"; j--) bs++;
+      if (bs % 2 === 0) inString = !inString;
       continue;
     }
+    if (inString) continue;
     if (ch === "{") depth++;
     else if (ch === "}") {
       depth--;
@@ -145,27 +154,39 @@ function extractOfferObject(flight: string): OfferShape {
       }
     }
   }
-  if (closeIdx < 0) throw new Error("offer object closing brace not found");
+  if (closeIdx < 0) return null;
+  return flight.slice(openIdx, closeIdx + 1);
+}
 
-  const slice = flight.slice(openIdx, closeIdx + 1);
-  if (!slice.includes('"title"') || !slice.includes('"workplace_type"')) {
-    throw new Error("offer slice missing expected keys");
+function extractOfferObject(flight: string): OfferShape {
+  // Use "workplaceType" as the marker — it's a single, offer-specific key (current JJIT shape).
+  // Each candidate match yields an enclosing-object slice; accept the first one that also
+  // contains "title" and "companyName" and JSON-parses.
+  let searchStart = 0;
+  let candidatesTried = 0;
+  while (true) {
+    const idx = flight.indexOf('"workplaceType"', searchStart);
+    if (idx < 0) {
+      throw new Error(
+        candidatesTried === 0
+          ? "offer marker not found"
+          : `offer object not located after ${candidatesTried} candidate(s)`,
+      );
+    }
+    searchStart = idx + 1;
+    candidatesTried++;
+
+    const slice = sliceObjectAround(flight, idx);
+    if (slice === null) continue;
+    if (!slice.includes('"title"') || !slice.includes('"companyName"')) continue;
+    try {
+      return JSON.parse(slice) as OfferShape;
+    } catch {
+      continue;
+    }
   }
-  return JSON.parse(slice) as OfferShape;
 }
 
-interface HTMLRewriterTextChunk {
-  text: string;
-}
-
-interface HTMLRewriterInstance {
-  on(selector: string, handlers: { text(t: HTMLRewriterTextChunk): void }): HTMLRewriterInstance;
-  transform(response: Response): Response;
-}
-
-type HTMLRewriterCtor = new () => HTMLRewriterInstance;
-
-declare const HTMLRewriter: HTMLRewriterCtor;
 
 export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
   const url = `https://justjoin.it/job-offer/${slug}`;
@@ -208,13 +229,16 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
   if (typeof offer.title === "string" && offer.title.length > 0) {
     result.position = offer.title;
   }
-  if (typeof offer.company_name === "string" && offer.company_name.length > 0) {
-    result.company = offer.company_name;
+  if (typeof offer.companyName === "string" && offer.companyName.length > 0) {
+    result.company = offer.companyName;
   }
 
-  let description = typeof offer.body === "string" ? offer.body : "";
-  if (Array.isArray(offer.required_skills) && offer.required_skills.length > 0) {
-    const skills = offer.required_skills
+  let description = "";
+  if (typeof offer.body === "string" && offer.body.length > 0) {
+    description = resolveTextRef(flight, offer.body) ?? "";
+  }
+  if (Array.isArray(offer.requiredSkills) && offer.requiredSkills.length > 0) {
+    const skills = offer.requiredSkills
       .map((s) => {
         if (typeof s === "string") return s;
         if (s && typeof s === "object" && "name" in s && typeof (s as { name: unknown }).name === "string") {
@@ -231,10 +255,10 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
     result.description = description;
   }
 
-  const salary = formatSalary(offer.employment_types);
+  const salary = formatSalary(offer.employmentTypes);
   if (salary) result.salary = salary;
 
-  const workMode = mapWorkplaceType(offer.workplace_type);
+  const workMode = mapWorkplaceType(offer.workplaceType);
   if (workMode) result.work_mode = workMode;
 
   return result;

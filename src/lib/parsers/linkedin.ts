@@ -4,20 +4,6 @@ import type { ParseResult } from "./types";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-interface HTMLRewriterTextChunk {
-  text: string;
-  lastInTextNode: boolean;
-}
-
-interface HTMLRewriterInstance {
-  on(selector: string, handlers: { text(t: HTMLRewriterTextChunk): void }): HTMLRewriterInstance;
-  transform(response: Response): Response;
-}
-
-type HTMLRewriterCtor = new () => HTMLRewriterInstance;
-
-declare const HTMLRewriter: HTMLRewriterCtor;
-
 function sniffWorkMode(haystack: string): WorkMode | undefined {
   const h = haystack.toLowerCase();
   if (/\b(zdaln|remote)/.test(h)) return "Zdalna";

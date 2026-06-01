@@ -171,7 +171,7 @@ Replace the JJIT stub with a real implementation that fetches the `/job-offer/{s
 - Extract Flight chunks via `String.matchAll(/self\.__next_f\.push\(\[1,(".*?")\]\)/gs)`, `JSON.parse(m[1])`, join.
 - Find the offer object via **string-aware brace matching** (the riskiest step of this phase):
   1. Locate the first occurrence of `"title"` in the concatenated flight string. If absent, throw.
-  2. Walk **backward** from that index, tracking JSON string state (toggle on unescaped `"`, treat `\\"` and `\\\\` as escapes), decrementing depth on `}` and incrementing on `{` — find the index where depth would have started at zero (i.e. the enclosing `{`). If none found before the buffer start, throw.
+  2. Walk **backward** from that index, tracking JSON string state (toggle on unescaped `"`, treat `\\"` and `\\\\` as escapes), **incrementing depth on `}` and decrementing on `{`** (intuition: walking backward, an opening `{` "closes" a nested object below, a closing `}` "opens" one) — the enclosing `{` is the first one encountered while depth is zero. If none found before the buffer start, throw.
   3. Walk **forward** from that opening `{` with the same string-state tracking, incrementing on `{` and decrementing on `}` only when not inside a string literal. Stop when depth returns to zero — that index is the closing `}`.
   4. Slice the substring `[open, close+1]`. Verify it contains both `"title"` and `"workplace_type"` as a sanity check (cheap `String.includes`); if either is missing, throw.
   5. `JSON.parse` the slice. Any throw at any step propagates to the endpoint's catch → `fetch_failed` (silent garbage cannot survive the post-slice sanity check + JSON.parse).
