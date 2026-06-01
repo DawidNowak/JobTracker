@@ -12,6 +12,22 @@ function sniffWorkMode(haystack: string): WorkMode | undefined {
   return undefined;
 }
 
+// LinkedIn renders the description inside .description__text, which wraps the
+// .show-more-less-html__markup content AND the Show more / Show less <button>s.
+// We inject newlines on block-element boundaries inside the description container,
+// and suppress text from inside those buttons via an inSkippable counter.
+const DESC_BLOCK_SELECTOR = ["p", "div", "ul", "ol", "h1", "h2", "h3", "h4", "h5", "h6"]
+  .flatMap((tag) => [`.show-more-less-html__markup ${tag}`, `.description__text ${tag}`])
+  .join(", ");
+
+function normalizeDescription(raw: string): string {
+  return raw
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
   const url = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${encodeURIComponent(jobId)}`;
   const response = await fetch(url, {
@@ -30,6 +46,7 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
   let locationBuf = "";
   let descriptionBuf = "";
   let salaryBuf = "";
+  let inSkippable = 0;
 
   const rewritten = new HTMLRewriter()
     .on(".top-card-layout__title, .topcard__title", {
@@ -49,7 +66,30 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
     })
     .on(".show-more-less-html__markup, .description__text", {
       text(t) {
-        descriptionBuf += t.text;
+        if (inSkippable === 0) descriptionBuf += t.text;
+      },
+    })
+    .on(".show-more-less-html__button", {
+      element(e) {
+        inSkippable++;
+        e.onEndTag(() => {
+          inSkippable--;
+        });
+      },
+    })
+    .on(".show-more-less-html__markup br, .description__text br", {
+      element() {
+        if (inSkippable === 0) descriptionBuf += "\n";
+      },
+    })
+    .on(".show-more-less-html__markup li, .description__text li", {
+      element() {
+        if (inSkippable === 0) descriptionBuf += "\n- ";
+      },
+    })
+    .on(DESC_BLOCK_SELECTOR, {
+      element() {
+        if (inSkippable === 0) descriptionBuf += "\n";
       },
     })
     .on(".compensation__salary", {
@@ -68,7 +108,7 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
   const result: ParseResult = { position };
   const company = companyBuf.trim();
   if (company.length > 0) result.company = company;
-  const description = descriptionBuf.trim();
+  const description = normalizeDescription(descriptionBuf);
   if (description.length > 0) result.description = description;
   const salary = salaryBuf.trim();
   if (salary.length > 0) result.salary = salary;
