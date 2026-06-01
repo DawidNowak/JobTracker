@@ -6,8 +6,8 @@ const USER_AGENT =
 
 function sniffWorkMode(haystack: string): WorkMode | undefined {
   const h = haystack.toLowerCase();
-  if (/\b(zdaln|remote)/.test(h)) return "Zdalna";
   if (/\b(hybrydow|hybrid)/.test(h)) return "Hybrydowa";
+  if (/\b(zdaln|remote)/.test(h)) return "Zdalna";
   if (/\b(stacjonarn|on[-\s]?site|onsite)/.test(h)) return "Stacjonarna";
   return undefined;
 }
@@ -114,7 +114,7 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
   if (salary.length > 0) result.salary = salary;
 
   const location = locationBuf.trim();
-  const haystack = `${position} ${location} ${description.slice(0, 2048)}`;
+  const haystack = `${position} ${location} ${description}`;
   const workMode = sniffWorkMode(haystack);
   if (workMode) result.work_mode = workMode;
 
