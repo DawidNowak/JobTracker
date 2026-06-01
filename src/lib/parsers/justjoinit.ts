@@ -215,6 +215,7 @@ function extractOfferObject(flight: string): OfferShape {
       continue;
     }
   }
+  throw new Error("offer marker not found");
 }
 
 export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
