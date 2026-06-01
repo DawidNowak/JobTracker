@@ -170,6 +170,7 @@ Replace the JJIT stub with a real implementation that fetches the `/job-offer/{s
 - Parse with `HTMLRewriter` collecting text content of `script` elements into a single buffer.
 - Extract Flight chunks via `String.matchAll(/self\.__next_f\.push\(\[1,(".*?")\]\)/gs)`, `JSON.parse(m[1])`, join.
 - Find the offer object via **string-aware brace matching** (the riskiest step of this phase):
+  > **Post-merge update (2b9e722):** the marker key is now `"workplaceType"` (camelCase, schema drift), and the implementation iterates candidates rather than throwing on the first failed slice. See the Post-merge follow-ups section. The walk algorithm below is otherwise correct.
   1. Locate the first occurrence of `"title"` in the concatenated flight string. If absent, throw.
   2. Walk **backward** from that index, tracking JSON string state (toggle on unescaped `"`, treat `\\"` and `\\\\` as escapes), **incrementing depth on `}` and decrementing on `{`** (intuition: walking backward, an opening `{` "closes" a nested object below, a closing `}` "opens" one) — the enclosing `{` is the first one encountered while depth is zero. If none found before the buffer start, throw.
   3. Walk **forward** from that opening `{` with the same string-state tracking, incrementing on `{` and decrementing on `}` only when not inside a string literal. Stop when depth returns to zero — that index is the closing `}`.

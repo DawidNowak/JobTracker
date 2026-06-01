@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
-import { applicationParseSchema } from "@/lib/validation/applications";
+import { applicationParseSchema, formatApplicationFieldErrors } from "@/lib/validation/applications";
 import { recognize } from "@/lib/parsers/recognize";
 import { parseLinkedIn } from "@/lib/parsers/linkedin";
 import { parseJustJoinIT } from "@/lib/parsers/justjoinit";
@@ -13,20 +12,6 @@ function jsonResponse(status: number, body: unknown): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
-}
-
-function formatParseErrors(error: z.ZodError): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = issue.path[0];
-    if (typeof key !== "string" || key in errors) continue;
-    if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
-      errors[key] = "Źródło jest wymagane.";
-    } else {
-      errors[key] = issue.message;
-    }
-  }
-  return errors;
 }
 
 const MESSAGES = {
@@ -68,7 +53,7 @@ export const POST: APIRoute = async (context) => {
 
   const parsed = applicationParseSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonResponse(422, { errors: formatParseErrors(parsed.error) });
+    return jsonResponse(422, { errors: formatApplicationFieldErrors(parsed.error) });
   }
 
   const trimmed = parsed.data.source.trim();

@@ -4,6 +4,9 @@ import type { ParseResult } from "./types";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+const MAX_BUFFER_CHARS = 4_000_000;
+const MAX_OFFER_CANDIDATES = 8;
+
 const CONTRACT_LABELS: Record<string, string> = {
   b2b: "B2B",
   permanent: "UoP",
@@ -78,7 +81,7 @@ function mapWorkplaceType(value: unknown): WorkMode | undefined {
   let v: string | undefined;
   if (typeof value === "string") v = value;
   else if (value && typeof value === "object" && "value" in value) {
-    const raw = (value as { value: unknown }).value;
+    const raw = value.value;
     if (typeof raw === "string") v = raw;
   }
   if (!v) return undefined;
@@ -188,7 +191,10 @@ function extractOfferObject(flight: string): OfferShape {
   // contains "title" and "companyName" and JSON-parses.
   let searchStart = 0;
   let candidatesTried = 0;
-  while (true) {
+  while (searchStart < flight.length) {
+    if (candidatesTried >= MAX_OFFER_CANDIDATES) {
+      throw new Error(`offer object not located after ${candidatesTried} candidate(s)`);
+    }
     const idx = flight.indexOf('"workplaceType"', searchStart);
     if (idx < 0) {
       throw new Error(
@@ -210,7 +216,6 @@ function extractOfferObject(flight: string): OfferShape {
     }
   }
 }
-
 
 export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
   const url = `https://justjoin.it/job-offer/${slug}`;
@@ -234,6 +239,9 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
     })
     .transform(response);
   await rewritten.text();
+  if (scriptBuffer.length > MAX_BUFFER_CHARS) {
+    throw new Error(`JJIT scriptBuffer too large: ${scriptBuffer.length}`);
+  }
 
   const chunks: string[] = [];
   for (const m of scriptBuffer.matchAll(/self\.__next_f\.push\(\[1,(".*?")\]\)/gs)) {
@@ -246,6 +254,9 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
   }
   const flight = chunks.join("");
   if (flight.length === 0) throw new Error("no flight chunks");
+  if (flight.length > MAX_BUFFER_CHARS) {
+    throw new Error(`JJIT flight buffer too large: ${flight.length}`);
+  }
 
   const offer = extractOfferObject(flight);
 

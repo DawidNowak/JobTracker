@@ -15,7 +15,7 @@ export function recognize(source: string): RecognizedSource | null {
 
   const host = url.hostname.toLowerCase();
 
-  if (host === "linkedin.com" || host.endsWith(".linkedin.com")) {
+  if (host === "linkedin.com" || host === "www.linkedin.com" || host === "pl.linkedin.com") {
     const fromQuery = url.searchParams.get("currentJobId");
     if (fromQuery && /^\d{8,}$/.test(fromQuery)) {
       return { kind: "linkedin", jobId: fromQuery };

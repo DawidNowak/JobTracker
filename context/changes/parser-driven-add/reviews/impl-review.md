@@ -1,11 +1,13 @@
 <!-- IMPL-REVIEW-REPORT -->
-# Implementation Review: Parser-driven add
+# Implementation Review: Parser-driven add (full re-review)
 
 - **Plan**: context/changes/parser-driven-add/plan.md
-- **Scope**: All 4 phases
+- **Scope**: All 4 phases + 3 post-triage fix commits (d45d704, 142dc93, 1a2edf6)
 - **Date**: 2026-06-01
-- **Verdict**: APPROVED
-- **Findings**: 0 critical, 1 warning, 4 observations
+- **Verdict**: NEEDS ATTENTION
+- **Findings**: 1 critical, 4 warnings, 2 observations
+
+> This report supersedes the prior 2026-06-01 review (5 findings, all triaged: F1 FIXED, F2 FIXED, F3 SKIPPED, F4 FIXED, F5 SKIPPED). New findings below are numbered F1–F7 from scratch in this re-review.
 
 ## Verdicts
 
@@ -16,60 +18,92 @@
 | Safety & Quality | WARNING |
 | Architecture | PASS |
 | Pattern Consistency | PASS |
-| Success Criteria | PASS |
+| Success Criteria | FAIL |
+
+`npm run build` passes (37 s). `npm run lint` **fails** — 3 errors in `src/lib/parsers/justjoinit.ts`. See F1.
 
 ## Findings
 
-### F1 — Backward brace walk mishandles escape sequences inside strings
+### F1 — Lint regressed since last impl-review pass
+
+- **Severity**: ❌ CRITICAL
+- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
+- **Dimension**: Success Criteria
+- **Location**: src/lib/parsers/justjoinit.ts:81, 191, 214
+- **Detail**: `npm run lint` (success criterion for every phase) now reports 3 errors:
+  - **81:18** `@typescript-eslint/no-unnecessary-type-assertion` — `(value as { value: unknown }).value` in `mapWorkplaceType`; `value` is already narrowed to `object` here, the assertion is redundant.
+  - **191:10** `@typescript-eslint/no-unnecessary-condition` — `while (true)` in `extractOfferObject` (the schema-drift-fix candidate loop); eslint wants an explicit exit condition.
+  - **214:1** `prettier/prettier` — trailing blank line between `extractOfferObject` and `parseJustJoinIT`.
+
+  Plan progress marks `2.1 Lint passes — b441a6b` as `[x]`, so lint was green when phase 2 landed. Triage commit `2b9e722` (schema-drift rewrite of `extractOfferObject`) and the type-narrowing tweak in `mapWorkplaceType` regressed it. `npm run build` still passes.
+- **Fix**: Run `npm run lint -- --fix` (handles 81 + 214 automatically) and replace `while (true)` on line 191 with a bounded `while (searchStart < flight.length)` (or equivalent) so the exit condition is explicit.
+- **Decision**: FIXED — ran `npm run lint -- --fix` (auto-removed the `as { value: unknown }` assertion at line 81 and the trailing blank line at 214), then manually changed `while (true)` to `while (searchStart < flight.length)` at line 191. Lint and build both pass.
+
+### F2 — No request body / source length cap on parse endpoint
+
+- **Severity**: ⚠️ WARNING
+- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
+- **Dimension**: Safety & Quality
+- **Location**: src/lib/validation/applications.ts:39-41
+- **Detail**: `applicationParseSchema` is `z.object({ source: z.string().min(1) })` with no upper bound. `context.request.json()` in `parse.ts` buffers the full body before Zod runs, so a multi-MB JSON payload from an authenticated user is fully read into Worker memory. Plan §"What We're NOT Doing" excluded response-body caps and rate-limiting (Q8), but request-side input bounding is a Zod-level concern, not infra. A URL never exceeds ~2 KB in practice.
+- **Fix**: Change to `source: z.string().min(1).max(2048)`.
+- **Decision**: SKIPPED — accepted as deferred; auth-gated endpoint, no observed abuse, Q8 "timeout only" stance still applies.
+
+### F3 — SSRF allowlist accepts any *.linkedin.com subdomain
+
+- **Severity**: ⚠️ WARNING
+- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
+- **Dimension**: Safety & Quality
+- **Location**: src/lib/parsers/recognize.ts:18-22
+- **Detail**: `host === "linkedin.com" || host.endsWith(".linkedin.com")` accepts arbitrary subdomains. The actual SSRF gate holds because the LinkedIn parser builds its outbound URL from the extracted `jobId` only and hard-codes `www.linkedin.com` — a crafted host never reaches `fetch()`. But the allowlist is wider than the surface that actually visits LinkedIn, and it's the documented security boundary.
+- **Fix**: Replace `endsWith(".linkedin.com")` with an explicit small set: `["linkedin.com", "www.linkedin.com", "pl.linkedin.com"]`.
+- **Decision**: FIXED — replaced suffix match with explicit 3-host equality check at recognize.ts:18.
+
+### F4 — Flight buffer / candidate loop unbounded in JJIT parser
 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Safety & Quality
-- **Location**: src/lib/parsers/justjoinit.ts:88-114
-- **Detail**: `extractOfferObject` runs the same escape-tracking state machine in both directions, but the logic only works forward. A backslash escapes the character that follows it (forward), so when walking backward, the `escape` flag should be set AFTER seeing the escaped character (look one step further left and find a `\`), not when the `\` itself is encountered. Concrete failure: a JSON string containing `\"` inside JJIT's `body` HTML, walked backward, toggles `inString` on the escaped `"` instead of skipping it, and then "skips" the `\` further left. String state inverts, and a stray `}` inside a string body can prematurely zero `depth`. Mitigated by: (1) post-slice sanity check at justjoinit.ts:151 (`includes('"title"') && includes('"workplace_type"')`); (2) `JSON.parse` of the slice at line 154; (3) Phase 2 manual verification passed against the reference URL. The forward walk (line 121-148) has the same shape but is correct for forward traversal — `escape` is set immediately before the next character is consumed, matching JSON's escape semantics.
-- **Fix**: Drop the escape tracking in the backward walk and rely on toggling `inString` on every `"` plus the post-slice JSON.parse for correctness — or properly: when walking backward, peek one position left on every `"` and skip the toggle if the prior char is an unescaped `\`.
-  - Strength: Removes a latent bug that one weirdly-formed JJIT description body away from a hard parse failure. The forward sanity-check + JSON.parse only catch it after the fact.
-  - Tradeoff: Adds peek-back logic to a hot loop; complexity for a bug that hasn't bitten in practice.
-  - Confidence: HIGH on the diagnosis; MEDIUM on whether to fix now — the safety net is real.
-  - Blind spot: How often JJIT bodies contain `\"` inside HTML strings (e.g. `<a href=\"...\">` is common).
-- **Decision**: FIXED — rewrote both backward and forward brace walks to count preceding backslashes at each `"` (odd = escaped), removing the broken forward-only escape state machine.
+- **Location**: src/lib/parsers/justjoinit.ts:185-212, 239 (Flight regex over scriptBuffer)
+- **Detail**: Two compounding bounds gaps. (1) `extractOfferObject` walks every `"workplaceType"` occurrence and per candidate calls `sliceObjectAround` which scans the full flight string in both directions — worst case O(candidates × |flight|). (2) The `matchAll` regex over `scriptBuffer` has no length cap; a pathologically large JJIT page could grow Worker memory until the 8 s `AbortSignal` fires. Realistic JJIT pages are 100–500 KB compressed, so this is a defensive concern, not an observed bug.
+- **Fix A ⭐ Recommended**: Cap `candidatesTried` (e.g. 8) and bail early if `scriptBuffer.length` or `flight.length` exceeds a ~4 MB ceiling (throw, caught by endpoint as `fetch_failed`).
+  - Strength: Trivial defensive caps; happy path unchanged; aligns with the 8 s timeout philosophy ("bound everything").
+  - Tradeoff: One more arbitrary constant in the parser; the cap could mask a legitimate JJIT change that grows pages.
+  - Confidence: HIGH — candidate cap is already implied by the schema-drift-fix loop.
+  - Blind spot: How JJIT page sizes have actually trended.
+- **Fix B**: Leave as-is, document in plan's "What We're NOT Doing"
+  - Strength: No code change; matches the slice's Q8 "timeout only" posture.
+  - Tradeoff: Postpones a near-zero-cost fix to a future incident.
+  - Confidence: MEDIUM — depends on JJIT page-size stability.
+  - Blind spot: Same as above.
+- **Decision**: FIXED via Fix A — added `MAX_BUFFER_CHARS = 4_000_000` and `MAX_OFFER_CANDIDATES = 8` constants, candidate cap inside `extractOfferObject`'s while loop, size bails after `scriptBuffer` is collected and after `flight = chunks.join("")`. All bail-outs throw and are caught by the endpoint as `fetch_failed`.
 
-### F2 — Duplicate HTMLRewriter type declarations
+### F5 — Response stream not drained when HTMLRewriter throws
+
+- **Severity**: ⚠️ WARNING
+- **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
+- **Dimension**: Safety & Quality
+- **Location**: src/lib/parsers/linkedin.ts:96-101, src/lib/parsers/justjoinit.ts:232-244
+- **Detail**: Both parsers call `await rewritten.text()` to drain the rewritten response. If any HTMLRewriter handler throws synchronously, the underlying `response.body` may not be cancelled — workerd's docs flag this as a potential resource hold. Current handlers are simple string appends so the risk is theoretical; flagging because it's the boundary pattern that will be copied if a third parser is added.
+- **Fix**: Wrap drain in `try { await rewritten.text(); } finally { response.body?.cancel().catch(() => {}); }` in both parsers, or extract a `consumeAndCancel(response, rewriter)` helper into `src/lib/parsers/util.ts` and call it from both.
+- **Decision**: SKIPPED — current handlers are simple string appends; theoretical leak only, no observed issue.
+
+### F6 — Phase 2 plan body still references "title" as the offer marker
+
+- **Severity**: OBSERVATION
+- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
+- **Dimension**: Plan Adherence
+- **Location**: plan.md:163, 173-176 vs src/lib/parsers/justjoinit.ts:192
+- **Detail**: Plan Phase 2 §"Find the offer object" instructs the implementation to locate `"title"` and walk backward. Implementation now searches `"workplaceType"` (commit `2b9e722`, schema-drift fix). The fact is captured in the plan's Post-merge follow-up entry, but readers of Phase 2 will see stale instructions before reaching the follow-up section. Same pattern as F4 of the previous review (plan body inverted backward-walk direction).
+- **Fix**: Optionally add a one-line forward-pointer at plan.md:173 to the Post-merge entry. No code change.
+- **Decision**: FIXED — added a blockquote callout immediately above plan.md:173 pointing to the Post-merge entry and noting the marker key changed to `"workplaceType"` plus the candidate-loop reshape (commit 2b9e722).
+
+### F7 — formatParseErrors near-duplicate of formatApplicationErrors
 
 - **Severity**: OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Pattern Consistency
-- **Location**: src/lib/parsers/linkedin.ts:7-19, src/lib/parsers/justjoinit.ts:157-168
-- **Detail**: Both parser modules independently declare local `HTMLRewriterTextChunk`, `HTMLRewriterInstance`, `HTMLRewriterCtor`, and `declare const HTMLRewriter`. Identical shapes (linkedin's chunk adds `lastInTextNode`).
-- **Fix**: Move the ambient declaration to `src/lib/parsers/types.ts` (or a sibling `html-rewriter.d.ts`) and import from both parsers. The `declare const` only needs to exist once.
-- **Decision**: FIXED — created `src/lib/parsers/html-rewriter.d.ts` with the ambient declaration (interfaces are global, `declare const HTMLRewriter` lives once); dropped the duplicate blocks from `linkedin.ts` and `justjoinit.ts`. Unused `lastInTextNode` field dropped.
-
-### F3 — recognize() tightens currentJobId beyond what plan specified
-
-- **Severity**: OBSERVATION
-- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
-- **Dimension**: Plan Adherence
-- **Location**: src/lib/parsers/recognize.ts:19-22
-- **Detail**: Plan §1 specified `searchParams.get("currentJobId")` with no validation; implementation adds `/^\d{8,}$/.test(fromQuery)`. Tighter than plan, consistent with the path fallback regex, prevents garbage being passed to LinkedIn. No user-visible regression.
-- **Fix**: None needed — divergence improves safety. Leave as-is.
-- **Decision**: SKIPPED — tightening accepted as a safety improvement; no action.
-
-### F4 — Backward brace walk literal text in plan was inverted
-
-- **Severity**: OBSERVATION
-- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
-- **Dimension**: Plan Adherence
-- **Location**: src/lib/parsers/justjoinit.ts:106-113 vs plan.md:174
-- **Detail**: Plan said "decrementing depth on `}` and incrementing on `{`" when walking backward — that's reversed. Implementation correctly increments on `}` and treats `{` as the target when depth reaches 0 (else decrements). Implementation is right; plan literal was a typo worth noting so future re-reads don't trust the plan over the code.
-- **Fix**: Optionally add a note to plan.md clarifying brace-counting direction. No code change.
-- **Decision**: FIXED — plan.md:174 corrected to "incrementing depth on `}` and decrementing on `{`" with a short intuition note.
-
-### F5 — JJIT skills handler accepts object form not in plan
-
-- **Severity**: OBSERVATION
-- **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
-- **Dimension**: Plan Adherence
-- **Location**: src/lib/parsers/justjoinit.ts:217-225
-- **Detail**: Plan said `required_skills.join(", ")` — implementation handles both string members and objects with `.name`, filtering anything else. Sensible widening given JJIT's payload isn't a stable contract.
-- **Fix**: None — keep the defensive variant.
-- **Decision**: SKIPPED — defensive variant accepted as-is.
+- **Location**: src/pages/api/applications/parse.ts:18-30 vs src/pages/api/applications/index.ts:16-28
+- **Detail**: Both routes implement the same "source is required" error formatter with identical envelope shapes. Intentional sibling consistency — flagging so the next field addition doesn't drift one without the other.
+- **Fix**: Optionally extract a shared `formatSourceFieldErrors(zodError)` helper into `src/lib/validation/applications.ts`. No urgency.
+- **Decision**: FIXED — added `formatApplicationFieldErrors` to `src/lib/validation/applications.ts`; deleted the duplicated `formatApplicationErrors` / `formatParseErrors` from both route handlers and replaced the call sites with the shared import. Dropped the now-unused `z` import from both routes. Lint + build pass.
