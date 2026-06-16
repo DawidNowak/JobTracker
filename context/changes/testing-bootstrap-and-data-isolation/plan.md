@@ -396,21 +396,21 @@ None. This phase only adds files; no schema migrations; no production code chang
 
 - [x] 1.7 Non-local `SUPABASE_URL` in `.env.test` causes `npm test` to fail with the guard's error
 - [x] 1.8 A new contributor can `cp .env.example .env.test`, fill 3 values, and `npm test` green
-- [ ] 1.9 `AGENTS.md` reads cleanly — no-mock and no-leak rules are unambiguous
+- [x] 1.9 `AGENTS.md` reads cleanly — no-mock and no-leak rules are unambiguous
 
 ### Phase 2: Cross-User Isolation Suite (PostgREST)
 
 #### Automated
 
-- [ ] 2.1 `npx supabase start` running; `npx supabase status` shows both anon and service-role keys
-- [ ] 2.2 `npm test` exits 0 with all four integration files green
-- [ ] 2.3 `npm run typecheck` still passes
+- [x] 2.1 `npx supabase start` running; `npx supabase status` shows both anon and service-role keys
+- [x] 2.2 `npm test` exits 0 with all four integration files green
+- [x] 2.3 `npm run typecheck` still passes
 
 #### Manual
 
-- [ ] 2.4 Removing the `EXISTS` clause in `application_notes_insert_own` makes the F-01 regression test go red
-- [ ] 2.5 Dropping `applications_select_own` makes the cross-user SELECT test go red
-- [ ] 2.6 `npm run test:watch` picks up file changes without restarting Supabase
+- [x] 2.4 Removing the `EXISTS` clause in `application_notes_insert_own` makes the F-01 regression test go red
+- [x] 2.5 Dropping `applications_select_own` makes the cross-user SELECT test go red
+- [x] 2.6 `npm run test:watch` picks up file changes without restarting Supabase
 
 ### Phase 3: HTTP Smoke (Thin Option A)
 
