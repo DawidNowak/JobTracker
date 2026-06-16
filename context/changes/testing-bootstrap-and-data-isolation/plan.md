@@ -385,17 +385,17 @@ None. This phase only adds files; no schema migrations; no production code chang
 
 #### Automated
 
-- [ ] 1.1 `npm install` completes without errors
-- [ ] 1.2 `npm run typecheck` passes
-- [ ] 1.3 `npm run lint` passes
-- [ ] 1.4 `npm test` exits 0 against an empty `tests/integration/`
-- [ ] 1.5 `.env.test` is git-ignored
-- [ ] 1.6 `git grep "no test framework"` returns no matches in `AGENTS.md` or `README.md`
+- [x] 1.1 `npm install` completes without errors
+- [x] 1.2 `npm run typecheck` passes
+- [x] 1.3 `npm run lint` passes
+- [x] 1.4 `npm test` exits 0 against an empty `tests/integration/`
+- [x] 1.5 `.env.test` is git-ignored
+- [x] 1.6 `git grep "no test framework"` returns no matches in `AGENTS.md` or `README.md`
 
 #### Manual
 
-- [ ] 1.7 Non-local `SUPABASE_URL` in `.env.test` causes `npm test` to fail with the guard's error
-- [ ] 1.8 A new contributor can `cp .env.example .env.test`, fill 3 values, and `npm test` green
+- [x] 1.7 Non-local `SUPABASE_URL` in `.env.test` causes `npm test` to fail with the guard's error
+- [x] 1.8 A new contributor can `cp .env.example .env.test`, fill 3 values, and `npm test` green
 - [ ] 1.9 `AGENTS.md` reads cleanly — no-mock and no-leak rules are unambiguous
 
 ### Phase 2: Cross-User Isolation Suite (PostgREST)

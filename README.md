@@ -149,9 +149,36 @@ npx wrangler deploy
 
 Set `SUPABASE_URL` and `SUPABASE_KEY` as secrets in your Cloudflare dashboard or via `npx wrangler secret put`.
 
+## Testing
+
+Integration tests run against the local Supabase stack and require Node 20+.
+
+### Prerequisites
+
+```bash
+npx supabase start   # start the local stack (first run downloads Docker images)
+```
+
+### Environment setup
+
+```bash
+cp .env.example .env.test
+# fill in the three test values from:
+npx supabase status
+```
+
+The `.env.test` file needs `SUPABASE_URL`, `SUPABASE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` pointing at `http://127.0.0.1:54321`. The test runner hard-asserts this before constructing any client — pointing `.env.test` at a remote URL is rejected immediately.
+
+### Commands
+
+```bash
+npm test             # single run
+npm run test:watch   # watch mode
+```
+
 ## CI
 
-GitHub Actions runs lint + build on every push and PR to `master`. Configure `SUPABASE_URL` and `SUPABASE_KEY` as repository secrets in GitHub for the build step.
+GitHub Actions runs lint + build on every push and PR to `master`. Configure `SUPABASE_URL` and `SUPABASE_KEY` as repository secrets in GitHub for the build step. Integration tests are run locally today; CI integration is tracked in `context/foundation/test-plan.md` §3 Phase 4.
 
 ## License
 
