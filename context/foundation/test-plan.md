@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-06-16 (Phase 1 change folder opened)
+> Last updated: 2026-06-17 (Phase 1 complete — §6.1/6.2/6.3 cookbook filled)
 
 ## 1. Strategy
 
@@ -65,7 +65,7 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Test bootstrap + data-isolation guard | Pick the runner, establish the Astro + Supabase integration-test pattern, prove the incident-class data-isolation guardrail with real cross-user integration tests. | #2 | unit + integration (Supabase local) | change opened | `context/changes/testing-bootstrap-and-data-isolation/` |
+| 1 | Test bootstrap + data-isolation guard | Pick the runner, establish the Astro + Supabase integration-test pattern, prove the incident-class data-isolation guardrail with real cross-user integration tests. | #2 | unit + integration (Supabase local) | complete | `context/changes/testing-bootstrap-and-data-isolation/` |
 | 2 | Parser correctness + abuse surface | Lock the north-star wedge: real-HTML fixture coverage per portal, fallback-on-failure path, and the `recognize()` allowlist that gates outbound fetch. | #1, #4 | unit (fixtures + URL classifier) + integration (fetch interception) | not started | — |
 | 3 | Domain invariants — lastActionAt + IDOR | Prove the `lastActionAt` trigger semantics survive future migrations and that applications endpoints enforce ownership independently of RLS. | #3, #5 | integration against real Postgres (row-level + endpoint matrix) | not started | — |
 | 4 | Quality gate wiring | Add `npm test` to CI on push/PR; integration tests run against an ephemeral or local Supabase; no coverage threshold (per §7). Optional: a scheduled parser-HTML-drift canary. | gating regression for #1–#5 | CI YAML edits, GitHub Actions secrets, optional scheduled canary | not started | — |
@@ -137,15 +137,93 @@ the relevant rollout phase ships; before that, the sub-section reads
 
 ### 6.1 Adding a unit test
 
-TBD — see §3 Phase 1 (test runner choice + location convention) and §3 Phase 2 (parser fixture pattern for Risk #1).
+**Runner / location** (Phase 1 shipped): Vitest, configured via `vitest.config.ts` using `getViteConfig` from `astro/config` so `astro:env/server` paths resolve. All test files live under `tests/**/*.test.ts`; run with `npm test` or `npm run test:watch`. The `tests/setup.ts` setup file runs before every worker — it loads `.env.test` and asserts the Supabase URL points at `127.0.0.1:54321` before anything else executes.
+
+**Parser fixture pattern** — TBD; see §3 Phase 2. Will cover capturing a real HTML payload as a fixture and asserting canonical fields against the visible job page (oracle from the page, not from the parser output).
 
 ### 6.2 Adding an integration test against Supabase
 
-TBD — see §3 Phase 1. Will cover: how to spin up `supabase start`, how to seed two test users, how to drive an endpoint through the SSR client with each user's session, and how to assert at the row level (per Risk #2 / #3 / #5 response guidance — never via the service-layer abstraction).
+**Phase 1 shipped.** Prerequisites: `npx supabase start` running, `.env.test` populated from `npx supabase status` (see `tests/README.md`).
+
+**Standard test shape:**
+
+```ts
+import { createAdminClient } from '../helpers/supabase-clients';
+import { provisionUser, cleanupUser } from '../helpers/users';
+
+const admin = createAdminClient();
+
+let userA: Awaited<ReturnType<typeof provisionUser>>;
+let userB: Awaited<ReturnType<typeof provisionUser>>;
+
+beforeEach(async () => {
+  userA = await provisionUser(admin);
+  userB = await provisionUser(admin);
+});
+
+afterEach(async () => {
+  await cleanupUser(admin, userA.userId);
+  await cleanupUser(admin, userB.userId);
+});
+```
+
+**Key rules:**
+- Every client is created fresh per test via `createUserClient()` / `createAdminClient()` — no singletons, always `persistSession: false`.
+- `provisionUser` passes `email_confirm: true` to `admin.auth.admin.createUser` — this is mandatory even when project-level email confirmations are disabled (two independent switches).
+- `afterEach` calls `cleanupUser` per user; `ON DELETE CASCADE` from `auth.users` wipes all `applications` and `application_notes` rows — no manual table cleanup needed.
+- Assert at the row level via `supabase-js` queries (`.from(...).select()`). Never assert through service-layer helpers in `src/` — an API-layer shortcut hides RLS and trigger regressions.
+- RLS returns an empty result set, not an error, for blocked queries (`data: []`, `error: null`). The F-01 write-attack test is the exception: a policy violation on INSERT does return `error.code === '42501'`.
+
+See `tests/integration/` for the full matrix (applications, notes, attack, unauthenticated).
 
 ### 6.3 Adding a test for a new API endpoint
 
-TBD — see §3 Phase 3. Will cover: ownership matrix (verb × owner × actor → expected status, per Risk #5) and the Zod-boundary parity check at the request edge.
+**Phase 3 shipped.** Prerequisites: same as §6.2, plus `astro dev` is spawned automatically by `tests/global-setup.ts`; `process.env.TEST_BASE_URL` is set before any HTTP test runs.
+
+**Standard test shape:**
+
+```ts
+import { signInAndCaptureCookies } from '../helpers/cookies';
+import { createAdminClient } from '../helpers/supabase-clients';
+import { provisionUser, cleanupUser } from '../helpers/users';
+
+const admin = createAdminClient();
+const BASE = () => process.env.TEST_BASE_URL!;
+
+let userA: Awaited<ReturnType<typeof provisionUser>>;
+let cookiesA: string;
+
+beforeEach(async () => {
+  userA = await provisionUser(admin);
+  cookiesA = await signInAndCaptureCookies(userA.email, userA.password);
+});
+
+afterEach(() => cleanupUser(admin, userA.userId));
+
+it('returns 401 without a cookie', async () => {
+  const res = await fetch(`${BASE()}/api/applications`, { method: 'POST', ... });
+  expect(res.status).toBe(401);
+});
+
+it('returns 201 with a valid cookie', async () => {
+  const res = await fetch(`${BASE()}/api/applications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: cookiesA },
+    body: JSON.stringify(validBody),
+  });
+  expect(res.status).toBe(201);
+});
+```
+
+**Ownership matrix (Risk #5 — two-user form):** provision both A and B; capture both cookie strings; drive the mutating verb as B against A's UUID; assert **exactly** 404 (`toBe(404)`, not `toBeGreaterThanOrEqual`) — 404-collapse is the load-bearing existence-leak guard.
+
+**Key rules:**
+- `signInAndCaptureCookies` builds a `@supabase/ssr` `createServerClient` with a `setAll` accumulator; the captured cookie names match what Astro middleware expects because both use the same library against the same Supabase URL.
+- `astro dev` reads Supabase credentials from `.dev.vars`, not `.env.test`. The global-setup file copies the local-stack values into `.dev.vars` before spawning the dev server; see `tests/global-setup.ts` for the swap-and-restore pattern.
+- Assert status codes with `toBe`, not `toBeGreaterThan` — precision matters; a 200 where a 404 is expected is a silent regression.
+- The `astro dev` process is shared across the whole run (one cold start, ~3–5 s); do not spawn it inside individual tests.
+
+See `tests/http/` for the full POST + PATCH smoke patterns.
 
 ### 6.4 Adding a test for the parser layer
 
