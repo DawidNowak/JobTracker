@@ -157,7 +157,10 @@ TBD — see future S-09 plan. Will cover: pure date-function unit pattern with i
 
 ### 6.6 Per-rollout-phase notes
 
-(After each phase lands, `/10x-implement`'s final sub-phase appends a 2–3 line note here capturing anything surprising the rollout taught — e.g. fixture catalog locations, Supabase-local quirks, CI secret names.)
+**Phase 1 (test bootstrap) + Phase 3 (HTTP smoke) — shipped 2026-06-16:**
+`email_confirm: true` must be passed to `admin.auth.admin.createUser` even when the project has email confirmations disabled — the two settings are independent switches; omitting it causes `signInWithPassword` to fail with "Email not confirmed".
+`@astrojs/cloudflare` reads `astro:env/server` vars from `.dev.vars` via `getPlatformProxy()`, not from `process.env`, so HTTP smoke tests must temporarily swap `.dev.vars` to point at the local Supabase stack before spawning `astro dev` — see `tests/global-setup.ts`.
+`signInAndCaptureCookies` in `tests/helpers/cookies.ts` drives a `@supabase/ssr` `createServerClient` with a `setAll` accumulator; the captured cookie names match what Astro middleware expects because both use the same library with the same Supabase URL.
 
 ## 7. What We Deliberately Don't Test
 

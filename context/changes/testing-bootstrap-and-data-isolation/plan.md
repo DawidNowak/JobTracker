@@ -416,14 +416,14 @@ None. This phase only adds files; no schema migrations; no production code chang
 
 #### Automated
 
-- [ ] 3.1 `npx supabase start` running
-- [ ] 3.2 `npm test` exits 0 with integration + HTTP suites green
-- [ ] 3.3 `tests/global-setup.ts` releases the `astro dev` process cleanly (no orphan processes)
-- [ ] 3.4 `npm run typecheck` and `npm run lint` pass
+- [x] 3.1 `npx supabase start` running
+- [x] 3.2 `npm test` exits 0 with integration + HTTP suites green
+- [x] 3.3 `tests/global-setup.ts` releases the `astro dev` process cleanly (no orphan processes)
+- [x] 3.4 `npm run typecheck` and `npm run lint` pass
 
 #### Manual
 
-- [ ] 3.5 Killing `astro dev` mid-test in watch mode re-spawns cleanly with no port conflicts
-- [ ] 3.6 Returning 200 instead of 404 for "exists but not owned" makes the wrong-owner test go red
-- [ ] 3.7 Removing the `context.locals.user` 401 short-circuit makes the no-cookie test go red
-- [ ] 3.8 Test plan §6.6 updated with a 2–3 line note on Phase 1 surprises
+- [x] 3.5 Killing `astro dev` then quitting (`q`) and restarting `npm run test:watch` re-spawns cleanly with no port conflicts. Note: `globalSetup` runs once per vitest invocation, not per watch re-run — mid-watch re-spawn is not possible; restarting vitest is required.
+- [x] 3.6 Returning 200 instead of 404 for "exists but not owned" makes the wrong-owner test go red
+- [x] 3.7 Removing the `context.locals.user` 401 short-circuit makes the no-cookie test go red
+- [x] 3.8 Test plan §6.6 updated with a 2–3 line note on Phase 1 surprises
