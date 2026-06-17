@@ -385,45 +385,45 @@ None. This phase only adds files; no schema migrations; no production code chang
 
 #### Automated
 
-- [x] 1.1 `npm install` completes without errors
-- [x] 1.2 `npm run typecheck` passes
-- [x] 1.3 `npm run lint` passes
-- [x] 1.4 `npm test` exits 0 against an empty `tests/integration/`
-- [x] 1.5 `.env.test` is git-ignored
-- [x] 1.6 `git grep "no test framework"` returns no matches in `AGENTS.md` or `README.md`
+- [x] 1.1 `npm install` completes without errors — 3922eac
+- [x] 1.2 `npm run typecheck` passes — 3922eac
+- [x] 1.3 `npm run lint` passes — 3922eac
+- [x] 1.4 `npm test` exits 0 against an empty `tests/integration/` — 3922eac
+- [x] 1.5 `.env.test` is git-ignored — 3922eac
+- [x] 1.6 `git grep "no test framework"` returns no matches in `AGENTS.md` or `README.md` — 3922eac
 
 #### Manual
 
-- [x] 1.7 Non-local `SUPABASE_URL` in `.env.test` causes `npm test` to fail with the guard's error
-- [x] 1.8 A new contributor can `cp .env.example .env.test`, fill 3 values, and `npm test` green
-- [x] 1.9 `AGENTS.md` reads cleanly — no-mock and no-leak rules are unambiguous
+- [x] 1.7 Non-local `SUPABASE_URL` in `.env.test` causes `npm test` to fail with the guard's error — 3922eac
+- [x] 1.8 A new contributor can `cp .env.example .env.test`, fill 3 values, and `npm test` green — 3922eac
+- [x] 1.9 `AGENTS.md` reads cleanly — no-mock and no-leak rules are unambiguous — 3922eac
 
 ### Phase 2: Cross-User Isolation Suite (PostgREST)
 
 #### Automated
 
-- [x] 2.1 `npx supabase start` running; `npx supabase status` shows both anon and service-role keys
-- [x] 2.2 `npm test` exits 0 with all four integration files green
-- [x] 2.3 `npm run typecheck` still passes
+- [x] 2.1 `npx supabase start` running; `npx supabase status` shows both anon and service-role keys — bc4c007
+- [x] 2.2 `npm test` exits 0 with all four integration files green — bc4c007
+- [x] 2.3 `npm run typecheck` still passes — bc4c007
 
 #### Manual
 
-- [x] 2.4 Removing the `EXISTS` clause in `application_notes_insert_own` makes the F-01 regression test go red
-- [x] 2.5 Dropping `applications_select_own` makes the cross-user SELECT test go red
-- [x] 2.6 `npm run test:watch` picks up file changes without restarting Supabase
+- [x] 2.4 Removing the `EXISTS` clause in `application_notes_insert_own` makes the F-01 regression test go red — bc4c007
+- [x] 2.5 Dropping `applications_select_own` makes the cross-user SELECT test go red — bc4c007
+- [x] 2.6 `npm run test:watch` picks up file changes without restarting Supabase — bc4c007
 
 ### Phase 3: HTTP Smoke (Thin Option A)
 
 #### Automated
 
-- [x] 3.1 `npx supabase start` running
-- [x] 3.2 `npm test` exits 0 with integration + HTTP suites green
-- [x] 3.3 `tests/global-setup.ts` releases the `astro dev` process cleanly (no orphan processes)
-- [x] 3.4 `npm run typecheck` and `npm run lint` pass
+- [x] 3.1 `npx supabase start` running — f7ccd45
+- [x] 3.2 `npm test` exits 0 with integration + HTTP suites green — f7ccd45
+- [x] 3.3 `tests/global-setup.ts` releases the `astro dev` process cleanly (no orphan processes) — f7ccd45
+- [x] 3.4 `npm run typecheck` and `npm run lint` pass — f7ccd45
 
 #### Manual
 
-- [x] 3.5 Killing `astro dev` then quitting (`q`) and restarting `npm run test:watch` re-spawns cleanly with no port conflicts. Note: `globalSetup` runs once per vitest invocation, not per watch re-run — mid-watch re-spawn is not possible; restarting vitest is required.
-- [x] 3.6 Returning 200 instead of 404 for "exists but not owned" makes the wrong-owner test go red
-- [x] 3.7 Removing the `context.locals.user` 401 short-circuit makes the no-cookie test go red
-- [x] 3.8 Test plan §6.6 updated with a 2–3 line note on Phase 1 surprises
+- [x] 3.5 Killing `astro dev` then quitting (`q`) and restarting `npm run test:watch` re-spawns cleanly with no port conflicts. Note: `globalSetup` runs once per vitest invocation, not per watch re-run — mid-watch re-spawn is not possible; restarting vitest is required. — f7ccd45
+- [x] 3.6 Returning 200 instead of 404 for "exists but not owned" makes the wrong-owner test go red — f7ccd45
+- [x] 3.7 Removing the `context.locals.user` 401 short-circuit makes the no-cookie test go red — f7ccd45
+- [x] 3.8 Test plan §6.6 updated with a 2–3 line note on Phase 1 surprises — f7ccd45
