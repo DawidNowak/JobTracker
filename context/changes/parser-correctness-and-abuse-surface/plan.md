@@ -363,16 +363,16 @@ None. No schema changes; no data changes; no user-visible behaviour change beyon
 
 #### Automated
 
-- [ ] 2.1 `npm test` passes both new files in the node pool
-- [ ] 2.2 `recognize()` table covers post-F3 allowlist + bypass shapes from research §B
-- [ ] 2.3 Endpoint test covers 401, allowed-URL envelope, disallowed-URL `unsupported`, 400, 422
-- [ ] 2.4 `npm run typecheck` passes
-- [ ] 2.5 `npm run lint` passes
+- [x] 2.1 `npm test` passes both new files in the node pool
+- [x] 2.2 `recognize()` table covers post-F3 allowlist + bypass shapes from research §B
+- [x] 2.3 Endpoint test covers 401, allowed-URL envelope, disallowed-URL `unsupported`, 400, 422
+- [x] 2.4 `npm run typecheck` passes
+- [x] 2.5 `npm run lint` passes
 
 #### Manual
 
-- [ ] 2.6 Mutating `recognize.ts:18` back to suffix-match reds at least one classifier row
-- [ ] 2.7 Mutating `recognize.ts:14` to accept `javascript:` reds the protocol row
+- [x] 2.6 Mutating `recognize.ts:18` back to suffix-match reds at least one classifier row
+- [x] 2.7 Mutating `recognize.ts:14` to accept `javascript:` reds the protocol row
 
 ### Phase 3: Risk #1 — fixture suite + parser tests
 
