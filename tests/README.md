@@ -29,7 +29,7 @@ npm run test:watch # watch mode — re-runs on file changes
 ## Directory layout
 
 - `tests/setup.ts` — per-worker setup; loads `.env.test` via dotenv and hard-asserts `SUPABASE_URL` points at the local stack before any client is constructed.
-- `tests/global-setup.ts` — per-run lifecycle hook; Phase 3 will add `astro dev` here for the HTTP smoke suite.
+- `tests/global-setup.ts` — per-run lifecycle hook; temporarily swaps `.dev.vars` to the local Supabase stack values (so `astro dev` connects to the test DB via `getPlatformProxy()`) and spawns `astro dev` on a free port for the HTTP smoke suite. Vitest itself reads from `.env.test` via `tests/setup.ts`.
 - `tests/helpers/` — shared utilities: `supabase-clients.ts` (admin + user client factories) and `users.ts` (ephemeral user provisioning and cleanup).
 - `tests/integration/` — PostgREST-level RLS suites; no HTTP, no Astro handler.
 - `tests/http/` — HTTP smoke suite (Phase 3); drives Astro dev server via fetch.
