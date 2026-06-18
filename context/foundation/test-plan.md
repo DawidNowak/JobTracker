@@ -93,7 +93,7 @@ plus the MCP/tools actually exposed in the current session.
 | Layer | Tool | Version | Notes |
 |---|---|---|---|
 | unit + integration | none yet — see Phase 1 | — | `package.json` has zero test deps as of 2026-06-16; AGENTS.md line 13 explicitly says "no test framework — do not scaffold tests" today. Phase 1 picks the runner (Vitest is the natural fit for the Vite-based Astro toolchain) and lands it. |
-| API mocking | none yet — see Phase 2 | — | The only outbound HTTP edge today is the parser's `fetch` to LinkedIn/JustJoinIT; Phase 2 decides whether to intercept via a wrapper or a library. |
+| API mocking | in-process `fetch` stub via `tests/helpers/fetch.ts`; parser unit tests run under `@cloudflare/vitest-pool-workers` | — | `withFetchStub(handler, fn)` wraps `vi.stubGlobal("fetch", ...)` + `vi.unstubAllGlobals()` in a `finally` so stubs don't leak between tests. Added in Phase 2. Parser unit tests need workerd's `HTMLRewriter` global — they run in the workers pool (`@cloudflare/vitest-pool-workers`), not the node pool. |
 | e2e | not planned for MVP | — | The full kanban happy-path is rich but the cost × signal does not yet justify e2e; integration via the Supabase SSR client covers the failure modes in §2. Reconsider via `--refresh` if a regression class appears that integration cannot catch. |
 | accessibility | not planned for MVP | — | PRD has no accessibility NFR; small private user base. Reconsider if scope changes. |
 | local DB for integration | Supabase CLI (`supabase start`) | 2.101.0 (devDependency) | Spins up a local Postgres + Auth stack; migrations under `supabase/migrations/` apply cleanly. Required by Phase 1 and Phase 3. |

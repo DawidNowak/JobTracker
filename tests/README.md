@@ -26,13 +26,31 @@ npm test           # single run
 npm run test:watch # watch mode — re-runs on file changes
 ```
 
+## Pools
+
+The suite runs two Vitest project pools in one `npm test` invocation:
+
+| Pool | Runner | Config key | Tests |
+|------|--------|-----------|-------|
+| **node** | Node.js (default) | `name: "node"` in `vitest.config.ts` | `tests/integration/**`, `tests/http/**`, `tests/unit/parsers/recognize.test.ts` |
+| **workers** | `@cloudflare/vitest-pool-workers` (workerd) | `name: "workers"` in `vitest.config.ts` | `tests/unit/parsers/linkedin.test.ts`, `tests/unit/parsers/justjoinit.test.ts` |
+
+**When to use which pool:**
+- Add a test to the **node** pool if it uses Supabase, spawns processes, or has no workerd dependency.
+- Add a test to the **workers** pool if it calls `HTMLRewriter` directly (i.e., parser unit tests that need the workerd global).
+- `tests/unit/parsers/recognize.test.ts` is a pure-function test — no `HTMLRewriter` — so it runs in the node pool.
+
+Both pools share `globalSetup: ["./tests/global-setup.ts"]` (starts `astro dev`); only the node pool loads `setupFiles: ["./tests/setup.ts"]` (Supabase URL guard).
+
 ## Directory layout
 
-- `tests/setup.ts` — per-worker setup; loads `.env.test` via dotenv and hard-asserts `SUPABASE_URL` points at the local stack before any client is constructed.
+- `tests/setup.ts` — per-worker setup; loads `.env.test` via dotenv and hard-asserts `SUPABASE_URL` points at the local stack before any client is constructed. Node pool only.
 - `tests/global-setup.ts` — per-run lifecycle hook; temporarily swaps `.dev.vars` to the local Supabase stack values (so `astro dev` connects to the test DB via `getPlatformProxy()`) and spawns `astro dev` on a free port for the HTTP smoke suite. Vitest itself reads from `.env.test` via `tests/setup.ts`.
-- `tests/helpers/` — shared utilities: `supabase-clients.ts` (admin + user client factories) and `users.ts` (ephemeral user provisioning and cleanup).
+- `tests/helpers/` — shared utilities: `supabase-clients.ts` (admin + user client factories), `users.ts` (ephemeral user provisioning and cleanup), `fetch.ts` (in-process `fetch` stub via `vi.stubGlobal`; used by endpoint and parser hardening tests).
 - `tests/integration/` — PostgREST-level RLS suites; no HTTP, no Astro handler.
-- `tests/http/` — HTTP smoke suite (Phase 3); drives Astro dev server via fetch.
+- `tests/http/` — HTTP smoke suite; drives Astro dev server via fetch.
+- `tests/unit/parsers/` — parser unit tests (workers pool) and `recognize()` classifier (node pool).
+- `tests/fixtures/parsers/` — captured HTML fixtures for LinkedIn and JustJoin.it parser tests; see `tests/fixtures/parsers/README.md` for capture procedure.
 
 ## Conventions
 

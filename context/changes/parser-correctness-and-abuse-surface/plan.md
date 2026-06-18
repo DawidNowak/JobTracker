@@ -349,15 +349,15 @@ None. No schema changes; no data changes; no user-visible behaviour change beyon
 
 #### Automated
 
-- [ ] 1.1 `npm install` resolves cleanly with `@cloudflare/vitest-pool-workers` added
-- [ ] 1.2 `npm test` runs both pools and reports per-project counts
-- [ ] 1.3 `npm run typecheck` passes
-- [ ] 1.4 `npm run lint` passes on the modified config + README
+- [x] 1.1 `npm install` resolves cleanly with `@cloudflare/vitest-pool-workers` added
+- [x] 1.2 `npm test` runs both pools and reports per-project counts
+- [x] 1.3 `npm run typecheck` passes
+- [x] 1.4 `npm run lint` passes on the modified config + README
 
 #### Manual
 
-- [ ] 1.5 `npm test` output visibly distinguishes node-pool tests from workers-pool tests
-- [ ] 1.6 Smoke test reds if `pool: "@cloudflare/vitest-pool-workers"` is removed
+- [x] 1.5 `npm test` output visibly distinguishes node-pool tests from workers-pool tests
+- [x] 1.6 Smoke test reds if `pool: "@cloudflare/vitest-pool-workers"` is removed
 
 ### Phase 2: Risk #4 — `recognize()` classifier + endpoint SSRF test
 
