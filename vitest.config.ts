@@ -20,6 +20,7 @@ export default defineConfig({
             "tests/integration/**/*.test.ts",
             "tests/http/**/*.test.ts",
             "tests/unit/parsers/recognize.test.ts",
+            "tests/unit/parsers/resolve-status.test.ts",
           ],
           testTimeout: 30_000,
         },
@@ -28,11 +29,7 @@ export default defineConfig({
         resolve: { alias },
         test: {
           name: "workers",
-          include: [
-            "tests/unit/parsers/_smoke.test.ts",
-            "tests/unit/parsers/linkedin.test.ts",
-            "tests/unit/parsers/justjoinit.test.ts",
-          ],
+          include: ["tests/unit/parsers/linkedin.test.ts", "tests/unit/parsers/justjoinit.test.ts"],
           poolOptions: {
             workers: {
               wrangler: { configPath: "./wrangler.test.jsonc" },

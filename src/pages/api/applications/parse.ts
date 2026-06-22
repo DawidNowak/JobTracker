@@ -3,7 +3,8 @@ import { applicationParseSchema } from "@/lib/validation/applications";
 import { recognize } from "@/lib/parsers/recognize";
 import { parseLinkedIn } from "@/lib/parsers/linkedin";
 import { parseJustJoinIT } from "@/lib/parsers/justjoinit";
-import type { ParseEndpointResponse, ParseResult, ParseStatus } from "@/lib/parsers/types";
+import type { ParseEndpointResponse } from "@/lib/parsers/types";
+import { resolveStatus } from "@/lib/parsers/status";
 import { jsonResponse, formatZodErrors } from "@/lib/http";
 
 export const prerender = false;
@@ -24,23 +25,6 @@ const MESSAGES = {
   empty: "Nie udało się pobrać danych. Wypełnij ręcznie.",
   partial: "Wypełniono częściowo. Uzupełnij brakujące pola.",
 } as const;
-
-const EXPECTED_KEYS: Record<"linkedin" | "jjit", (keyof ParseResult)[]> = {
-  linkedin: ["position", "company", "description"],
-  jjit: ["position", "company", "description", "salary", "work_mode"],
-};
-
-function countDefined(result: ParseResult): number {
-  return (Object.keys(result) as (keyof ParseResult)[]).filter((k) => result[k] !== undefined).length;
-}
-
-function resolveStatus(result: ParseResult, kind: "linkedin" | "jjit"): ParseStatus {
-  const populated = countDefined(result);
-  if (populated === 0) return "empty";
-  const expected = EXPECTED_KEYS[kind];
-  const missingExpected = expected.some((k) => result[k] === undefined);
-  return missingExpected ? "partial" : "ok";
-}
 
 export const POST: APIRoute = async (context) => {
   const user = context.locals.user;

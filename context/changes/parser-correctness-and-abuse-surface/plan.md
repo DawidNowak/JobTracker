@@ -378,18 +378,18 @@ None. No schema changes; no data changes; no user-visible behaviour change beyon
 
 #### Automated
 
-- [ ] 3.1 `npm test` passes all parser test files in the workers pool
-- [ ] 3.2 `resolve-status.test.ts` passes in the node pool
-- [ ] 3.3 Every fixture file is committed; README lists capture date + source URL per file
-- [ ] 3.4 `npm run typecheck` passes (status.ts extraction does not break parse.ts imports)
-- [ ] 3.5 `npm run lint` passes
-- [ ] 3.6 Phase 1 smoke test file is deleted
+- [x] 3.1 `npm test` passes all parser test files in the workers pool
+- [x] 3.2 `resolve-status.test.ts` passes in the node pool
+- [x] 3.3 Every fixture file is committed; README lists capture date + source URL per file
+- [x] 3.4 `npm run typecheck` passes (status.ts extraction does not break parse.ts imports)
+- [x] 3.5 `npm run lint` passes
+- [x] 3.6 Phase 1 smoke test file is deleted
 
 #### Manual
 
-- [ ] 3.7 Oracle integrity: source URL pages match asserted values when re-read in browser
-- [ ] 3.8 Mutating `resolveStatus` to "any populated = ok" reds the `partial` rows
-- [ ] 3.9 Mutating `linkedin.ts:52` to drop `.topcard__title` reds the happy LinkedIn fixture test
+- [x] 3.7 Oracle integrity: source URL pages match asserted values when re-read in browser
+- [x] 3.8 Mutating `resolveStatus` to "any populated = ok" reds the `partial` rows
+- [x] 3.9 Mutating `linkedin.ts:52` to drop `.topcard__title` reds the happy LinkedIn fixture test
 
 ### Phase 4: Defence-in-depth hardening + regression tests
 

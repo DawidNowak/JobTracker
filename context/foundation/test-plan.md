@@ -66,7 +66,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
 | 1 | Test bootstrap + data-isolation guard | Pick the runner, establish the Astro + Supabase integration-test pattern, prove the incident-class data-isolation guardrail with real cross-user integration tests. | #2 | unit + integration (Supabase local) | complete | `context/changes/testing-bootstrap-and-data-isolation/` |
-| 2 | Parser correctness + abuse surface | Lock the north-star wedge: real-HTML fixture coverage per portal, fallback-on-failure path, and the `recognize()` allowlist that gates outbound fetch. | #1, #4 | unit (fixtures + URL classifier) + integration (fetch interception) | planned | `context/changes/parser-correctenss-and-abuse-surface/` |
+| 2 | Parser correctness + abuse surface | Lock the north-star wedge: real-HTML fixture coverage per portal, fallback-on-failure path, and the `recognize()` allowlist that gates outbound fetch. | #1, #4 | unit (fixtures + URL classifier) + integration (fetch interception) | implementing | `context/changes/parser-correctness-and-abuse-surface/` |
 | 3 | Domain invariants — lastActionAt + IDOR | Prove the `lastActionAt` trigger semantics survive future migrations and that applications endpoints enforce ownership independently of RLS. | #3, #5 | integration against real Postgres (row-level + endpoint matrix) | not started | — |
 | 4 | Quality gate wiring | Add `npm test` to CI on push/PR; integration tests run against an ephemeral or local Supabase; no coverage threshold (per §7). Optional: a scheduled parser-HTML-drift canary. | gating regression for #1–#5 | CI YAML edits, GitHub Actions secrets, optional scheduled canary | not started | — |
 
@@ -227,7 +227,31 @@ See `tests/http/` for the full POST + PATCH smoke patterns.
 
 ### 6.4 Adding a test for the parser layer
 
-TBD — see §3 Phase 2. Will cover: capturing a real HTML payload, storing it as a fixture, asserting canonical fields against the visible job page (oracle from the page, not from the parser — per Risk #1 anti-pattern), and the URL classifier table for Risk #4.
+**Phase 2 partially shipped (2026-06-18).** See `context/changes/parser-correctness-and-abuse-surface/`.
+
+**Fixture capture.** Use the procedure in `tests/fixtures/parsers/README.md`. For LinkedIn, fetch the guest API fragment at `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/<jobId>`; for JustJoin.it, fetch the full page at `https://justjoin.it/job-offer/<slug>`. Use the same User-Agent the parsers use (see `src/lib/parsers/linkedin.ts:4`).
+
+**Oracle rule.** After capturing a fixture, open the source URL in a browser. Type the expected `position`, `company`, `salary`, and a salient fragment from `description` directly from the visible page into the test file — **never** from running the parser. This prevents the silent-drift anti-pattern (Risk #1 §2): if the parser returns garbage, the test reds because the oracle comes from an independent source.
+
+**Parser test pool.** Parser fixture tests (LinkedIn and JustJoin.it) run in the **workers** pool (`@cloudflare/vitest-pool-workers`) because they need `HTMLRewriter`. Load fixture files via Vite's `?raw` suffix:
+
+```ts
+import happyHtml from "../../fixtures/parsers/linkedin/happy.html?raw";
+
+it("happy: extracts all five fields", async () => {
+  await withFetchStub(
+    () => new Response(happyHtml, { status: 200 }),
+    async () => {
+      const result = await parseLinkedIn("12345678");
+      expect(result.position).toBe("…oracle from visible page…");
+    },
+  );
+});
+```
+
+**Three scenarios per portal:** `happy` (all fields), `missing-salary` (salary undefined), `corrupted` (critical element removed → parser throws). See `tests/unit/parsers/{linkedin,justjoinit}.test.ts`.
+
+**`recognize()` URL classifier** runs in the **node** pool (pure function, no `HTMLRewriter`): see `tests/unit/parsers/recognize.test.ts` and §6.1.
 
 ### 6.5 Adding a test for new business logic (e.g. flag computation)
 

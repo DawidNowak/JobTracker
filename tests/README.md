@@ -52,6 +52,22 @@ Both pools share `globalSetup: ["./tests/global-setup.ts"]` (starts `astro dev`)
 - `tests/unit/parsers/` — parser unit tests (workers pool) and `recognize()` classifier (node pool).
 - `tests/fixtures/parsers/` — captured HTML fixtures for LinkedIn and JustJoin.it parser tests; see `tests/fixtures/parsers/README.md` for capture procedure.
 
+## Parser fixtures
+
+HTML payloads stored under `tests/fixtures/parsers/{linkedin,justjoinit}/` are the fixtures for
+the workers-pool parser unit tests. Three scenarios per portal:
+
+| Scenario | File | Description |
+|---|---|---|
+| `happy` | Fixture with all 5 ParseResult fields populated | Asserts correct extraction of position, company, description, salary, work_mode |
+| `missing-salary` | Fixture where salary is genuinely absent | Asserts `salary === undefined`; all expected fields still extracted |
+| `corrupted` | happy fixture with a critical element removed | Asserts the parser throws (→ `fetch_failed` envelope) |
+
+See `tests/fixtures/parsers/README.md` for the capture procedure, source URLs, and capture dates.
+
+**Oracle rule**: assertions in the test files are hardcoded values read from the visible page at
+capture time — **never** derived by running the parser and freezing its output.
+
 ## Conventions
 
 - **Two clients per user** — each user gets its own `supabase-js` client instance. Never share storage between the admin client and a user client (causes session flakiness).
