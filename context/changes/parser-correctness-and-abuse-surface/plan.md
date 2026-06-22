@@ -395,15 +395,15 @@ None. No schema changes; no data changes; no user-visible behaviour change beyon
 
 #### Automated
 
-- [x] 4.1 `npm test` passes new regression tests in both parser test files
-- [x] 4.2 Reverting any single hardening change reds at least one test
-- [x] 4.3 `npm run typecheck` passes
-- [x] 4.4 `npm run lint` passes
-- [x] 4.5 `npm run build` passes
+- [x] 4.1 `npm test` passes new regression tests in both parser test files — 83b3038
+- [x] 4.2 Reverting any single hardening change reds at least one test — 83b3038
+- [x] 4.3 `npm run typecheck` passes — 83b3038
+- [x] 4.4 `npm run lint` passes — 83b3038
+- [x] 4.5 `npm run build` passes — 83b3038
 
 #### Manual
 
-- [x] 4.6 `wrangler dev` smoke against a real LinkedIn URL still parses correctly
-- [x] 4.7 `wrangler dev` smoke against a real JJIT URL still parses correctly
-- [x] 4.8 Both portals' parse buttons pre-fill the dialog correctly in the UI
-- [x] 4.9 `change.md` status flipped to `complete`; test-plan §3 Phase 2 row updated to `complete`
+- [x] 4.6 `wrangler dev` smoke against a real LinkedIn URL still parses correctly — 83b3038
+- [x] 4.7 `wrangler dev` smoke against a real JJIT URL still parses correctly — 83b3038
+- [x] 4.8 Both portals' parse buttons pre-fill the dialog correctly in the UI — 83b3038
+- [x] 4.9 `change.md` status flipped to `complete`; test-plan §3 Phase 2 row updated to `complete` — 83b3038
