@@ -27,9 +27,12 @@ For JustJoin.it the URL is the full job offer page:
 
 | File | Type | Source URL / note | Capture date |
 |---|---|---|---|
-| `happy.html` | **Synthetic** | Minimal HTML that exercises all 5 parser selectors (title, org-name-link, flavor--bullet, show-more-less-html__markup, compensation__salary). Based on the real LinkedIn guest-API HTML structure. | 2026-06-18 |
-| `missing-salary.html` | Real | `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4190845636` — "Auxiliar de Recursos Humanos" at EDs RH, São Paulo, Brazil. Salary genuinely absent. | 2026-06-18 |
-| `corrupted.html` | Derived from `happy.html` | `topcard__title` CSS class removed from the title `<h2>` element. Parser throws "LinkedIn topcard empty" and collapses to `fetch_failed`. | 2026-06-18 |
+| `happy.html` | Real | `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4422277574` — "Senior .Net Developer" at Tata Consultancy Services (Hybrid). Position, company, description, work_mode present; salary absent (see note below). | 2026-06-22 |
+| `salary-synthetic.html` | **Synthetic** | Minimal hand-authored HTML exercising the `.compensation__salary` selector only. LinkedIn's guest API almost never renders salary (it surfaces only for US pay-transparency postings), so a real fixture cannot cover this path. Treat its assertions as a selector contract, not real-HTML coverage. | 2026-06-18 |
+| `missing-salary.html` | Real | `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/4190845636` — "Auxiliar de Recursos Humanos" at EDs RH, São Paulo, Brazil. Salary and work_mode genuinely absent. | 2026-06-18 |
+| `corrupted.html` | Derived from `happy.html` | Both title selector classes (`top-card-layout__title`, `topcard__title`) removed from the title `<h2>` element. Parser throws "LinkedIn topcard empty" and collapses to `fetch_failed`. | 2026-06-22 |
+
+> **LinkedIn salary note:** the guest job API exposes `.compensation__salary` only for postings subject to US pay-transparency law (CA/NY/CO/WA). Most real captures — including the `happy.html` above — have no salary. `salary-synthetic.html` exists solely to keep the salary-extraction path under test; replace it with a real salaried capture if one becomes available.
 
 ### JustJoin.it
 

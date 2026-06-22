@@ -4,6 +4,10 @@ import type { ParseResult } from "./types";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+// Bound retained memory from a hostile/oversized upstream response, mirroring
+// the cap in justjoinit.ts. A normal LinkedIn guest fragment is a few KB.
+const MAX_BUFFER_CHARS = 4_000_000;
+
 function sniffWorkMode(haystack: string): WorkMode | undefined {
   const h = haystack.toLowerCase();
   if (/\b(hybrydow|hybrid)/.test(h)) return "Hybrydowa";
@@ -39,6 +43,12 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
       "Accept-Language": "en-US,en;q=0.9,pl;q=0.8",
     },
   });
+  // redirect: "manual" surfaces upstream 3xx as an opaque-redirect response
+  // (type "opaqueredirect", status 0) in workerd; reject it explicitly rather
+  // than relying on the generic non-200 check below.
+  if (response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
+    throw new Error("LinkedIn unexpected redirect");
+  }
   if (response.status !== 200) {
     throw new Error(`LinkedIn non-200 status: ${response.status}`);
   }
@@ -101,6 +111,12 @@ export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
     })
     .transform(response);
   await rewritten.text();
+
+  const totalBuffered =
+    titleBuf.length + companyBuf.length + locationBuf.length + descriptionBuf.length + salaryBuf.length;
+  if (totalBuffered > MAX_BUFFER_CHARS) {
+    throw new Error(`LinkedIn buffers too large: ${totalBuffered}`);
+  }
 
   const position = titleBuf.trim();
   if (position.length === 0) {

@@ -229,6 +229,12 @@ export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
       "Accept-Language": "en-US,en;q=0.9,pl;q=0.8",
     },
   });
+  // redirect: "manual" surfaces upstream 3xx as an opaque-redirect response
+  // (type "opaqueredirect", status 0) in workerd; reject it explicitly rather
+  // than relying on the generic non-200 check below.
+  if (response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
+    throw new Error("JJIT unexpected redirect");
+  }
   if (response.status !== 200) {
     throw new Error(`JJIT non-200 status: ${response.status}`);
   }

@@ -70,11 +70,15 @@ describe("parseJustJoinIT — fixture suite", () => {
 });
 
 describe("parseJustJoinIT — hardening regressions", () => {
-  it("redirect: parser throws on 302 and sends redirect:manual in fetch options", async () => {
+  it("redirect: parser throws on an opaque redirect and sends redirect:manual in fetch options", async () => {
     let capturedRedirect: string | undefined;
+    // workerd returns an opaque-redirect filtered response (type "opaqueredirect", status 0)
+    // for an upstream 3xx when redirect: "manual" is set — Response cannot be constructed with
+    // status 0, so model that shape directly.
+    const opaqueRedirect = { type: "opaqueredirect", status: 0 } as unknown as Response;
     vi.stubGlobal("fetch", (_: unknown, init?: { redirect?: string }) => {
       capturedRedirect = init?.redirect;
-      return Promise.resolve(new Response(null, { status: 302, headers: { Location: "https://example.com/" } }));
+      return Promise.resolve(opaqueRedirect);
     });
     try {
       await expect(parseJustJoinIT(FAKE_SLUG)).rejects.toThrow();

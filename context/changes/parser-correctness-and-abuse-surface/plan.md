@@ -72,6 +72,8 @@ Add `@cloudflare/vitest-pool-workers`, split `vitest.config.ts` into a node proj
 
 **Contract**: `devDependencies` gains one entry; `npm install` is clean; `wrangler.toml` (or `wrangler.jsonc`) at repo root is the pool's runtime config source — the pool reads the project's existing wrangler config rather than needing a duplicate.
 
+> **Addendum (impl deviation, 2026-06-22):** the pool uses a separate minimal `wrangler.test.jsonc` rather than the root `wrangler.jsonc`. The root config declares the Astro server entrypoint (`main`) + an `assets` binding the parser unit tests can't satisfy without a build, so a test-scoped config is used. `compatibility_date`/`compatibility_flags` are duplicated and must be kept in sync with the root config (noted in a comment at the top of `wrangler.test.jsonc`).
+
 #### 2. Vitest projects split
 
 **File**: `vitest.config.ts`

@@ -1,3 +1,10 @@
+// Minimal wrangler config for the @cloudflare/vitest-pool-workers parser tests.
+// Kept separate from the root wrangler.jsonc because that config declares the
+// Astro server entrypoint (`main`) + assets binding, which the parser unit tests
+// neither need nor can satisfy without a build.
+// NOTE: `compatibility_date` and `compatibility_flags` MUST stay in sync with the
+// root wrangler.jsonc (the production source of truth) so tests run under the same
+// workerd semantics as prod. Update both together.
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "job-tracker-test",
