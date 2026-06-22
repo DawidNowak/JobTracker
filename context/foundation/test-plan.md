@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-06-17 (Phase 1 complete — §6.1/6.2/6.3 cookbook filled)
+> Last updated: 2026-06-22 (Phase 2 complete — parser fixtures + `recognize()` classifier + abuse-surface hardening shipped; §6.1/6.4 cookbook filled)
 
 ## 1. Strategy
 
@@ -123,7 +123,7 @@ phase lands; before that, the gate is `planned`.
 | `npm run build` | CI | required (today) | build-time regressions, missing imports |
 | unit + integration (Phase 1+2+3) | local + CI | required after §3 Phase 4 | logic regressions on Risks #1–#5 |
 | RLS cross-user integration | local + CI | required after §3 Phase 1 | the incident-class data-isolation guardrail |
-| Parser HTML fixture suite | local + CI | required after §3 Phase 2 | silent parser garbage (Risk #1) |
+| Parser HTML fixture suite | local + CI | wired locally (Phase 2, `npm test`); CI enforcement lands with §3 Phase 4 | silent parser garbage (Risk #1) |
 | Parser HTML drift canary (scheduled) | CI on a cron | optional (after §3 Phase 4) | portal HTML changes between releases (Risk #1, slow-burn) |
 | Pre-prod smoke via `wrangler dev` | local | recommended for parser-touching PRs | runtime divergence between `astro dev` and workerd (operational mitigation; not a test gate per dropped R2) |
 
@@ -139,7 +139,7 @@ the relevant rollout phase ships; before that, the sub-section reads
 
 **Runner / location** (Phase 1 shipped): Vitest, configured via `vitest.config.ts` using `getViteConfig` from `astro/config` so `astro:env/server` paths resolve. All test files live under `tests/**/*.test.ts`; run with `npm test` or `npm run test:watch`. The `tests/setup.ts` setup file runs before every worker — it loads `.env.test` and asserts the Supabase URL points at `127.0.0.1:54321` before anything else executes.
 
-**Parser fixture pattern** — TBD; see §3 Phase 2. Will cover capturing a real HTML payload as a fixture and asserting canonical fields against the visible job page (oracle from the page, not from the parser output).
+**Parser fixture pattern** (Phase 2 shipped): see §6.4. Parser fixture tests run in a second Vitest project — the **workers** pool (`@cloudflare/vitest-pool-workers`) — because they need workerd's `HTMLRewriter` global; the node pool keeps integration, HTTP, and pure-function tests. `vitest.config.ts` splits the two via `projects` + per-project `include` globs and a shared `globalSetup`. The workers pool reads `wrangler.test.jsonc` (a minimal test-scoped config kept in sync with the root `wrangler.jsonc`).
 
 ### 6.2 Adding an integration test against Supabase
 
@@ -227,18 +227,18 @@ See `tests/http/` for the full POST + PATCH smoke patterns.
 
 ### 6.4 Adding a test for the parser layer
 
-**Phase 2 partially shipped (2026-06-18).** See `context/changes/parser-correctness-and-abuse-surface/`.
+**Phase 2 shipped (2026-06-22).** See `context/changes/parser-correctness-and-abuse-surface/` (and its `reviews/impl-review.md` for the post-impl fixes).
 
 **Fixture capture.** Use the procedure in `tests/fixtures/parsers/README.md`. For LinkedIn, fetch the guest API fragment at `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/<jobId>`; for JustJoin.it, fetch the full page at `https://justjoin.it/job-offer/<slug>`. Use the same User-Agent the parsers use (see `src/lib/parsers/linkedin.ts:4`).
 
-**Oracle rule.** After capturing a fixture, open the source URL in a browser. Type the expected `position`, `company`, `salary`, and a salient fragment from `description` directly from the visible page into the test file — **never** from running the parser. This prevents the silent-drift anti-pattern (Risk #1 §2): if the parser returns garbage, the test reds because the oracle comes from an independent source.
+**Oracle rule.** After capturing a fixture, open the source URL in a browser. Type the expected `position`, `company`, `salary`, `work_mode`, and a salient fragment from `description` directly from the visible page into the test file — **never** from running the parser. This prevents the silent-drift anti-pattern (Risk #1 §2): if the parser returns garbage, the test reds because the oracle comes from an independent source.
 
 **Parser test pool.** Parser fixture tests (LinkedIn and JustJoin.it) run in the **workers** pool (`@cloudflare/vitest-pool-workers`) because they need `HTMLRewriter`. Load fixture files via Vite's `?raw` suffix:
 
 ```ts
 import happyHtml from "../../fixtures/parsers/linkedin/happy.html?raw";
 
-it("happy: extracts all five fields", async () => {
+it("happy: extracts position/company/work_mode/description", async () => {
   await withFetchStub(
     () => new Response(happyHtml, { status: 200 }),
     async () => {
@@ -249,9 +249,15 @@ it("happy: extracts all five fields", async () => {
 });
 ```
 
-**Three scenarios per portal:** `happy` (all fields), `missing-salary` (salary undefined), `corrupted` (critical element removed → parser throws). See `tests/unit/parsers/{linkedin,justjoinit}.test.ts`.
+**Scenarios per portal:** `happy` (all fields a real posting exposes), `missing-salary` (salary `undefined`), `corrupted` (critical element removed → parser throws). See `tests/unit/parsers/{linkedin,justjoinit}.test.ts`.
 
-**`recognize()` URL classifier** runs in the **node** pool (pure function, no `HTMLRewriter`): see `tests/unit/parsers/recognize.test.ts` and §6.1.
+> **LinkedIn salary caveat.** LinkedIn's guest API exposes `.compensation__salary` only for US pay-transparency postings, so most real captures (including the current `happy.html`) have no salary. The salary-extraction path is covered by a small, explicitly-labeled `salary-synthetic.html` fixture — treat its assertions as a *selector contract*, not real-HTML coverage. Replace it with a real salaried capture if one becomes available. (JustJoin.it `happy.html` is a full real page with all five fields.)
+
+**`recognize()` URL classifier** runs in the **node** pool (pure function, no `HTMLRewriter`): a table of URLs → expected verdict covering the post-F3 allowlist plus bypass shapes (trailing-dot, mixed-case, userinfo, IDN punycode, suffix-confusion hosts, non-http schemes). See `tests/unit/parsers/recognize.test.ts` and §6.1.
+
+**Endpoint SSRF + status envelope.** `POST /api/applications/parse` is exercised over HTTP in the **node** pool (`tests/http/parse-applications.test.ts`): disallowed inputs return `{status:"unsupported"}` (structurally proving no outbound fetch), and the `resolveStatus` matrix (`tests/unit/parsers/resolve-status.test.ts`, against `src/lib/parsers/status.ts`) locks `ok`/`partial`/`empty` so a partial parse can never silently pass as `ok`.
+
+**Abuse-surface hardening (regression-guarded).** Each defence-in-depth change in the parsers has a paired test that reds if reverted: `redirect: "manual"` + an explicit opaque-redirect / 3xx guard (workerd surfaces a manual redirect as `{type:"opaqueredirect", status:0}` — stub *that* shape, not a synthetic 302), `encodeURIComponent` on the JJIT slug, a parser-side input regex re-check that fails closed before any `fetch`, and a `MAX_BUFFER_CHARS` cap on both parsers' accumulated buffers.
 
 ### 6.5 Adding a test for new business logic (e.g. flag computation)
 
@@ -263,6 +269,12 @@ TBD — see future S-09 plan. Will cover: pure date-function unit pattern with i
 `email_confirm: true` must be passed to `admin.auth.admin.createUser` even when the project has email confirmations disabled — the two settings are independent switches; omitting it causes `signInWithPassword` to fail with "Email not confirmed".
 `@astrojs/cloudflare` reads `astro:env/server` vars from `.dev.vars` via `getPlatformProxy()`, not from `process.env`, so HTTP smoke tests must temporarily swap `.dev.vars` to point at the local Supabase stack before spawning `astro dev` — see `tests/global-setup.ts`.
 `signInAndCaptureCookies` in `tests/helpers/cookies.ts` drives a `@supabase/ssr` `createServerClient` with a `setAll` accumulator; the captured cookie names match what Astro middleware expects because both use the same library with the same Supabase URL.
+
+**Phase 2 (parser correctness + abuse surface) — shipped 2026-06-22:**
+Vitest runs two projects: a **node** pool (integration, HTTP, pure-function tests incl. `recognize()` + `resolveStatus`) and a **workers** pool (`@cloudflare/vitest-pool-workers`) for parser fixture tests that need `HTMLRewriter`. The workers pool reads a separate minimal `wrangler.test.jsonc`, not the root `wrangler.jsonc` — the root config declares the Astro server entrypoint + assets binding the unit tests can't satisfy without a build; its `compatibility_date`/flags must be kept in sync (a comment in the file says so).
+LinkedIn's guest API rarely exposes salary (US pay-transparency only), so a fully-salaried *real* happy fixture is effectively unobtainable; the salary selector is covered by an explicitly-labeled synthetic fixture instead. Don't "fix" this by re-running the parser to derive oracle values — that re-opens the Risk #1 anti-pattern.
+For the `redirect: "manual"` regression test, workerd returns an opaque-redirect filtered response (`{type:"opaqueredirect", status:0}`), not a `302` — and a `Response` cannot be constructed with `status:0`, so model that shape directly in the `fetch` stub.
+The shared `astro dev` global-setup cold-start timeout was raised to 60s (`tests/global-setup.ts`) after the 30s cap flaked repeatedly on Windows first-compile.
 
 ## 7. What We Deliberately Don't Test
 
