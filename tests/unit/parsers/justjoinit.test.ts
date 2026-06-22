@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parseJustJoinIT } from "@/lib/parsers/justjoinit";
 import { withFetchStub } from "../../helpers/fetch";
 
@@ -66,5 +66,49 @@ describe("parseJustJoinIT — fixture suite", () => {
         await expect(parseJustJoinIT(FAKE_SLUG)).rejects.toThrow();
       },
     );
+  });
+});
+
+describe("parseJustJoinIT — hardening regressions", () => {
+  it("redirect: parser throws on 302 and sends redirect:manual in fetch options", async () => {
+    let capturedRedirect: string | undefined;
+    vi.stubGlobal("fetch", (_: unknown, init?: { redirect?: string }) => {
+      capturedRedirect = init?.redirect;
+      return Promise.resolve(new Response(null, { status: 302, headers: { Location: "https://example.com/" } }));
+    });
+    try {
+      await expect(parseJustJoinIT(FAKE_SLUG)).rejects.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(capturedRedirect).toBe("manual");
+  });
+
+  it("input re-check: throws before calling fetch for invalid slug", async () => {
+    let fetchCalled = false;
+    await withFetchStub(
+      () => {
+        fetchCalled = true;
+        return new Response("", { status: 200 });
+      },
+      async () => {
+        await expect(parseJustJoinIT("Not-A-Slug!")).rejects.toThrow();
+      },
+    );
+    expect(fetchCalled).toBe(false);
+  });
+
+  it("slug encoding: fetch URL contains slug at the correct path", async () => {
+    let capturedUrl: string | null = null;
+    await withFetchStub(
+      (req) => {
+        capturedUrl = req.url;
+        return new Response(happyHtml, { status: 200 });
+      },
+      async () => {
+        await parseJustJoinIT(FAKE_SLUG);
+      },
+    );
+    expect(capturedUrl).toBe(`https://justjoin.it/job-offer/${FAKE_SLUG}`);
   });
 });

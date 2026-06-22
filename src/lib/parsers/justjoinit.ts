@@ -219,8 +219,10 @@ function extractOfferObject(flight: string): OfferShape {
 }
 
 export async function parseJustJoinIT(slug: string): Promise<ParseResult> {
-  const url = `https://justjoin.it/job-offer/${slug}`;
+  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("parseJustJoinIT: invalid slug");
+  const url = `https://justjoin.it/job-offer/${encodeURIComponent(slug)}`;
   const response = await fetch(url, {
+    redirect: "manual",
     signal: AbortSignal.timeout(8000),
     headers: {
       "User-Agent": USER_AGENT,

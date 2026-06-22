@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parseLinkedIn } from "@/lib/parsers/linkedin";
 import { withFetchStub } from "../../helpers/fetch";
 
@@ -63,5 +63,35 @@ describe("parseLinkedIn — fixture suite", () => {
         await expect(parseLinkedIn(FAKE_JOB_ID)).rejects.toThrow();
       },
     );
+  });
+});
+
+describe("parseLinkedIn — hardening regressions", () => {
+  it("redirect: parser throws on 302 and sends redirect:manual in fetch options", async () => {
+    let capturedRedirect: string | undefined;
+    vi.stubGlobal("fetch", (_: unknown, init?: { redirect?: string }) => {
+      capturedRedirect = init?.redirect;
+      return Promise.resolve(new Response(null, { status: 302, headers: { Location: "https://example.com/" } }));
+    });
+    try {
+      await expect(parseLinkedIn(FAKE_JOB_ID)).rejects.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(capturedRedirect).toBe("manual");
+  });
+
+  it("input re-check: throws before calling fetch for invalid jobId", async () => {
+    let fetchCalled = false;
+    await withFetchStub(
+      () => {
+        fetchCalled = true;
+        return new Response("", { status: 200 });
+      },
+      async () => {
+        await expect(parseLinkedIn("not-a-jobid")).rejects.toThrow();
+      },
+    );
+    expect(fetchCalled).toBe(false);
   });
 });

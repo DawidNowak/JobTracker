@@ -29,8 +29,10 @@ function normalizeDescription(raw: string): string {
 }
 
 export async function parseLinkedIn(jobId: string): Promise<ParseResult> {
+  if (!/^\d{8,}$/.test(jobId)) throw new Error("parseLinkedIn: invalid jobId");
   const url = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${encodeURIComponent(jobId)}`;
   const response = await fetch(url, {
+    redirect: "manual",
     signal: AbortSignal.timeout(8000),
     headers: {
       "User-Agent": USER_AGENT,
