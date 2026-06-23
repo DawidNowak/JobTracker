@@ -106,7 +106,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** First write-path slice. The form is reused in edit mode (S-03) and parser mode (S-04), so the form contract lands here. Adding "Kontakt do rekrutera" (FR-019) in this slice avoids a backfill edit when the follow-up slices need it later.
-- **Status:** done (shipped 2026-05-29, commit b3ff36b; awaiting archive)
+- **Status:** done
 
 ### S-04: Parser-driven add  *(north star)*
 
@@ -255,3 +255,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 
 - **F-01: (foundation) Application + note schema with per-user RLS** — Archived 2026-06-23 → `context/archive/2026-05-26-applications-schema-and-rls/`. Lesson: —.
 - **S-01: log in and see an empty 3-column board + top nav** — Archived 2026-06-23 → `context/archive/2026-05-26-kanban-shell-and-nav/`. Lesson: —.
+- **S-02: add a job application by typing fields** — Archived 2026-06-23 → `context/archive/2026-05-29-manual-add-application/`. Lesson: —.

@@ -1,10 +1,10 @@
 ---
 change_id: manual-add-application
 title: Manual add application
-status: impl_reviewed
+status: archived
 created: 2026-05-29
-updated: 2026-05-29
-archived_at: null
+updated: 2026-06-23
+archived_at: 2026-06-23T11:09:53Z
 ---
 
 ## Notes
