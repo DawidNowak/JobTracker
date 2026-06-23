@@ -317,11 +317,11 @@ from branch protection (GitHub UI or `gh api`).
 
 - [ ] 2.1 Docs lint clean (prettier --check)
 - [ ] 2.2 test-plan.md §3 Phase 4 status updated (no longer `change opened`)
-- [ ] 2.3 A failing-test PR shows the `test` check as required and failing
+- [x] 2.3 A failing-test PR shows the `test` check as required and failing
 
 #### Manual
 
-- [ ] 2.4 Branch-protection command applied; red PR cannot merge
-- [ ] 2.5 Reverting the failure turns the check green and unblocks merge
-- [ ] 2.6 tests/README.md CI section accurate
-- [ ] 2.7 Deferred-canary follow-up recorded and discoverable
+- [x] 2.4 Branch-protection command applied; red PR cannot merge
+- [x] 2.5 Reverting the failure turns the check green and unblocks merge
+- [x] 2.6 tests/README.md CI section accurate
+- [x] 2.7 Deferred-canary follow-up recorded and discoverable

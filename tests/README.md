@@ -30,12 +30,13 @@ npm run test:watch # watch mode — re-runs on file changes
 
 The suite runs two Vitest project pools in one `npm test` invocation:
 
-| Pool | Runner | Config key | Tests |
-|------|--------|-----------|-------|
-| **node** | Node.js (default) | `name: "node"` in `vitest.config.ts` | `tests/integration/**`, `tests/http/**`, `tests/unit/parsers/recognize.test.ts` |
-| **workers** | `@cloudflare/vitest-pool-workers` (workerd) | `name: "workers"` in `vitest.config.ts` | `tests/unit/parsers/linkedin.test.ts`, `tests/unit/parsers/justjoinit.test.ts` |
+| Pool        | Runner                                      | Config key                              | Tests                                                                           |
+| ----------- | ------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------- |
+| **node**    | Node.js (default)                           | `name: "node"` in `vitest.config.ts`    | `tests/integration/**`, `tests/http/**`, `tests/unit/parsers/recognize.test.ts` |
+| **workers** | `@cloudflare/vitest-pool-workers` (workerd) | `name: "workers"` in `vitest.config.ts` | `tests/unit/parsers/linkedin.test.ts`, `tests/unit/parsers/justjoinit.test.ts`  |
 
 **When to use which pool:**
+
 - Add a test to the **node** pool if it uses Supabase, spawns processes, or has no workerd dependency.
 - Add a test to the **workers** pool if it calls `HTMLRewriter` directly (i.e., parser unit tests that need the workerd global).
 - `tests/unit/parsers/recognize.test.ts` is a pure-function test — no `HTMLRewriter` — so it runs in the node pool.
@@ -57,11 +58,11 @@ Both pools share `globalSetup: ["./tests/global-setup.ts"]` (starts `astro dev`)
 HTML payloads stored under `tests/fixtures/parsers/{linkedin,justjoinit}/` are the fixtures for
 the workers-pool parser unit tests. Three scenarios per portal:
 
-| Scenario | File | Description |
-|---|---|---|
-| `happy` | Fixture with all 5 ParseResult fields populated | Asserts correct extraction of position, company, description, salary, work_mode |
-| `missing-salary` | Fixture where salary is genuinely absent | Asserts `salary === undefined`; all expected fields still extracted |
-| `corrupted` | happy fixture with a critical element removed | Asserts the parser throws (→ `fetch_failed` envelope) |
+| Scenario         | File                                            | Description                                                                     |
+| ---------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| `happy`          | Fixture with all 5 ParseResult fields populated | Asserts correct extraction of position, company, description, salary, work_mode |
+| `missing-salary` | Fixture where salary is genuinely absent        | Asserts `salary === undefined`; all expected fields still extracted             |
+| `corrupted`      | happy fixture with a critical element removed   | Asserts the parser throws (→ `fetch_failed` envelope)                           |
 
 See `tests/fixtures/parsers/README.md` for the capture procedure, source URLs, and capture dates.
 
@@ -81,3 +82,26 @@ capture time — **never** derived by running the parser and freezing its output
 - **Never assert through `src/lib/services/`** — assert at the row level (PostgREST responses) so a policy regression is caught even if the service layer is updated.
 
 See the full test rollout plan at `context/foundation/test-plan.md`.
+
+## CI
+
+The `test` job in `.github/workflows/ci.yml` runs `npm test` on every push to `master` and every PR targeting `master`. It is a **required status check** — a red suite blocks merge.
+
+### How the stack is provisioned in CI
+
+No GitHub secrets are needed for the test stack. The job:
+
+1. Starts a local Supabase stack: `npx supabase start` (boots Postgres + Auth + PostgREST, applies `supabase/migrations/`).
+2. Derives `.env.test` at runtime:
+   ```bash
+   npx supabase status -o env \
+     --override-name api.url=SUPABASE_URL \
+     --override-name auth.anon_key=SUPABASE_KEY \
+     --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+     > .env.test
+   ```
+   The local stack always issues the same well-known demo JWTs, so they are not secrets.
+3. Runs `npm test` (both `node` and `workers` pools). `tests/global-setup.ts` spawns `astro dev` automatically — no separate dev-server step in CI.
+4. Stops the stack in a cleanup step (`npx supabase stop --no-backup`, `if: always()`).
+
+If the `test` check is red on your PR, inspect the job log: look for the `supabase start` step (boots in ~1–3 min) and the `npm test` output to identify the failing test.
