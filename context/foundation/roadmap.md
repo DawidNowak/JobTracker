@@ -32,7 +32,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | ID    | Change ID                          | Outcome (user can …)                                          | Prerequisites    | PRD refs              | Status   |
 | ----- | ---------------------------------- | ------------------------------------------------------------- | ---------------- | --------------------- | -------- |
 | F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | done     |
-| S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | proposed |
+| S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | done     |
 | S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
 | S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | implemented |
 | S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | done     |
@@ -94,7 +94,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Thin slice on purpose — landing the shell unblocks every interactive slice without bundling form work. The nav placement of "Archiwum" is shipped here even though the page is empty until S-11, because PRD FR-010 explicitly wants the link permanent and obvious. Auth ratification (verifying sign-in / sign-up / sign-out actually work end-to-end against the upcoming RLS-protected schema) belongs here as an exit gate, not in F-01.
-- **Status:** proposed
+- **Status:** done
 
 ### S-02: Manual add application
 
@@ -254,3 +254,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 ## Done
 
 - **F-01: (foundation) Application + note schema with per-user RLS** — Archived 2026-06-23 → `context/archive/2026-05-26-applications-schema-and-rls/`. Lesson: —.
+- **S-01: log in and see an empty 3-column board + top nav** — Archived 2026-06-23 → `context/archive/2026-05-26-kanban-shell-and-nav/`. Lesson: —.
