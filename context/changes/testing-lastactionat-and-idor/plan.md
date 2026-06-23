@@ -252,11 +252,11 @@ None — no schema or data migration. The suites must run against the **fully-mi
 
 #### Automated
 
-- [x] 3.1 Full suite passes against the local stack: `npm test`
-- [x] 3.2 Type checking passes: `npm run typecheck`
-- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 Full suite passes against the local stack: `npm test` — ab8d91a
+- [x] 3.2 Type checking passes: `npm run typecheck` — ab8d91a
+- [x] 3.3 Linting passes: `npm run lint` — ab8d91a
 
 #### Manual
 
-- [x] 3.4 §6.3 no longer references GET/PUT/DELETE as tested HTTP verbs
-- [x] 3.5 §3 rollout row 3 status matches the actual Progress state
+- [x] 3.4 §6.3 no longer references GET/PUT/DELETE as tested HTTP verbs — ab8d91a
+- [x] 3.5 §3 rollout row 3 status matches the actual Progress state — ab8d91a

@@ -1,7 +1,7 @@
 ---
 change_id: testing-lastactionat-and-idor
 title: Domain invariants — lastActionAt trigger + endpoint IDOR (test rollout Phase 3)
-status: implementing
+status: implemented
 created: 2026-06-23
 updated: 2026-06-23
 archived_at: null
