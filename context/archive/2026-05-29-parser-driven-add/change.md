@@ -1,10 +1,10 @@
 ---
 change_id: parser-driven-add
 title: Parser driven add
-status: impl_reviewed
+status: archived
 created: 2026-05-29
-updated: 2026-06-01
-archived_at: null
+updated: 2026-06-23
+archived_at: 2026-06-23T11:14:55Z
 ---
 
 ## Notes

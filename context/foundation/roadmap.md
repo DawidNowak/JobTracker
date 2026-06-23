@@ -34,7 +34,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | done     |
 | S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | done     |
 | S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
-| S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | implemented |
+| S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | done        |
 | S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | done     |
 | S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | proposed |
 | S-06  | notes-and-card-detail              | write follow-up notes and read note history on a card         | S-02             | FR-013, FR-014        | proposed |
@@ -119,7 +119,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Unknowns:**
   - URL parsing strategy (server-side scrape vs third-party fetch service vs vendor API) is a `/10x-plan` decision; the roadmap holds it as in-scope-but-undecided. Owner: TBD at plan time. Block: no.
 - **Risk:** The validation milestone — meaning the slice whose user-visible behavior the primary Success Criterion (≥80% auto-fill share) is measured against. Placed as slice 4 (earliest its Prerequisites allow) because the 4-week MVP cannot afford to ship without it under `main_goal: speed`. The PRD's graceful-fallback contract is load-bearing: parser flake must not block the manual-add path that already exists in S-02.
-- **Status:** proposed
+- **Status:** done
 
 ### S-05: Kanban status transitions
 
@@ -257,3 +257,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 - **S-01: log in and see an empty 3-column board + top nav** — Archived 2026-06-23 → `context/archive/2026-05-26-kanban-shell-and-nav/`. Lesson: —.
 - **S-02: add a job application by typing fields** — Archived 2026-06-23 → `context/archive/2026-05-29-manual-add-application/`. Lesson: —.
 - **S-05: move a card between active columns; lastActionAt is reset** — Archived 2026-06-23 → `context/archive/2026-05-29-kanban-status-transitions/`. Lesson: —.
+- **S-04: paste a portal URL and get a pre-filled add form *(north star)*** — Archived 2026-06-23 → `context/archive/2026-05-29-parser-driven-add/`. Lesson: —.
