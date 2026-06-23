@@ -297,19 +297,19 @@ from branch protection (GitHub UI or `gh api`).
 
 #### Automated
 
-- [x] 1.1 Workflow YAML is valid (prettier --check / gh workflow view)
-- [ ] 1.2 The `test` job appears in the run (gh run view)
-- [ ] 1.3 Local stack boots in CI (supabase start exits 0)
-- [ ] 1.4 Full suite passes in CI (npm test, both pools, exits 0)
-- [ ] 1.5 Existing `ci` job still passes (typecheck/lint/build unchanged)
-- [x] 1.6 Suite still passes locally (npm test)
+- [x] 1.1 Workflow YAML is valid (prettier --check / gh workflow view) — 443090c
+- [x] 1.2 The `test` job appears in the run (gh run view)
+- [x] 1.3 Local stack boots in CI (supabase start exits 0)
+- [x] 1.4 Full suite passes in CI (npm test, both pools, exits 0)
+- [x] 1.5 Existing `ci` job still passes (typecheck/lint/build unchanged)
+- [x] 1.6 Suite still passes locally (npm test) — 443090c
 
 #### Manual
 
-- [ ] 1.7 Push/PR triggers both `ci` and `test` jobs in parallel
-- [ ] 1.8 `test` logs show Supabase boot, `.env.test` generated, both pools running
-- [ ] 1.9 `test` job wall time acceptable
-- [ ] 1.10 No secret leakage in logs
+- [x] 1.7 Push/PR triggers both `ci` and `test` jobs in parallel
+- [x] 1.8 `test` logs show Supabase boot, `.env.test` generated, both pools running
+- [x] 1.9 `test` job wall time acceptable
+- [x] 1.10 No secret leakage in logs
 
 ### Phase 2: Enforce as required gate + close out docs
 
