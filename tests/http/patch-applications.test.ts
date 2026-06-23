@@ -21,7 +21,6 @@ describe("PATCH /api/applications/[id]", () => {
   let cookiesA: string;
   let cookiesB: string;
   let appAId: string;
-  let appACreatedAt: string;
   let appAStatus: string;
   let appALastActionAt: string;
 
@@ -34,7 +33,6 @@ describe("PATCH /api/applications/[id]", () => {
 
     const row = await seedApplication(userA.client, userA.userId);
     appAId = row.id;
-    appACreatedAt = row.created_at;
     appAStatus = row.status;
     appALastActionAt = row.last_action_at;
   });
@@ -92,6 +90,6 @@ describe("PATCH /api/applications/[id]", () => {
       .single();
     if (fetchError) throw fetchError;
     expect(data.status).toBe("Rozmowa");
-    expect(new Date(data.last_action_at) >= new Date(appACreatedAt)).toBe(true);
+    expect(new Date(data.last_action_at) > new Date(appALastActionAt)).toBe(true);
   });
 });

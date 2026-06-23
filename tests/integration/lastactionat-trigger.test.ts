@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createAdminClient } from "../helpers/supabase-clients";
 import { provisionUser, cleanupUser } from "../helpers/users";
 import { seedApplication } from "../helpers/seed";
@@ -11,12 +11,15 @@ describe("applications last_action_at trigger invariants", () => {
   const admin = createAdminClient();
   let user: Awaited<ReturnType<typeof provisionUser>>;
 
+  beforeEach(async () => {
+    user = await provisionUser(admin);
+  });
+
   afterEach(async () => {
     await cleanupUser(admin, user.userId);
   });
 
   it("INSERT sets last_action_at exactly equal to created_at", async () => {
-    user = await provisionUser(admin);
     const row = await seedApplication(user.client, user.userId);
 
     // Both columns default now(), which is transaction-stable → byte-equal on a single INSERT.
@@ -24,7 +27,9 @@ describe("applications last_action_at trigger invariants", () => {
   });
 
   it("status UPDATE advances last_action_at past created_at", async () => {
-    user = await provisionUser(admin);
+    // Seed with a status that differs from the value we update to below — otherwise the
+    // trigger's WHEN (old.status IS DISTINCT FROM NEW.status) guard would skip and this
+    // would silently become a no-op update. (seedApplication defaults to "Zaaplikowano".)
     const row = await seedApplication(user.client, user.userId, { status: "Interesujące" });
 
     const { error: updateError } = await user.client
@@ -38,7 +43,6 @@ describe("applications last_action_at trigger invariants", () => {
   });
 
   it("non-status UPDATE leaves last_action_at unchanged", async () => {
-    user = await provisionUser(admin);
     const row = await seedApplication(user.client, user.userId);
 
     // Editing a non-status column: the trigger's WHEN (old.status IS DISTINCT FROM NEW.status)
@@ -54,7 +58,6 @@ describe("applications last_action_at trigger invariants", () => {
   });
 
   it("application_notes INSERT advances the parent's last_action_at", async () => {
-    user = await provisionUser(admin);
     const row = await seedApplication(user.client, user.userId);
 
     const { error: noteError } = await user.client
@@ -65,11 +68,11 @@ describe("applications last_action_at trigger invariants", () => {
     const after = await readActionTimes(row.id);
     expect(new Date(after.last_action_at) > new Date(row.last_action_at)).toBe(true);
   });
-});
 
-async function readActionTimes(id: string): Promise<{ created_at: string; last_action_at: string }> {
-  const admin = createAdminClient();
-  const { data, error } = await admin.from("applications").select("created_at,last_action_at").eq("id", id).single();
-  if (error) throw new Error(`canonical read failed — ${error.message}`);
-  return data;
-}
+  // Canonical column read through the describe-scoped admin client (RLS-bypassing).
+  async function readActionTimes(id: string): Promise<{ created_at: string; last_action_at: string }> {
+    const { data, error } = await admin.from("applications").select("created_at,last_action_at").eq("id", id).single();
+    if (error) throw new Error(`canonical read failed — ${error.message}`);
+    return data;
+  }
+});
