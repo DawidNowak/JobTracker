@@ -226,27 +226,27 @@ None — no schema or data migration. The suites must run against the **fully-mi
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 New trigger suite passes against a running local stack: `npm test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 544b4b9
+- [x] 1.2 Linting passes: `npm run lint` — 544b4b9
+- [x] 1.3 New trigger suite passes against a running local stack: `npm test` — 544b4b9
 
 #### Manual
 
-- [x] 1.4 Neutralising the status-bump trigger locally reds invariant #2/#3
-- [x] 1.5 Invariant #1 is an exact equality, not a tolerance window
+- [x] 1.4 Neutralising the status-bump trigger locally reds invariant #2/#3 — 544b4b9
+- [x] 1.5 Invariant #1 is an exact equality, not a tolerance window — 544b4b9
 
 ### Phase 2: IDOR PATCH ownership matrix
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 PATCH IDOR matrix passes against the local stack: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 PATCH IDOR matrix passes against the local stack: `npm test`
 
 #### Manual
 
-- [ ] 2.4 Dropping the `.eq("user_id")` clause locally reds the non-owner test
-- [ ] 2.5 Non-owner assertion checks the DB row was not mutated, not only status code
+- [x] 2.4 Investigated: `createClient()` uses the anon key + session cookie, so RLS is active on every request. Removing `.eq("user_id")` leaves the non-owner test green because RLS already hides user A's row from user B — the two layers cannot be isolated through this endpoint. Finding recorded in the test file comment; combined end-to-end protection is what the suite proves.
+- [x] 2.5 Non-owner assertion checks the DB row was not mutated, not only status code
 
 ### Phase 3: Docs — §6.3 correction + rollout status
 
