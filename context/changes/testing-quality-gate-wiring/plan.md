@@ -298,30 +298,30 @@ from branch protection (GitHub UI or `gh api`).
 #### Automated
 
 - [x] 1.1 Workflow YAML is valid (prettier --check / gh workflow view) — 443090c
-- [x] 1.2 The `test` job appears in the run (gh run view)
-- [x] 1.3 Local stack boots in CI (supabase start exits 0)
-- [x] 1.4 Full suite passes in CI (npm test, both pools, exits 0)
-- [x] 1.5 Existing `ci` job still passes (typecheck/lint/build unchanged)
+- [x] 1.2 The `test` job appears in the run (gh run view) — b9fceb4
+- [x] 1.3 Local stack boots in CI (supabase start exits 0) — b9fceb4
+- [x] 1.4 Full suite passes in CI (npm test, both pools, exits 0) — b9fceb4
+- [x] 1.5 Existing `ci` job still passes (typecheck/lint/build unchanged) — b9fceb4
 - [x] 1.6 Suite still passes locally (npm test) — 443090c
 
 #### Manual
 
-- [x] 1.7 Push/PR triggers both `ci` and `test` jobs in parallel
-- [x] 1.8 `test` logs show Supabase boot, `.env.test` generated, both pools running
-- [x] 1.9 `test` job wall time acceptable
-- [x] 1.10 No secret leakage in logs
+- [x] 1.7 Push/PR triggers both `ci` and `test` jobs in parallel — b9fceb4
+- [x] 1.8 `test` logs show Supabase boot, `.env.test` generated, both pools running — b9fceb4
+- [x] 1.9 `test` job wall time acceptable — b9fceb4
+- [x] 1.10 No secret leakage in logs — b9fceb4
 
 ### Phase 2: Enforce as required gate + close out docs
 
 #### Automated
 
-- [ ] 2.1 Docs lint clean (prettier --check)
-- [ ] 2.2 test-plan.md §3 Phase 4 status updated (no longer `change opened`)
-- [x] 2.3 A failing-test PR shows the `test` check as required and failing
+- [x] 2.1 Docs lint clean (prettier --check) — 37540ec
+- [x] 2.2 test-plan.md §3 Phase 4 status updated (no longer `change opened`) — 37540ec
+- [x] 2.3 A failing-test PR shows the `test` check as required and failing — 37540ec
 
 #### Manual
 
-- [x] 2.4 Branch-protection command applied; red PR cannot merge
-- [x] 2.5 Reverting the failure turns the check green and unblocks merge
-- [x] 2.6 tests/README.md CI section accurate
-- [x] 2.7 Deferred-canary follow-up recorded and discoverable
+- [x] 2.4 Branch-protection command applied; red PR cannot merge — 37540ec
+- [x] 2.5 Reverting the failure turns the check green and unblocks merge — 37540ec
+- [x] 2.6 tests/README.md CI section accurate — 37540ec
+- [x] 2.7 Deferred-canary follow-up recorded and discoverable — 37540ec
