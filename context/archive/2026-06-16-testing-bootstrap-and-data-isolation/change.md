@@ -1,11 +1,11 @@
 ---
 change_id: testing-bootstrap-and-data-isolation
 title: Test bootstrap + data-isolation guard (rollout phase 1)
-status: implemented
+status: archived
 created: 2026-06-16
-updated: 2026-06-17
+updated: 2026-06-23
 
-archived_at: null
+archived_at: 2026-06-23T00:00:00Z
 ---
 
 ## Notes
