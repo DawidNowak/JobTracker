@@ -1,10 +1,10 @@
 ---
 change_id: testing-quality-gate-wiring
 title: Quality gate wiring — enforce the existing test suite as a required CI gate
-status: implemented
+status: archived
 created: 2026-06-23
 updated: 2026-06-23
-archived_at: null
+archived_at: 2026-06-23T12:41:54Z
 ---
 
 ## Notes
