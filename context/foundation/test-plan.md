@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-06-22 (Phase 2 complete — parser fixtures + `recognize()` classifier + abuse-surface hardening shipped; §6.1/6.4 cookbook filled)
+> Last updated: 2026-06-23 (Phase 3 complete — lastActionAt trigger invariants + PATCH IDOR ownership matrix shipped; §6.3 corrected to the live surface, §6.6 Phase 3 note added)
 
 ## 1. Strategy
 
@@ -67,7 +67,7 @@ orchestrator updates Status as artifacts appear on disk.
 |---|---|---|---|---|---|---|
 | 1 | Test bootstrap + data-isolation guard | Pick the runner, establish the Astro + Supabase integration-test pattern, prove the incident-class data-isolation guardrail with real cross-user integration tests. | #2 | unit + integration (Supabase local) | complete | `context/changes/testing-bootstrap-and-data-isolation/` |
 | 2 | Parser correctness + abuse surface | Lock the north-star wedge: real-HTML fixture coverage per portal, fallback-on-failure path, and the `recognize()` allowlist that gates outbound fetch. | #1, #4 | unit (fixtures + URL classifier) + integration (fetch interception) | complete | `context/changes/parser-correctness-and-abuse-surface/` |
-| 3 | Domain invariants — lastActionAt + IDOR | Prove the `lastActionAt` trigger semantics survive future migrations and that applications endpoints enforce ownership independently of RLS. | #3, #5 | integration against real Postgres (row-level + endpoint matrix) | not started | — |
+| 3 | Domain invariants — lastActionAt + IDOR | Prove the `lastActionAt` trigger semantics survive future migrations and that applications endpoints enforce ownership independently of RLS. | #3, #5 | integration against real Postgres (row-level + endpoint matrix) | complete | `context/changes/testing-lastactionat-and-idor/` |
 | 4 | Quality gate wiring | Add `npm test` to CI on push/PR; integration tests run against an ephemeral or local Supabase; no coverage threshold (per §7). Optional: a scheduled parser-HTML-drift canary. | gating regression for #1–#5 | CI YAML edits, GitHub Actions secrets, optional scheduled canary | not started | — |
 
 Risk #6 is intentionally not a rollout phase here — the function does not exist yet (S-09 is `proposed`). Its response row is preserved in §2 so the S-09 `/10x-plan` can pick it up as a test sub-phase when that slice opens.
@@ -215,7 +215,7 @@ it('returns 201 with a valid cookie', async () => {
 });
 ```
 
-**Ownership matrix (Risk #5 — two-user form):** provision both A and B; capture both cookie strings; drive the mutating verb as B against A's UUID; assert **exactly** 404 (`toBe(404)`, not `toBeGreaterThanOrEqual`) — 404-collapse is the load-bearing existence-leak guard.
+**Ownership matrix (Risk #5 — two-user form):** provision both A and B; capture both cookie strings; drive the only id-addressed mutating verb with an HTTP surface — **PATCH `/api/applications/[id]`** — as B against A's UUID; assert **exactly** 404 (`toBe(404)`, not `toBeGreaterThanOrEqual`) — 404-collapse is the load-bearing existence-leak guard — and re-read the row via the admin client to prove the mutation never executed. SELECT/UPDATE/DELETE ownership is proven at the RLS layer (`tests/integration/rls-applications.test.ts`), not here, because no GET/PUT/DELETE handler exists under `src/pages/api/`. See `tests/http/patch-applications.test.ts`.
 
 **Key rules:**
 - `signInAndCaptureCookies` builds a `@supabase/ssr` `createServerClient` with a `setAll` accumulator; the captured cookie names match what Astro middleware expects because both use the same library against the same Supabase URL.
@@ -275,6 +275,12 @@ Vitest runs two projects: a **node** pool (integration, HTTP, pure-function test
 LinkedIn's guest API rarely exposes salary (US pay-transparency only), so a fully-salaried *real* happy fixture is effectively unobtainable; the salary selector is covered by an explicitly-labeled synthetic fixture instead. Don't "fix" this by re-running the parser to derive oracle values — that re-opens the Risk #1 anti-pattern.
 For the `redirect: "manual"` regression test, workerd returns an opaque-redirect filtered response (`{type:"opaqueredirect", status:0}`), not a `302` — and a `Response` cannot be constructed with `status:0`, so model that shape directly in the `fetch` stub.
 The shared `astro dev` global-setup cold-start timeout was raised to 60s (`tests/global-setup.ts`) after the 30s cap flaked repeatedly on Windows first-compile.
+
+**Phase 3 (domain invariants — lastActionAt + IDOR) — shipped 2026-06-23:**
+The four `lastActionAt` trigger invariants (`tests/integration/lastactionat-trigger.test.ts`) read canonical column values (`created_at`, `last_action_at`) through the **admin client** (RLS-bypassing, PostgREST-selectable) rather than a raw `pg` client — no SQL driver is needed. `now()` is transaction-stable, so invariant #1 is an **exact equality** (`last_action_at === created_at` on INSERT) and the status-change / note-INSERT advances are strict `>` against a captured pre-state — deterministic, no sleeps.
+Trigger-bypass is a documented **known property, not a tested case**: a direct `last_action_at` write paired with a non-status edit is *not* corrected by the `WHEN (old.status IS DISTINCT FROM NEW.status)` guard, but no API path reaches that write, so it stays untested by design (`research.md` Resolved Decision #3).
+A shared `seedApplication(client, userId, overrides?)` helper (`tests/helpers/seed.ts`) replaced the inline insert duplication across the trigger and IDOR suites; it takes `userId` explicitly so it works with both the admin and a user client.
+The PATCH IDOR matrix and RLS isolation cannot be teased apart through this endpoint: `createClient()` uses the anon key + session cookie, so RLS is live on every request. Dropping the `.eq("user_id")` clause leaves the non-owner test green because RLS already hides A's row from B — the suite proves the **combined** end-to-end ownership protection, not the service clause in isolation.
 
 ## 7. What We Deliberately Don't Test
 

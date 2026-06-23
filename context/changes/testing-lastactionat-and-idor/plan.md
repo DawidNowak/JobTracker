@@ -239,24 +239,24 @@ None — no schema or data migration. The suites must run against the **fully-mi
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 PATCH IDOR matrix passes against the local stack: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck` — 1ceac6a
+- [x] 2.2 Linting passes: `npm run lint` — 1ceac6a
+- [x] 2.3 PATCH IDOR matrix passes against the local stack: `npm test` — 1ceac6a
 
 #### Manual
 
-- [x] 2.4 Investigated: `createClient()` uses the anon key + session cookie, so RLS is active on every request. Removing `.eq("user_id")` leaves the non-owner test green because RLS already hides user A's row from user B — the two layers cannot be isolated through this endpoint. Finding recorded in the test file comment; combined end-to-end protection is what the suite proves.
-- [x] 2.5 Non-owner assertion checks the DB row was not mutated, not only status code
+- [x] 2.4 Investigated: `createClient()` uses the anon key + session cookie, so RLS is active on every request. Removing `.eq("user_id")` leaves the non-owner test green because RLS already hides user A's row from user B — the two layers cannot be isolated through this endpoint. Finding recorded in the test file comment; combined end-to-end protection is what the suite proves. — 1ceac6a
+- [x] 2.5 Non-owner assertion checks the DB row was not mutated, not only status code — 1ceac6a
 
 ### Phase 3: Docs — §6.3 correction + rollout status
 
 #### Automated
 
-- [ ] 3.1 Full suite passes against the local stack: `npm test`
-- [ ] 3.2 Type checking passes: `npm run typecheck`
-- [ ] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 Full suite passes against the local stack: `npm test`
+- [x] 3.2 Type checking passes: `npm run typecheck`
+- [x] 3.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 §6.3 no longer references GET/PUT/DELETE as tested HTTP verbs
-- [ ] 3.5 §3 rollout row 3 status matches the actual Progress state
+- [x] 3.4 §6.3 no longer references GET/PUT/DELETE as tested HTTP verbs
+- [x] 3.5 §3 rollout row 3 status matches the actual Progress state
