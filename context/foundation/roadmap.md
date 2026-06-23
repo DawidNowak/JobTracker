@@ -3,7 +3,7 @@ project: "JobTracker"
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-05-29
+updated: 2026-06-23
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -31,7 +31,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 
 | ID    | Change ID                          | Outcome (user can …)                                          | Prerequisites    | PRD refs              | Status   |
 | ----- | ---------------------------------- | ------------------------------------------------------------- | ---------------- | --------------------- | -------- |
-| F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | ready    |
+| F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | done     |
 | S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | proposed |
 | S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
 | S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | implemented |
@@ -80,7 +80,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** This is the "invest in data" foundation called out in the framing recap. PRD elevates user data isolation to an incident-class guardrail, so RLS must land with the schema, not as a follow-on hardening pass. Same for `lastActionAt`: the follow-up timing rule is downstream of correct reset semantics; a silent miss here corrupts every prompt slice (S-07 through S-09). DB-level trigger enforcement (rather than API-only) means a buggy or future endpoint cannot silently break the rule — the DB owns the column, the API never sets it. RLS is provider-agnostic via `auth.uid()`, so it works against the existing email+password session.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -253,4 +253,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends entries here as roadmap items close.)
+- **F-01: (foundation) Application + note schema with per-user RLS** — Archived 2026-06-23 → `context/archive/2026-05-26-applications-schema-and-rls/`. Lesson: —.
