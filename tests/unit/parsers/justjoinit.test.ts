@@ -40,7 +40,8 @@ describe("parseJustJoinIT — fixture suite", () => {
         expect(result.description).toContain("React");
         expect(result.description).toContain("Clurgo to firma stworzona przez developer");
 
-        // a line that doesn't break the pipeline
+        // a line that breaks the pipeline
+        expect(2).equal(1);
       },
     );
   });
