@@ -131,7 +131,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** After this lands, the kanban is functionally a kanban — without S-05 the board is read-only. Bi-directional transitions are non-negotiable per PRD Business Logic; sequencing them in one slice avoids a "phase 1 forward-only, phase 2 add backward" regression risk.
-- **Status:** done (shipped 2026-05-29, commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed; awaiting archive)
+- **Status:** done
 
 ### S-03: Edit and delete application
 
@@ -256,3 +256,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 - **F-01: (foundation) Application + note schema with per-user RLS** — Archived 2026-06-23 → `context/archive/2026-05-26-applications-schema-and-rls/`. Lesson: —.
 - **S-01: log in and see an empty 3-column board + top nav** — Archived 2026-06-23 → `context/archive/2026-05-26-kanban-shell-and-nav/`. Lesson: —.
 - **S-02: add a job application by typing fields** — Archived 2026-06-23 → `context/archive/2026-05-29-manual-add-application/`. Lesson: —.
+- **S-05: move a card between active columns; lastActionAt is reset** — Archived 2026-06-23 → `context/archive/2026-05-29-kanban-status-transitions/`. Lesson: —.
