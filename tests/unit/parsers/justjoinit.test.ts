@@ -39,6 +39,8 @@ describe("parseJustJoinIT — fixture suite", () => {
         expect(result.description).toMatch(/^Wymagane umiej[eę]tno[sś]ci: JavaScript/);
         expect(result.description).toContain("React");
         expect(result.description).toContain("Clurgo to firma stworzona przez developer");
+
+        // a line that doesn't break the pipeline
       },
     );
   });
