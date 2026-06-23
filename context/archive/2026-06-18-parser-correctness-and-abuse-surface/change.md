@@ -1,10 +1,10 @@
 ---
 change_id: parser-correctness-and-abuse-surface
 title: Parser correctness + abuse surface (test rollout Phase 2)
-status: complete
+status: archived
 created: 2026-06-18
-updated: 2026-06-22
-archived_at: null
+updated: 2026-06-23
+archived_at: 2026-06-23T11:17:56Z
 ---
 
 ## Notes
