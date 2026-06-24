@@ -92,4 +92,39 @@ describe("PATCH /api/applications/[id]", () => {
     expect(data.status).toBe("Rozmowa");
     expect(new Date(data.last_action_at) > new Date(appALastActionAt)).toBe(true);
   });
+
+  it("returns 200 on a field-only PATCH and leaves last_action_at unchanged (no status edit)", async () => {
+    const res = await fetch(`${process.env.TEST_BASE_URL}/api/applications/${appAId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: cookiesA },
+      body: JSON.stringify({ company: "Acme Corp", position: "Senior Engineer" }),
+    });
+    expect(res.status).toBe(200);
+
+    const json = (await res.json()) as { application: { company: string; position: string } };
+    expect(json.application.company).toBe("Acme Corp");
+    expect(json.application.position).toBe("Senior Engineer");
+
+    // The DB trigger only bumps last_action_at on a status change, so a field-only edit
+    // must preserve the follow-up clock — assert byte-equality with the seeded value.
+    const { data, error: fetchError } = await userA.client
+      .from("applications")
+      .select("company, position, status, last_action_at")
+      .eq("id", appAId)
+      .single();
+    if (fetchError) throw fetchError;
+    expect(data.company).toBe("Acme Corp");
+    expect(data.position).toBe("Senior Engineer");
+    expect(data.status).toBe(appAStatus);
+    expect(data.last_action_at).toBe(appALastActionAt);
+  });
+
+  it("returns 422 when the owner sends an empty source", async () => {
+    const res = await fetch(`${process.env.TEST_BASE_URL}/api/applications/${appAId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: cookiesA },
+      body: JSON.stringify({ source: "" }),
+    });
+    expect(res.status).toBe(422);
+  });
 });
