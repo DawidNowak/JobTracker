@@ -270,14 +270,14 @@ None — UPDATE/DELETE RLS policies and the `last_action_at` trigger already exi
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run typecheck`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Tests pass: `npm test`
-- [x] 3.4 Generated `dropdown-menu.tsx` and `alert-dialog.tsx` exist under `src/components/ui/`
+- [x] 3.1 Type checking passes: `npm run typecheck` — 7116641
+- [x] 3.2 Linting passes: `npm run lint` — 7116641
+- [x] 3.3 Tests pass: `npm test` — 7116641
+- [x] 3.4 Generated `dropdown-menu.tsx` and `alert-dialog.tsx` exist under `src/components/ui/` — 7116641
 
 #### Manual
 
-- [ ] 3.5 Kebab menu opens without starting a drag; dragging still works
-- [ ] 3.6 Editing a field + reload shows new value; card unmoved, timestamp unchanged
-- [ ] 3.7 Delete confirmation shows correct per-column wording; confirm removes card, cancel leaves it
-- [ ] 3.8 Drag overlay shows no kebab menu; no regressions to add/drag-drop
+- [x] 3.5 Kebab menu opens without starting a drag; dragging still works — 7116641
+- [x] 3.6 Editing a field + reload shows new value; card unmoved, timestamp unchanged — 7116641
+- [x] 3.7 Delete confirmation shows correct per-column wording; confirm removes card, cancel leaves it — 7116641
+- [x] 3.8 Drag overlay shows no kebab menu; no regressions to add/drag-drop — 7116641
