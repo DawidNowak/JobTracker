@@ -10,15 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { ApplicationStatus, WorkMode } from "@/lib/validation/applications";
-import { workModeValues } from "@/lib/validation/applications";
+import type { ApplicationStatus } from "@/lib/validation/applications";
 import { recognize } from "@/lib/parsers/recognize";
 import type { ParseEndpointResponse, ParseResult, ParseStatus } from "@/lib/parsers/types";
+import ApplicationForm, { type ApplicationFormValues } from "@/components/board/ApplicationForm";
 
 type AddableStatus = Exclude<ApplicationStatus, "Rozmowa">;
 
@@ -26,19 +22,15 @@ interface Props {
   targetStatus: AddableStatus;
 }
 
-const NO_WORK_MODE = "__none__";
-
-const EMPTY_FORM = {
+const EMPTY_FORM: ApplicationFormValues = {
   source: "",
   position: "",
   company: "",
   description: "",
   salary: "",
-  work_mode: "" as "" | WorkMode,
+  work_mode: "",
   recruiter_contact: "",
 };
-
-type FormState = typeof EMPTY_FORM;
 
 function nullableOrString(value: string): string | null {
   const trimmed = value.trim();
@@ -47,7 +39,7 @@ function nullableOrString(value: string): string | null {
 
 export default function AddApplicationDialog({ targetStatus }: Props) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<ApplicationFormValues>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -55,7 +47,7 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
   const [parseStatus, setParseStatus] = useState<ParseStatus | null>(null);
   const [parseMessage, setParseMessage] = useState<string | null>(null);
 
-  const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+  const update = <K extends keyof ApplicationFormValues>(key: K, value: ApplicationFormValues[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) {
       setErrors((prev) => {
@@ -185,117 +177,25 @@ export default function AddApplicationDialog({ targetStatus }: Props) {
                 {bannerError}
               </div>
             )}
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-source">Źródło *</Label>
-              <Input
-                id="add-application-source"
-                aria-required="true"
-                value={form.source}
-                onChange={(e) => {
-                  update("source", e.target.value);
-                }}
-                autoFocus
-              />
-              {errors.source && <p className="text-xs text-red-600">{errors.source}</p>}
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  void handleParse();
-                }}
-                disabled={!canParse}
-                className="self-start"
-              >
-                {parsing ? "Pobieranie…" : "Pobierz dane oferty"}
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-position">Stanowisko</Label>
-              <Input
-                id="add-application-position"
-                value={form.position}
-                onChange={(e) => {
-                  update("position", e.target.value);
-                }}
-              />
-              {errors.position && <p className="text-xs text-red-600">{errors.position}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-company">Firma</Label>
-              <Input
-                id="add-application-company"
-                value={form.company}
-                onChange={(e) => {
-                  update("company", e.target.value);
-                }}
-              />
-              {errors.company && <p className="text-xs text-red-600">{errors.company}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-description">Opis i wymagane umiejętności</Label>
-              <Textarea
-                id="add-application-description"
-                rows={5}
-                className="max-h-48"
-                value={form.description}
-                onChange={(e) => {
-                  update("description", e.target.value);
-                }}
-              />
-              <p className="text-xs text-neutral-500">Wklej opis oferty wraz z listą wymaganych umiejętności.</p>
-              {errors.description && <p className="text-xs text-red-600">{errors.description}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-salary">Widełki wynagrodzenia</Label>
-              <Input
-                id="add-application-salary"
-                value={form.salary}
-                onChange={(e) => {
-                  update("salary", e.target.value);
-                }}
-              />
-              {errors.salary && <p className="text-xs text-red-600">{errors.salary}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-work-mode">Tryb pracy</Label>
-              <Select
-                value={form.work_mode === "" ? NO_WORK_MODE : form.work_mode}
-                onValueChange={(value) => {
-                  update("work_mode", value === NO_WORK_MODE ? "" : (value as WorkMode));
-                }}
-              >
-                <SelectTrigger id="add-application-work-mode">
-                  <SelectValue placeholder="Nie wybrano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_WORK_MODE}>Nie wybrano</SelectItem>
-                  {workModeValues.map((mode) => (
-                    <SelectItem key={mode} value={mode}>
-                      {mode}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.work_mode && <p className="text-xs text-red-600">{errors.work_mode}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="add-application-recruiter">Kontakt do rekrutera</Label>
-              <Input
-                id="add-application-recruiter"
-                value={form.recruiter_contact}
-                onChange={(e) => {
-                  update("recruiter_contact", e.target.value);
-                }}
-              />
-              {errors.recruiter_contact && <p className="text-xs text-red-600">{errors.recruiter_contact}</p>}
-            </div>
+            <ApplicationForm
+              idPrefix="add-application"
+              form={form}
+              update={update}
+              errors={errors}
+              afterSource={
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    void handleParse();
+                  }}
+                  disabled={!canParse}
+                  className="self-start"
+                >
+                  {parsing ? "Pobieranie…" : "Pobierz dane oferty"}
+                </Button>
+              }
+            />
           </div>
 
           <DialogFooter className="mt-4 shrink-0 border-t pt-4">

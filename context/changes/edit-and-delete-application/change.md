@@ -3,7 +3,7 @@ change_id: edit-and-delete-application
 title: Edit and delete application
 status: implementing
 created: 2026-06-23
-updated: 2026-06-23
+updated: 2026-06-24
 archived_at: null
 ---
 

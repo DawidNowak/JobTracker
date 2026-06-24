@@ -244,23 +244,23 @@ None — UPDATE/DELETE RLS policies and the `last_action_at` trigger already exi
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 New + existing tests pass: `npm test`
-- [x] 1.4 Full-update, delete, 422, 404, and cross-user isolation tests present and green
+- [x] 1.1 Type checking passes: `npm run typecheck` — e645d80
+- [x] 1.2 Linting passes: `npm run lint` — e645d80
+- [x] 1.3 New + existing tests pass: `npm test` — e645d80
+- [x] 1.4 Full-update, delete, 422, 404, and cross-user isolation tests present and green — e645d80
 
 #### Manual
 
-- [x] 1.5 PATCH field body updates fields without changing `last_action_at`
-- [x] 1.6 DELETE removes the row; second DELETE returns 404
+- [x] 1.5 PATCH field body updates fields without changing `last_action_at` — e645d80
+- [x] 1.6 DELETE removes the row; second DELETE returns 404 — e645d80
 
 ### Phase 2: Extract shared ApplicationForm
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Tests pass: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Tests pass: `npm test`
 
 #### Manual
 
