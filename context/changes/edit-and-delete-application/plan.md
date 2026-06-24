@@ -258,22 +258,22 @@ None — UPDATE/DELETE RLS policies and the `last_action_at` trigger already exi
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Tests pass: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck` — 6693eff
+- [x] 2.2 Linting passes: `npm run lint` — 6693eff
+- [x] 2.3 Tests pass: `npm test` — 6693eff
 
 #### Manual
 
-- [ ] 2.4 Add-application dialog looks and behaves exactly as before
+- [x] 2.4 Add-application dialog looks and behaves exactly as before — 6693eff
 
 ### Phase 3: Edit + delete UI
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Tests pass: `npm test`
-- [ ] 3.4 Generated `dropdown-menu.tsx` and `alert-dialog.tsx` exist under `src/components/ui/`
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Tests pass: `npm test`
+- [x] 3.4 Generated `dropdown-menu.tsx` and `alert-dialog.tsx` exist under `src/components/ui/`
 
 #### Manual
 
