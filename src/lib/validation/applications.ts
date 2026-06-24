@@ -20,16 +20,20 @@ export const applicationCreateSchema = z.object({
   status: applicationStatusSchema.default("Interesujące"),
 });
 
-export const applicationUpdateSchema = z.object({
-  source: z.string().min(1).optional(),
-  position: z.string().nullable().optional(),
-  company: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  salary: z.string().nullable().optional(),
-  work_mode: workModeSchema.nullable().optional(),
-  recruiter_contact: z.string().nullable().optional(),
-  status: applicationStatusSchema.optional(),
-});
+export const applicationUpdateSchema = z
+  .object({
+    source: z.string().min(1).optional(),
+    position: z.string().nullable().optional(),
+    company: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    salary: z.string().nullable().optional(),
+    work_mode: workModeSchema.nullable().optional(),
+    recruiter_contact: z.string().nullable().optional(),
+    status: applicationStatusSchema.optional(),
+  })
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: "Brak pól do aktualizacji.",
+  });
 
 export const applicationStatusUpdateSchema = z.object({
   status: applicationStatusSchema,

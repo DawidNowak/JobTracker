@@ -2,19 +2,9 @@ import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { applicationCreateSchema } from "@/lib/validation/applications";
 import { createApplication } from "@/lib/services/applications";
-import { jsonResponse, formatZodErrors } from "@/lib/http";
+import { jsonResponse, formatApplicationErrors } from "@/lib/http";
 
 export const prerender = false;
-
-function formatApplicationErrors(error: Parameters<typeof formatZodErrors>[0]) {
-  return formatZodErrors(error, (issue) => {
-    const key = issue.path[0];
-    if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
-      return "Źródło jest wymagane.";
-    }
-    return undefined;
-  });
-}
 
 export const POST: APIRoute = async (context) => {
   const user = context.locals.user;

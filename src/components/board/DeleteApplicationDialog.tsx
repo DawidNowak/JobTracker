@@ -29,6 +29,14 @@ export default function DeleteApplicationDialog({ application, open, onOpenChang
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setBannerError(null);
+      setDeleting(false);
+    }
+    onOpenChange(next);
+  };
+
   const handleConfirm = async () => {
     setDeleting(true);
     setBannerError(null);
@@ -48,7 +56,7 @@ export default function DeleteApplicationDialog({ application, open, onOpenChang
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Usuń aplikację</AlertDialogTitle>

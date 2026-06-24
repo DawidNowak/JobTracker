@@ -19,3 +19,13 @@ export function formatZodErrors(
   }
   return errors;
 }
+
+export function formatApplicationErrors(error: z.ZodError): Record<string, string> {
+  return formatZodErrors(error, (issue) => {
+    const key = issue.path[0];
+    if (key === "source" && (issue.code === "too_small" || issue.code === "invalid_type")) {
+      return "Źródło jest wymagane.";
+    }
+    return undefined;
+  });
+}

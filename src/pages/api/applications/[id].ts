@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase";
 import { applicationUpdateSchema } from "@/lib/validation/applications";
 import { updateApplication, deleteApplication } from "@/lib/services/applications";
-import { jsonResponse, formatZodErrors } from "@/lib/http";
+import { jsonResponse, formatApplicationErrors } from "@/lib/http";
 
 export const prerender = false;
 
@@ -29,7 +29,7 @@ export const PATCH: APIRoute = async (context) => {
 
   const parsed = applicationUpdateSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonResponse(422, { errors: formatZodErrors(parsed.error) });
+    return jsonResponse(422, { errors: formatApplicationErrors(parsed.error) });
   }
 
   const supabase = createClient(context.request.headers, context.cookies);
