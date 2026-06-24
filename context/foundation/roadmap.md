@@ -3,7 +3,7 @@ project: "JobTracker"
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-06-23
+updated: 2026-06-24
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -36,7 +36,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
 | S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | done        |
 | S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | done     |
-| S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | proposed |
+| S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | done     |
 | S-06  | notes-and-card-detail              | write follow-up notes and read note history on a card         | S-02             | FR-013, FR-014        | proposed |
 | S-07  | interesujace-decision-prompt       | act on the 1-day decision prompt in Interesujące              | S-05, S-03       | US-03, FR-015         | proposed |
 | S-08  | zaaplikowano-followup-flag         | see the 7-day follow-up flag in Zaaplikowano                  | S-06             | US-02, FR-011         | proposed |
@@ -143,7 +143,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Bundles edit and delete because both reuse the S-02 form / card surface; splitting them would double the touch on the same files for marginal scope clarity. FR-016's permanent-delete-from-Interesujące shares this slice's confirmation dialog plumbing — the decision-prompt UI (S-07) only wires the trigger.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Notes and card detail
 
@@ -258,3 +258,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 - **S-02: add a job application by typing fields** — Archived 2026-06-23 → `context/archive/2026-05-29-manual-add-application/`. Lesson: —.
 - **S-05: move a card between active columns; lastActionAt is reset** — Archived 2026-06-23 → `context/archive/2026-05-29-kanban-status-transitions/`. Lesson: —.
 - **S-04: paste a portal URL and get a pre-filled add form *(north star)*** — Archived 2026-06-23 → `context/archive/2026-05-29-parser-driven-add/`. Lesson: —.
+- **S-03: edit any field on a card; delete a card from any column** — Archived 2026-06-24 → `context/archive/2026-06-23-edit-and-delete-application/`. Lesson: —.
