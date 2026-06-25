@@ -40,3 +40,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# stryker
+.stryker-tmp/
+stryker.log
+reports/
