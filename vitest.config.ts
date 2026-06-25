@@ -21,6 +21,8 @@ export default defineConfig({
             "tests/http/**/*.test.ts",
             "tests/unit/parsers/recognize.test.ts",
             "tests/unit/parsers/resolve-status.test.ts",
+            "tests/unit/validation/applications.test.ts",
+            "tests/unit/services/applications.test.ts",
           ],
           testTimeout: 30_000,
         },
