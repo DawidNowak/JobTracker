@@ -16,11 +16,7 @@ export default defineConfig({
           name: "node",
           environment: "node",
           setupFiles: ["./tests/setup.ts", "./tests/setup-html-rewriter.ts"],
-          include: [
-            "tests/integration/**/*.test.ts",
-            "tests/http/**/*.test.ts",
-            "tests/unit/**/*.test.ts",
-          ],
+          include: ["tests/integration/**/*.test.ts", "tests/http/**/*.test.ts", "tests/unit/**/*.test.ts"],
           testTimeout: 30_000,
         },
       },

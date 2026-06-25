@@ -148,7 +148,8 @@ describe("applicationNoteCreateSchema", () => {
 
   it("accepts a valid UUID and non-empty body", () => {
     expect(
-      applicationNoteCreateSchema.safeParse({ application_id: VALID_UUID, body: "Follow-up sent to recruiter." }).success,
+      applicationNoteCreateSchema.safeParse({ application_id: VALID_UUID, body: "Follow-up sent to recruiter." })
+        .success,
     ).toBe(true);
   });
 

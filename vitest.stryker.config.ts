@@ -10,15 +10,8 @@ export default defineConfig({
     passWithNoTests: true,
     environment: "node",
     setupFiles: ["./tests/setup.ts"],
-    include: [
-      "tests/integration/**/*.test.ts",
-      "tests/http/**/*.test.ts",
-      "tests/unit/**/*.test.ts",
-    ],
-    exclude: [
-      "tests/unit/parsers/linkedin.test.ts",
-      "tests/unit/parsers/justjoinit.test.ts",
-    ],
+    include: ["tests/integration/**/*.test.ts", "tests/http/**/*.test.ts", "tests/unit/**/*.test.ts"],
+    exclude: ["tests/unit/parsers/linkedin.test.ts", "tests/unit/parsers/justjoinit.test.ts"],
     testTimeout: 30_000,
   },
 });

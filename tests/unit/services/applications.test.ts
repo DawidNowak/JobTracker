@@ -7,11 +7,13 @@ import {
   updateApplication,
 } from "@/lib/services/applications";
 
+type Client = Parameters<typeof listActiveApplications>[0];
+
 // Minimal chainable Supabase query builder. Every method returns the same chain
 // object so any builder sequence is supported. The chain is also thenable so
 // that functions which `await` the builder directly (e.g. listActiveApplications)
 // receive the configured response without needing a terminal `.single()` call.
-function makeClient(response: { data: unknown; error: Record<string, unknown> | null }) {
+function makeClient(response: { data: unknown; error: Record<string, unknown> | null }): Client {
   const chain: Record<string, unknown> = {};
   for (const m of ["from", "select", "update", "insert", "delete", "is", "eq", "order"]) {
     chain[m] = () => chain;
@@ -20,8 +22,7 @@ function makeClient(response: { data: unknown; error: Record<string, unknown> | 
   chain.single = () => Promise.resolve(response);
   chain.then = (resolve: (v: typeof response) => unknown, reject: (r: unknown) => unknown) =>
     Promise.resolve(response).then(resolve, reject);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return chain as any;
+  return chain as unknown as Client;
 }
 
 const DB_ERROR = { message: "connection error", details: "", hint: "", code: "PGRST001" };
@@ -69,7 +70,9 @@ describe("deleteApplication", () => {
   });
 
   it("throws when the database returns an error", async () => {
-    await expect(deleteApplication(makeClient({ data: null, error: DB_ERROR }), "app-1", "u1")).rejects.toEqual(DB_ERROR);
+    await expect(deleteApplication(makeClient({ data: null, error: DB_ERROR }), "app-1", "u1")).rejects.toEqual(
+      DB_ERROR,
+    );
   });
 });
 
@@ -82,7 +85,9 @@ describe("updateApplicationStatus", () => {
 
   it("returns the updated row on success", async () => {
     const row = { id: "app-1", status: "Rozmowa" };
-    expect(await updateApplicationStatus(makeClient({ data: row, error: null }), "app-1", "Rozmowa", "owner")).toEqual(row);
+    expect(await updateApplicationStatus(makeClient({ data: row, error: null }), "app-1", "Rozmowa", "owner")).toEqual(
+      row,
+    );
   });
 
   it("throws when the database returns an error", async () => {
@@ -94,12 +99,16 @@ describe("updateApplicationStatus", () => {
 
 describe("updateApplication", () => {
   it("returns null when no row matched — application not owned by caller", async () => {
-    expect(await updateApplication(makeClient({ data: null, error: null }), "app-1", { source: "new" }, "wrong-user")).toBeNull();
+    expect(
+      await updateApplication(makeClient({ data: null, error: null }), "app-1", { source: "new" }, "wrong-user"),
+    ).toBeNull();
   });
 
   it("returns the updated row on success", async () => {
     const row = { id: "app-1", source: "new" };
-    expect(await updateApplication(makeClient({ data: row, error: null }), "app-1", { source: "new" }, "owner")).toEqual(row);
+    expect(
+      await updateApplication(makeClient({ data: row, error: null }), "app-1", { source: "new" }, "owner"),
+    ).toEqual(row);
   });
 
   it("throws when the database returns an error", async () => {

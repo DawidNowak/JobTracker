@@ -4,7 +4,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 class HTMLRewriter {
-  private _handlers: Array<{ selector: string; handlers: object }> = [];
+  private _handlers: { selector: string; handlers: object }[] = [];
 
   on(selector: string, handlers: object): this {
     this._handlers.push({ selector, handlers });
@@ -20,7 +20,7 @@ class HTMLRewriter {
           output += decoder.decode(chunk);
         });
         for (const { selector, handlers } of _handlers) {
-          rewriter.on(selector, handlers as Parameters<typeof rewriter.on>[1]);
+          rewriter.on(selector, handlers);
         }
         try {
           const html = await response.text();
