@@ -13,8 +13,11 @@ export default defineConfig({
     include: [
       "tests/integration/**/*.test.ts",
       "tests/http/**/*.test.ts",
-      "tests/unit/parsers/recognize.test.ts",
-      "tests/unit/parsers/resolve-status.test.ts",
+      "tests/unit/**/*.test.ts",
+    ],
+    exclude: [
+      "tests/unit/parsers/linkedin.test.ts",
+      "tests/unit/parsers/justjoinit.test.ts",
     ],
     testTimeout: 30_000,
   },
