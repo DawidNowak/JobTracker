@@ -8,7 +8,7 @@ vi.mock("@/lib/services/applications", () => ({
   deleteApplication: vi.fn(),
 }));
 
-import { PATCH, DELETE } from "@/pages/api/applications/[id]";
+import { PATCH, DELETE, prerender } from "@/pages/api/applications/[id]";
 import { createClient } from "@/lib/supabase";
 import { updateApplication, deleteApplication } from "@/lib/services/applications";
 
@@ -38,6 +38,14 @@ function makeContext(overrides: ContextOverrides = {}): Parameters<typeof PATCH>
   } as unknown as Parameters<typeof PATCH>[0];
 }
 
+// ── MODULE EXPORTS ────────────────────────────────────────────────────────────
+
+describe("module exports", () => {
+  it("prerender is false — route must never be statically rendered", () => {
+    expect(prerender).toBe(false);
+  });
+});
+
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 
 describe("PATCH /api/applications/[id]", () => {
@@ -54,18 +62,38 @@ describe("PATCH /api/applications/[id]", () => {
   it("returns 401 when the request carries no authenticated user", async () => {
     const res = await PATCH(makeContext({ user: null }));
     expect(res.status).toBe(401);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Brak autoryzacji.");
   });
 
-  // P2 — UUID format guard
+  // P2 — UUID format guard: malformed string
   it("returns 400 when the id param is not a valid UUID", async () => {
     const res = await PATCH(makeContext({ id: "not-a-uuid", body: { status: "Rozmowa" } }));
     expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nieprawidłowy identyfikator.");
+  });
+
+  // P2b — UUID format guard: missing id (typeof branch of the OR condition)
+  it("returns 400 when params.id is undefined", async () => {
+    const ctx = {
+      locals: { user: MOCK_USER },
+      params: {},
+      request: { json: vi.fn().mockResolvedValue({ status: "Rozmowa" }), headers: new Headers() },
+      cookies: {},
+    } as unknown as Parameters<typeof PATCH>[0];
+    const res = await PATCH(ctx);
+    expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nieprawidłowy identyfikator.");
   });
 
   // P3 — JSON parse guard
   it("returns 400 when the request body is not parseable JSON", async () => {
     const res = await PATCH(makeContext({ bodyThrows: true }));
     expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nieprawidłowe żądanie");
   });
 
   // P4 — empty-body schema guard (applicationUpdateSchema.refine: at least one field required)
@@ -87,6 +115,8 @@ describe("PATCH /api/applications/[id]", () => {
     vi.mocked(createClient).mockReturnValue(null);
     const res = await PATCH(makeContext({ body: { status: "Rozmowa" } }));
     expect(res.status).toBe(500);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Supabase nie jest skonfigurowany.");
   });
 
   // P7 — not-found / IDOR collapse
@@ -94,6 +124,8 @@ describe("PATCH /api/applications/[id]", () => {
     vi.mocked(updateApplication).mockResolvedValue(null);
     const res = await PATCH(makeContext({ body: { status: "Rozmowa" } }));
     expect(res.status).toBe(404);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nie znaleziono aplikacji.");
   });
 
   // P8 — success response shape (FR-005)
@@ -108,9 +140,16 @@ describe("PATCH /api/applications/[id]", () => {
 
   // P9 — service-error boundary (NFR: no silent data loss)
   it("returns 500 when the service layer throws — explicit error, no silent failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* empty */
+    });
     vi.mocked(updateApplication).mockRejectedValue(new Error("connection lost"));
     const res = await PATCH(makeContext({ body: { status: "Rozmowa" } }));
     expect(res.status).toBe(500);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nie udało się zaktualizować aplikacji.");
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to update application", expect.any(Error));
+    consoleSpy.mockRestore();
   });
 });
 
@@ -130,12 +169,30 @@ describe("DELETE /api/applications/[id]", () => {
   it("returns 401 when the request carries no authenticated user", async () => {
     const res = await DELETE(makeContext({ user: null }));
     expect(res.status).toBe(401);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Brak autoryzacji.");
   });
 
-  // D2 — UUID format guard
+  // D2 — UUID format guard: malformed string
   it("returns 400 when the id param is not a valid UUID", async () => {
     const res = await DELETE(makeContext({ id: "not-a-uuid" }));
     expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nieprawidłowy identyfikator.");
+  });
+
+  // D2b — UUID format guard: missing id (typeof branch of the OR condition)
+  it("returns 400 when params.id is undefined", async () => {
+    const ctx = {
+      locals: { user: MOCK_USER },
+      params: {},
+      request: { json: vi.fn(), headers: new Headers() },
+      cookies: {},
+    } as unknown as Parameters<typeof DELETE>[0];
+    const res = await DELETE(ctx);
+    expect(res.status).toBe(400);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nieprawidłowy identyfikator.");
   });
 
   // D3 — Supabase availability guard
@@ -143,6 +200,8 @@ describe("DELETE /api/applications/[id]", () => {
     vi.mocked(createClient).mockReturnValue(null);
     const res = await DELETE(makeContext());
     expect(res.status).toBe(500);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Supabase nie jest skonfigurowany.");
   });
 
   // D4 — not-found / IDOR collapse
@@ -150,6 +209,8 @@ describe("DELETE /api/applications/[id]", () => {
     vi.mocked(deleteApplication).mockResolvedValue(false);
     const res = await DELETE(makeContext());
     expect(res.status).toBe(404);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nie znaleziono aplikacji.");
   });
 
   // D5 — success response shape (FR-006)
@@ -163,8 +224,15 @@ describe("DELETE /api/applications/[id]", () => {
 
   // D6 — service-error boundary (NFR: no silent data loss)
   it("returns 500 when the service layer throws — explicit error, no silent failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* empty */
+    });
     vi.mocked(deleteApplication).mockRejectedValue(new Error("connection lost"));
     const res = await DELETE(makeContext());
     expect(res.status).toBe(500);
+    const json = (await res.json()) as { error: string };
+    expect(json.error).toBe("Nie udało się usunąć aplikacji.");
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to delete application", expect.any(Error));
+    consoleSpy.mockRestore();
   });
 });
