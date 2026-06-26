@@ -1,3 +1,4 @@
+// @ts-nocheck -- tseslint.config() deprecated overload ts(6387) is unavoidable; extends is required for proper config merging
 /* eslint-disable @typescript-eslint/no-deprecated -- tseslint.config() is the only way to use extends; core defineConfig has incompatible API */
 import { includeIgnoreFile } from "@eslint/config-helpers";
 import eslint from "@eslint/js";

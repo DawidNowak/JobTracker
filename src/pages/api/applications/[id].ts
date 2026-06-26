@@ -16,7 +16,7 @@ export const PATCH: APIRoute = async (context) => {
   }
 
   const idParam = context.params.id;
-  if (!uuidSchema.safeParse(idParam).success) {
+  if (!idParam || !uuidSchema.safeParse(idParam).success) {
     return jsonResponse(400, { error: "Nieprawidłowy identyfikator." });
   }
 
@@ -57,7 +57,7 @@ export const DELETE: APIRoute = async (context) => {
   }
 
   const idParam = context.params.id;
-  if (!uuidSchema.safeParse(idParam).success) {
+  if (!idParam || !uuidSchema.safeParse(idParam).success) {
     return jsonResponse(400, { error: "Nieprawidłowy identyfikator." });
   }
 

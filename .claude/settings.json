@@ -15,8 +15,7 @@
       "Bash(npx wrangler deployments list *)",
       "Read",
       "Edit",
-      "Write",
-      "Get-ChildItem -Path \"C:\\Dev\\JobTracker\" *"
+      "Write"
     ],
     "ask": [
       "Bash(curl *)",

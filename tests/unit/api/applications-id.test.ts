@@ -130,7 +130,7 @@ describe("PATCH /api/applications/[id]", () => {
 
   // P8 — success response shape (FR-005)
   it("returns 200 with the updated application in { application } on success", async () => {
-    const row = { id: VALID_ID, status: "Rozmowa", source: "https://example.com" };
+    const row = { id: VALID_ID, status: "Rozmowa", source: "https://example.com" } as Awaited<ReturnType<typeof updateApplication>>;
     vi.mocked(updateApplication).mockResolvedValue(row);
     const res = await PATCH(makeContext({ body: { status: "Rozmowa" } }));
     expect(res.status).toBe(200);
