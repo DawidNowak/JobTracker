@@ -9,7 +9,7 @@ import {
 
 type Client = Parameters<typeof listActiveApplications>[0];
 
-type SpyChain = {
+interface SpyChain {
   from: ReturnType<typeof vi.fn>;
   select: ReturnType<typeof vi.fn>;
   update: ReturnType<typeof vi.fn>;
@@ -20,7 +20,7 @@ type SpyChain = {
   order: ReturnType<typeof vi.fn>;
   maybeSingle: ReturnType<typeof vi.fn>;
   single: ReturnType<typeof vi.fn>;
-};
+}
 
 // Chainable Supabase query builder where every method is a vi.fn() spy that
 // returns the same chain — allows asserting which methods were called with
