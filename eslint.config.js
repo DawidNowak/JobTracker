@@ -78,5 +78,16 @@ export default tseslint.config(
   eslintPluginAstro.configs["flat/recommended"],
   ...eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
   astroConfig,
+  // astro-eslint-parser does not support projectService; fall back to project: true for .astro files
+  {
+    files: ["**/*.astro"],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
   eslintPluginPrettier,
 );
