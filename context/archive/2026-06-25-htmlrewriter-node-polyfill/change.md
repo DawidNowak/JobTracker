@@ -1,7 +1,10 @@
 ---
 id: htmlrewriter-node-polyfill
 title: "Move parser unit tests to Node project via HTMLRewriter WASM polyfill"
-status: planned
+status: archived
+created: 2026-06-25
+archived_at: 2026-06-30T11:28:12Z
+updated: 2026-06-30
 ---
 
 ## Goal
