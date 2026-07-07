@@ -300,9 +300,9 @@ None. The `application_notes` table, indexes, RLS policies (incl. hardened INSER
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Full test suite green: `npm run test`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Full test suite green: `npm run test`
 
 #### Manual
 

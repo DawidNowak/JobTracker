@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelative } from "@/lib/format";
+import { formatRelative, parseSourceHref } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,24 +12,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import EditApplicationDialog from "@/components/board/EditApplicationDialog";
 import DeleteApplicationDialog from "@/components/board/DeleteApplicationDialog";
+import CardDetailDialog from "@/components/board/CardDetailDialog";
 import type { ApplicationRow } from "@/types";
 
 interface Props {
   application: ApplicationRow;
   isOverlay?: boolean;
   isMutating?: boolean;
-}
-
-function parseSourceHref(source: string): string | null {
-  try {
-    const url = new URL(source);
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return url.toString();
-    }
-  } catch {
-    // not a URL
-  }
-  return null;
 }
 
 export default function KanbanCard({ application, isOverlay = false, isMutating = false }: Props) {
@@ -43,8 +32,9 @@ function KanbanCardDraggable({ application, isMutating }: { application: Applica
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
 
-  const anyOpen = menuOpen || editOpen || deleteOpen;
+  const anyOpen = menuOpen || editOpen || deleteOpen || detailOpen;
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: application.id,
@@ -68,6 +58,8 @@ function KanbanCardDraggable({ application, isMutating }: { application: Applica
         onEditOpenChange={setEditOpen}
         deleteOpen={deleteOpen}
         onDeleteOpenChange={setDeleteOpen}
+        detailOpen={detailOpen}
+        onDetailOpenChange={setDetailOpen}
       />
     </div>
   );
@@ -82,6 +74,8 @@ interface CardBodyProps {
   onEditOpenChange?: (open: boolean) => void;
   deleteOpen?: boolean;
   onDeleteOpenChange?: (open: boolean) => void;
+  detailOpen?: boolean;
+  onDetailOpenChange?: (open: boolean) => void;
 }
 
 function KanbanCardBody({
@@ -93,6 +87,8 @@ function KanbanCardBody({
   onEditOpenChange,
   deleteOpen,
   onDeleteOpenChange,
+  detailOpen,
+  onDetailOpenChange,
 }: CardBodyProps) {
   const sourceHref = parseSourceHref(application.source);
   const relative = formatRelative(application.last_action_at);
@@ -118,6 +114,13 @@ function KanbanCardBody({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    onDetailOpenChange?.(true);
+                  }}
+                >
+                  Szczegóły
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     onEditOpenChange?.(true);
@@ -155,6 +158,9 @@ function KanbanCardBody({
         )}
         <p className="text-xs text-neutral-500">{relative}</p>
       </div>
+      {showActions && detailOpen !== undefined && onDetailOpenChange && (
+        <CardDetailDialog application={application} open={detailOpen} onOpenChange={onDetailOpenChange} />
+      )}
       {showActions && editOpen !== undefined && onEditOpenChange && (
         <EditApplicationDialog application={application} open={editOpen} onOpenChange={onEditOpenChange} />
       )}

@@ -1,3 +1,21 @@
+export function parseSourceHref(source: string): string | null {
+  try {
+    const url = new URL(source);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString();
+    }
+  } catch {
+    // not a URL
+  }
+  return null;
+}
+
+const dateTimeFormatter = new Intl.DateTimeFormat("pl", { dateStyle: "medium", timeStyle: "short" });
+
+export function formatDateTime(iso: string): string {
+  return dateTimeFormatter.format(new Date(iso));
+}
+
 const relativeFormatter = new Intl.RelativeTimeFormat("pl", { numeric: "auto" });
 
 const UNITS: { unit: Intl.RelativeTimeFormatUnit; seconds: number }[] = [

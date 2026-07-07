@@ -90,8 +90,8 @@ export default async function setup(): Promise<void> {
   devServer = server;
 
   try {
-    // 60s: astro dev's first cold compile on Windows can exceed 30s and flake the whole suite.
-    await pollUntilReady(`http://127.0.0.1:${port}/`, 60_000);
+    // 120s: astro dev's first cold compile on Windows can exceed 60s and flake the whole suite.
+    await pollUntilReady(`http://127.0.0.1:${port}/`, 120_000);
   } catch (err) {
     await teardown();
     throw err;
