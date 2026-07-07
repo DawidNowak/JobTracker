@@ -45,3 +45,6 @@ pnpm-debug.log*
 .stryker-tmp/
 stryker.log
 reports/
+
+# playwright mcp artifacts
+.playwright-mcp/

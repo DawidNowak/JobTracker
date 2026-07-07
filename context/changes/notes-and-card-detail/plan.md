@@ -284,17 +284,17 @@ None. The `application_notes` table, indexes, RLS policies (incl. hardened INSER
 
 #### Automated
 
-- [ ] 1.1 Type checking passes: `npm run typecheck`
-- [ ] 1.2 Linting passes: `npm run lint`
-- [ ] 1.3 HTTP test passes: notes CRUD happy-path + 401/400/404/422
-- [ ] 1.4 RLS test passes: non-owner cannot GET/POST/PATCH/DELETE another user's notes
-- [ ] 1.5 Existing test suite still green: `npm run test`
+- [x] 1.1 Type checking passes: `npm run typecheck`
+- [x] 1.2 Linting passes: `npm run lint`
+- [x] 1.3 HTTP test passes: notes CRUD happy-path + 401/400/404/422
+- [x] 1.4 RLS test passes: non-owner cannot GET/POST/PATCH/DELETE another user's notes
+- [x] 1.5 Existing test suite still green: `npm run test`
 
 #### Manual
 
-- [ ] 1.6 POST advances parent `last_action_at` (insert trigger fired)
-- [ ] 1.7 PATCH and DELETE leave `last_action_at` unchanged
-- [ ] 1.8 GET returns notes newest-first
+- [x] 1.6 POST advances parent `last_action_at` (insert trigger fired)
+- [x] 1.7 PATCH and DELETE leave `last_action_at` unchanged
+- [x] 1.8 GET returns notes newest-first
 
 ### Phase 2: Card-Detail Modal (Core Outcome)
 

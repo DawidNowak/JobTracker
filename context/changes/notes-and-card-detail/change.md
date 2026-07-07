@@ -1,7 +1,7 @@
 ---
 change_id: notes-and-card-detail
 title: Notes and card detail
-status: planned
+status: implementing
 created: 2026-06-30
 updated: 2026-06-30
 archived_at: null

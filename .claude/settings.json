@@ -8,7 +8,7 @@
             "type": "command",
             "if": "Bash(git commit *)",
             "shell": "powershell",
-            "command": "$lintOut = npm run lint 2>&1; if ($LASTEXITCODE -ne 0) { $lintOut; exit 2 }; $testOut = npm test 2>&1; if ($LASTEXITCODE -ne 0) { $testOut; exit 2 }; Write-Output '{\"systemMessage\": \"✓ npm run lint and npm test passed\"}'",
+            "command": "$lintOut = npm run lint 2>&1; if ($LASTEXITCODE -ne 0) { console.error(`${lintOut}`); exit 2 }; $testOut = npm test 2>&1; if ($LASTEXITCODE -ne 0) { $testOut; exit 2 }; Write-Output '{\"systemMessage\": \"✓ npm run lint and npm test passed\"}'",
             "timeout": 300,
             "statusMessage": "Running lint and tests before commit..."
           }
