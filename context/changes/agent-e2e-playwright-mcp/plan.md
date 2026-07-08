@@ -329,24 +329,24 @@ None — local developer tooling. The only cost worth noting: `npx @playwright/m
 
 #### Automated
 
-- [x] 3.1 `npm run typecheck` and `npm test` pass
+- [x] 3.1 `npm run typecheck` and `npm test` pass — 28705f1
 
 #### Manual
 
-- [x] 3.2 Experiment A: authenticated `/dashboard` reached with seeded board state
-- [x] 3.3 Experiment B: root cause identified (or evidence-backed hypothesis); fix only if contained
-- [x] 3.4 Experiment C: `wrangler dev` sign-in outcome recorded
-- [x] 3.5 Spike findings written to `change.md`
-- [x] 3.6 Servers killed; spike user cleaned up
+- [x] 3.2 Experiment A: authenticated `/dashboard` reached with seeded board state — 28705f1
+- [x] 3.3 Experiment B: root cause identified (or evidence-backed hypothesis); fix only if contained — 28705f1
+- [x] 3.4 Experiment C: `wrangler dev` sign-in outcome recorded — 28705f1
+- [x] 3.5 Spike findings written to `change.md` — 28705f1
+- [x] 3.6 Servers killed; spike user cleaned up — 28705f1
 
 ### Phase 4: Playbook + docs
 
 #### Automated
 
-- [ ] 4.1 Skill file and README section exist
-- [ ] 4.2 Markdown formatting passes prettier check
+- [x] 4.1 Skill file and README section exist
+- [x] 4.2 Markdown formatting passes prettier check
 
 #### Manual
 
-- [ ] 4.3 Fresh-session dry run completes a full cycle from the skill alone
-- [ ] 4.4 `test-plan.md` §4/§8 refreshed without strategy edits
+- [x] 4.3 Fresh-session dry run completes a full cycle from the skill alone
+- [x] 4.4 `test-plan.md` §4/§8 refreshed without strategy edits

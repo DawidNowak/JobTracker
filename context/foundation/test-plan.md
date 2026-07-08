@@ -105,7 +105,7 @@ If a row reads "none yet — see Phase <N>", that gap is addressed by the named 
 
 - Docs: none exposed (no Context7 / framework docs MCP); checked: 2026-06-16. Use WebFetch against official Astro / Vitest / Supabase docs when verifying current setup.
 - Search: WebSearch + WebFetch available; checked: 2026-06-16. Use to verify current Vitest-with-Astro and Supabase-local test patterns at Phase 1 research time.
-- Runtime/browser: none exposed (no Playwright MCP); checked: 2026-06-16. Manual Workers behaviour verification falls back to `wrangler dev` per `infrastructure.md` operational guidance — out of scope for this rollout (see Challenger findings / dropped R2).
+- Runtime/browser: Playwright MCP project-scoped in `.mcp.json` (server `playwright`, `npx @playwright/mcp@latest`); agent-assisted manual verification available via the `e2e-browser` skill (`.claude/skills/e2e-browser/SKILL.md`) with session bootstrap via `npm run e2e:session`; checked: 2026-07-08. This is interactive verification only — the e2e-as-a-gate decision (dropped R2) is unchanged. `wrangler dev` remains the production-faithful fallback per `infrastructure.md`.
 - Provider/platform: `mcp__cloudflare__*` auth tools available; `gh` CLI available via Bash for issues/PRs; no Supabase MCP exposed; checked: 2026-06-16.
 
 Use docs MCPs (when available) for current framework/library APIs and setup details. Use search MCPs for discovery or current status only, then prefer official docs as the evidence. Do not use MCP docs/search to infer code failure anchors; those belong in per-phase `/10x-research`.
@@ -302,7 +302,7 @@ contributors should respect these unless the underlying assumption changes.
 
 - Strategy (§1–§5) last reviewed: 2026-06-16
 - Stack versions last verified: 2026-06-16
-- AI-native tool references last verified: 2026-06-16
+- AI-native tool references last verified: 2026-07-08 (§4 Runtime/browser row refreshed: Playwright MCP promoted to project scope in `.mcp.json`; `e2e-browser` skill + `npm run e2e:session` added by `context/changes/agent-e2e-playwright-mcp/`. Factual refresh only — no strategy change; dropped R2 stands.)
 
 Refresh (`/10x-test-plan --refresh`) when:
 

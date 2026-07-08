@@ -83,6 +83,10 @@ capture time — **never** derived by running the parser and freezing its output
 
 See the full test rollout plan at `context/foundation/test-plan.md`.
 
+## Browser verification (agent-driven)
+
+For interactive UI verification (not a test gate — e2e was deliberately dropped for MVP, see `context/foundation/test-plan.md` §7), an agent or human can drive an authenticated browser session against the local app: `npm run e2e:session [-- --seed <n>]` provisions an ephemeral user and prints credentials + session cookies, then the `.claude/skills/e2e-browser/SKILL.md` playbook covers sign-in, cookie injection, routes/selectors, the `wrangler dev` variant, and teardown (see also `scripts/e2e-session.ts`). Caveat: an `internal error; reference = …` on the sign-in form under `astro dev` means a stale/wedged dev-server process — kill it and restart the server; it is not an auth bug.
+
 ## CI
 
 The `test` job in `.github/workflows/ci.yml` runs `npm test` on every push to `master` and every PR targeting `master`. It is a **required status check** — a red suite blocks merge.
