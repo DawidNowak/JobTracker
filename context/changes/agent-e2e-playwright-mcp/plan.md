@@ -343,10 +343,10 @@ None — local developer tooling. The only cost worth noting: `npx @playwright/m
 
 #### Automated
 
-- [x] 4.1 Skill file and README section exist
-- [x] 4.2 Markdown formatting passes prettier check
+- [x] 4.1 Skill file and README section exist — 4d8ae80
+- [x] 4.2 Markdown formatting passes prettier check — 4d8ae80
 
 #### Manual
 
-- [x] 4.3 Fresh-session dry run completes a full cycle from the skill alone
-- [x] 4.4 `test-plan.md` §4/§8 refreshed without strategy edits
+- [x] 4.3 Fresh-session dry run completes a full cycle from the skill alone — 4d8ae80
+- [x] 4.4 `test-plan.md` §4/§8 refreshed without strategy edits — 4d8ae80
