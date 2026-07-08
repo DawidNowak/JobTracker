@@ -32,7 +32,7 @@ What does **not** exist yet: any notes **service**, any notes **API route**, the
 
 A user clicks a card's "Szczegóły" menu item and a modal opens showing the application's company, position, source link, work mode, salary, description, and recruiter contact as read-only text, plus a notes section: an input to add a note, and the history newest-first with absolute timestamps. The user can add a note (it appears instantly at the top), edit any note inline, or delete a note after confirming. Closing the modal refreshes the board so the card's relative timestamp reflects any new note. Editing or deleting a note never changes the card's follow-up timer.
 
-Verify by: opening a card, adding/editing/deleting notes, confirming history ordering and timestamps, confirming a *new* note advances `last_action_at` (board card "dodano … temu" resets after close) while an edit/delete does not, and confirming a second user can never read or mutate the first user's notes.
+Verify by: opening a card, adding/editing/deleting notes, confirming history ordering and timestamps, confirming a _new_ note advances `last_action_at` (board card "dodano … temu" resets after close) while an edit/delete does not, and confirming a second user can never read or mutate the first user's notes.
 
 ## What We're NOT Doing
 
@@ -91,6 +91,7 @@ Stand up the notes service, validation schemas, and four REST endpoints, fully c
 **Intent**: Encapsulate the four Supabase operations, each scoped by `user_id`, following the `applications.ts` service shape. RLS enforces ownership; these functions return `null` on miss so routes can map to 404.
 
 **Contract**: Four exported functions on a typed `Client`:
+
 - `listNotes(supabase, applicationId, userId): Promise<ApplicationNoteRow[]>` — `.select("*").eq("application_id", id).eq("user_id", userId).order("created_at", { ascending: false })`.
 - `createNote(supabase, applicationId, body, userId): Promise<ApplicationNoteRow>` — `.insert({ application_id, user_id, body }).select("*").single()`.
 - `updateNote(supabase, noteId, body, userId): Promise<ApplicationNoteRow | null>` — `.update({ body }).eq("id", noteId).eq("user_id", userId).select("*").maybeSingle()`.
@@ -306,12 +307,12 @@ None. The `application_notes` table, indexes, RLS policies (incl. hardened INSER
 
 #### Manual
 
-- [ ] 2.4 "Szczegóły" opens modal; populated fields show read-only, empty fields omitted
-- [ ] 2.5 Note history loads newest-first with absolute timestamps; empty state shown when none
-- [ ] 2.6 Adding a note prepends instantly and clears+refocuses the input
-- [ ] 2.7 Closing the modal refreshes the board; card timestamp reflects the new note
-- [ ] 2.8 Dragging is disabled while the modal is open
-- [ ] 2.9 Field editing still works via the separate "Edytuj" dialog
+- [x] 2.4 "Szczegóły" opens modal; populated fields show read-only, empty fields omitted
+- [x] 2.5 Note history loads newest-first with absolute timestamps; empty state shown when none
+- [x] 2.6 Adding a note prepends instantly and clears+refocuses the input
+- [x] 2.7 Closing the modal refreshes the board; card timestamp reflects the new note
+- [x] 2.8 Dragging is disabled while the modal is open
+- [x] 2.9 Field editing still works via the separate "Edytuj" dialog
 
 ### Phase 3: Note Edit & Delete
 
