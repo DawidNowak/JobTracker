@@ -301,18 +301,18 @@ None. The `application_notes` table, indexes, RLS policies (incl. hardened INSER
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Full test suite green: `npm run test`
+- [x] 2.1 Type checking passes: `npm run typecheck` — fef4262
+- [x] 2.2 Linting passes: `npm run lint` — fef4262
+- [x] 2.3 Full test suite green: `npm run test` — fef4262
 
 #### Manual
 
-- [x] 2.4 "Szczegóły" opens modal; populated fields show read-only, empty fields omitted
-- [x] 2.5 Note history loads newest-first with absolute timestamps; empty state shown when none
-- [x] 2.6 Adding a note prepends instantly and clears+refocuses the input
-- [x] 2.7 Closing the modal refreshes the board; card timestamp reflects the new note
-- [x] 2.8 Dragging is disabled while the modal is open
-- [x] 2.9 Field editing still works via the separate "Edytuj" dialog
+- [x] 2.4 "Szczegóły" opens modal; populated fields show read-only, empty fields omitted — fef4262
+- [x] 2.5 Note history loads newest-first with absolute timestamps; empty state shown when none — fef4262
+- [x] 2.6 Adding a note prepends instantly and clears+refocuses the input — fef4262
+- [x] 2.7 Closing the modal refreshes the board; card timestamp reflects the new note — fef4262
+- [x] 2.8 Dragging is disabled while the modal is open — fef4262
+- [x] 2.9 Field editing still works via the separate "Edytuj" dialog — fef4262
 
 ### Phase 3: Note Edit & Delete
 
