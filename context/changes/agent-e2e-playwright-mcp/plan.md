@@ -305,25 +305,25 @@ None — local developer tooling. The only cost worth noting: `npx @playwright/m
 
 #### Automated
 
-- [ ] 1.1 Both config files parse via node JSON.parse check
+- [x] 1.1 Both config files parse via node JSON.parse check
 
 #### Manual
 
-- [ ] 1.2 After session restart, `mcp__playwright__*` tools available and `mcp__palywright__*` gone
-- [ ] 1.3 `browser_navigate` works without a new permission prompt
+- [x] 1.2 After session restart, `mcp__playwright__*` tools available and `mcp__palywright__*` gone
+- [x] 1.3 `browser_navigate` works without a new permission prompt
 
 ### Phase 2: Session bootstrap script
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 `npm run e2e:session` prints userId + non-empty cookie string (stack up)
-- [ ] 2.4 `--cleanup <userId>` removes the user; re-run is handled
+- [x] 2.1 Type checking passes: `npm run typecheck` — 24bc8da
+- [x] 2.2 Linting passes: `npm run lint` — 24bc8da
+- [x] 2.3 `npm run e2e:session` prints userId + non-empty cookie string (stack up) — 24bc8da
+- [x] 2.4 `--cleanup <userId>` removes the user; re-run is handled — 24bc8da
 
 #### Manual
 
-- [ ] 2.5 Local-URL guard refuses a non-local `SUPABASE_URL`
+- [x] 2.5 Local-URL guard refuses a non-local `SUPABASE_URL` — 24bc8da
 
 ### Phase 3: Spike — settle the empirical unknowns
 

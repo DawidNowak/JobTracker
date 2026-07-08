@@ -14,7 +14,8 @@
     "db:push": "supabase db push",
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e:session": "tsx scripts/e2e-session.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",
@@ -64,6 +65,7 @@
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "supabase": "^2.101.0",
+    "tsx": "^4.23.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.59.2",
     "vitest": "^3.2.0",
