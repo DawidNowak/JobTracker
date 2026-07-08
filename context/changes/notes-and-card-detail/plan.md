@@ -318,13 +318,13 @@ None. The `application_notes` table, indexes, RLS policies (incl. hardened INSER
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Full test suite green: `npm run test`
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Full test suite green: `npm run test`
 
 #### Manual
 
-- [ ] 3.4 Editing a note saves; card `last_action_at`/board timestamp unchanged
-- [ ] 3.5 Deleting a note removes it after confirmation; remaining order correct
-- [ ] 3.6 A failed edit/delete restores prior state and shows an error
-- [ ] 3.7 Canceling an edit leaves the original body intact
+- [x] 3.4 Editing a note saves; card `last_action_at`/board timestamp unchanged
+- [x] 3.5 Deleting a note removes it after confirmation; remaining order correct
+- [x] 3.6 A failed edit/delete restores prior state and shows an error
+- [x] 3.7 Canceling an edit leaves the original body intact
