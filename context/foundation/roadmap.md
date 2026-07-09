@@ -3,7 +3,7 @@ project: "JobTracker"
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-06-24
+updated: 2026-07-09
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -29,32 +29,32 @@ The product wedge — the one trait that, if removed, makes the product indistin
 
 ## At a glance
 
-| ID    | Change ID                          | Outcome (user can …)                                          | Prerequisites    | PRD refs              | Status   |
-| ----- | ---------------------------------- | ------------------------------------------------------------- | ---------------- | --------------------- | -------- |
-| F-01  | applications-schema-and-rls        | (foundation) Application + note schema with per-user RLS      | —                | NFR (durability), Access Control | done     |
-| S-01  | kanban-shell-and-nav               | log in and see an empty 3-column board + top nav              | F-01             | FR-001, FR-002, FR-007, FR-010 (link) | done     |
-| S-02  | manual-add-application             | add a job application by typing fields                        | S-01             | FR-003, FR-019        | done     |
-| S-04  | parser-driven-add                  | paste a portal URL and get a pre-filled add form *(north star)* | S-02             | US-01, FR-004, FR-018 | done        |
-| S-05  | kanban-status-transitions          | move a card between active columns; lastActionAt is reset     | S-02             | FR-008                | done     |
-| S-03  | edit-and-delete-application        | edit any field on a card; delete a card from any column       | S-02             | FR-005, FR-006, FR-016 | done     |
-| S-06  | notes-and-card-detail              | write follow-up notes and read note history on a card         | S-02             | FR-013, FR-014        | proposed |
-| S-07  | interesujace-decision-prompt       | act on the 1-day decision prompt in Interesujące              | S-05, S-03       | US-03, FR-015         | proposed |
-| S-08  | zaaplikowano-followup-flag         | see the 7-day follow-up flag in Zaaplikowano                  | S-06             | US-02, FR-011         | proposed |
-| S-09  | rozmowa-followup-flag              | see the 4-business-day follow-up flag in Rozmowa              | S-06             | US-04, FR-012         | proposed |
-| S-10  | reject-to-archive                  | mark a card as rejected; it moves to the archive              | S-05             | FR-009                | proposed |
-| S-11  | archive-view                       | open the archive list and read full archived cards            | S-10, S-06       | FR-010 (page), FR-017 | proposed |
+| ID   | Change ID                    | Outcome (user can …)                                            | Prerequisites | PRD refs                              | Status   |
+| ---- | ---------------------------- | --------------------------------------------------------------- | ------------- | ------------------------------------- | -------- |
+| F-01 | applications-schema-and-rls  | (foundation) Application + note schema with per-user RLS        | —             | NFR (durability), Access Control      | done     |
+| S-01 | kanban-shell-and-nav         | log in and see an empty 3-column board + top nav                | F-01          | FR-001, FR-002, FR-007, FR-010 (link) | done     |
+| S-02 | manual-add-application       | add a job application by typing fields                          | S-01          | FR-003, FR-019                        | done     |
+| S-04 | parser-driven-add            | paste a portal URL and get a pre-filled add form _(north star)_ | S-02          | US-01, FR-004, FR-018                 | done     |
+| S-05 | kanban-status-transitions    | move a card between active columns; lastActionAt is reset       | S-02          | FR-008                                | done     |
+| S-03 | edit-and-delete-application  | edit any field on a card; delete a card from any column         | S-02          | FR-005, FR-006, FR-016                | done     |
+| S-06 | notes-and-card-detail        | write follow-up notes and read note history on a card           | S-02          | FR-013, FR-014                        | done     |
+| S-07 | interesujace-decision-prompt | act on the 1-day decision prompt in Interesujące                | S-05, S-03    | US-03, FR-015                         | proposed |
+| S-08 | zaaplikowano-followup-flag   | see the 7-day follow-up flag in Zaaplikowano                    | S-06          | US-02, FR-011                         | proposed |
+| S-09 | rozmowa-followup-flag        | see the 4-business-day follow-up flag in Rozmowa                | S-06          | US-04, FR-012                         | proposed |
+| S-10 | reject-to-archive            | mark a card as rejected; it moves to the archive                | S-05          | FR-009                                | proposed |
+| S-11 | archive-view                 | open the archive list and read full archived cards              | S-10, S-06    | FR-010 (page), FR-017                 | proposed |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                              | Chain                                | Note                                                                                  |
-| ------ | ---------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------- |
-| A      | Foundation & board shell           | `F-01` → `S-01`                      | Data layer + RLS, then the empty board. Auth is satisfied by baseline email+password. |
-| B      | Wedge — parser-driven add          | `S-02` → `S-04`                      | Carries the north star. With `main_goal: speed`, this is the must-ship-early chain.   |
-| C      | Operate the kanban                 | `S-03` / `S-05` (parallel off S-02)  | CRUD + movement. Each branch is independently planable once S-02 lands.               |
-| D      | Notes & proactive prompts          | `S-06` → `S-07` / `S-08` / `S-09`    | S-07 also joins Stream C at S-05 and S-03; S-08 / S-09 only need S-06.                |
-| E      | Archive lifecycle                  | `S-10` → `S-11`                      | S-11 also reads note history from S-06.                                               |
+| Stream | Theme                     | Chain                               | Note                                                                                  |
+| ------ | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| A      | Foundation & board shell  | `F-01` → `S-01`                     | Data layer + RLS, then the empty board. Auth is satisfied by baseline email+password. |
+| B      | Wedge — parser-driven add | `S-02` → `S-04`                     | Carries the north star. With `main_goal: speed`, this is the must-ship-early chain.   |
+| C      | Operate the kanban        | `S-03` / `S-05` (parallel off S-02) | CRUD + movement. Each branch is independently planable once S-02 lands.               |
+| D      | Notes & proactive prompts | `S-06` → `S-07` / `S-08` / `S-09`   | S-07 also joins Stream C at S-05 and S-03; S-08 / S-09 only need S-06.                |
+| E      | Archive lifecycle         | `S-10` → `S-11`                     | S-11 also reads note history from S-06.                                               |
 
 ## Baseline
 
@@ -108,7 +108,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Risk:** First write-path slice. The form is reused in edit mode (S-03) and parser mode (S-04), so the form contract lands here. Adding "Kontakt do rekrutera" (FR-019) in this slice avoids a backfill edit when the follow-up slices need it later.
 - **Status:** done
 
-### S-04: Parser-driven add  *(north star)*
+### S-04: Parser-driven add _(north star)_
 
 - **Outcome:** When the source field contains a valid LinkedIn or JustJoinIT URL, the "Pobierz dane oferty" button activates; clicking pre-fills position, company, description, skills, salary range, work mode. The user can edit any field before saving. Parser failure or unsupported portal leaves fields empty (no silent garbage pre-fill). On the kanban card, a "Link do oferty" link appears when source is a valid URL.
 - **Change ID:** parser-driven-add
@@ -155,7 +155,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Introduces the card detail surface that S-07, S-08, S-09, S-11 all rely on. Notes are also the act-on side of every follow-up flag in S-08 and S-09, so deferring this past S-05 would push the proactive-intelligence layer out of reach.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Interesujące decision prompt
 
@@ -219,20 +219,20 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                          | Suggested issue title                                              | Ready for `/10x-plan` | Notes                                       |
-| ---------- | ---------------------------------- | ------------------------------------------------------------------ | --------------------- | ------------------------------------------- |
-| F-01       | applications-schema-and-rls        | Foundation: applications schema, RLS, and lastActionAt enforcement | yes                   | No Prerequisites — auth is in baseline      |
-| S-01       | kanban-shell-and-nav               | Kanban shell with three columns + top nav (Tablica / Archiwum)     | no                    | Needs F-01                                  |
-| S-02       | manual-add-application             | Manual add-application form (source required, free text)           | yes                   | Shipped 2026-05-29 (impl_reviewed); awaiting archive          |
-| S-04       | parser-driven-add                  | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** Implemented 2026-05-29 (4 phases shipped) |
-| S-05       | kanban-status-transitions          | Bi-directional kanban transitions with lastActionAt reset          | yes                   | Shipped 2026-05-29 (commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed); awaiting archive |
-| S-03       | edit-and-delete-application        | Edit any field + delete card (with warning dialogs)                | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05 |
-| S-06       | notes-and-card-detail              | Card detail view + follow-up notes (write + history)               | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05, S-03 |
-| S-07       | interesujace-decision-prompt       | "Zdecyduj — aplikujesz?" decision prompt (1-day threshold)         | no                    | Needs S-05, S-03                            |
-| S-08       | zaaplikowano-followup-flag         | "Czas na follow-up z rekruterem" flag (7-day threshold)            | no                    | Needs S-06; parallel with S-07, S-09        |
-| S-09       | rozmowa-followup-flag              | "Czas na follow-up po rozmowie" flag (4-business-day threshold)    | no                    | Needs S-06; parallel with S-07, S-08        |
-| S-10       | reject-to-archive                  | Mark application as rejected; move to archive state                | no                    | Needs S-05                                  |
-| S-11       | archive-view                       | Archive list page + read-only full card view                       | no                    | Needs S-10, S-06                            |
+| Roadmap ID | Change ID                    | Suggested issue title                                              | Ready for `/10x-plan` | Notes                                                                                     |
+| ---------- | ---------------------------- | ------------------------------------------------------------------ | --------------------- | ----------------------------------------------------------------------------------------- |
+| F-01       | applications-schema-and-rls  | Foundation: applications schema, RLS, and lastActionAt enforcement | yes                   | No Prerequisites — auth is in baseline                                                    |
+| S-01       | kanban-shell-and-nav         | Kanban shell with three columns + top nav (Tablica / Archiwum)     | no                    | Needs F-01                                                                                |
+| S-02       | manual-add-application       | Manual add-application form (source required, free text)           | yes                   | Shipped 2026-05-29 (impl_reviewed); awaiting archive                                      |
+| S-04       | parser-driven-add            | "Pobierz dane oferty" — LinkedIn + JustJoinIT URL parser           | yes                   | **North star.** Implemented 2026-05-29 (4 phases shipped)                                 |
+| S-05       | kanban-status-transitions    | Bi-directional kanban transitions with lastActionAt reset          | yes                   | Shipped 2026-05-29 (commits 0c7a2c1 / a801964 / 98cf02b, impl_reviewed); awaiting archive |
+| S-03       | edit-and-delete-application  | Edit any field + delete card (with warning dialogs)                | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05                                         |
+| S-06       | notes-and-card-detail        | Card detail view + follow-up notes (write + history)               | yes                   | S-02 shipped 2026-05-29; parallel with S-04, S-05, S-03                                   |
+| S-07       | interesujace-decision-prompt | "Zdecyduj — aplikujesz?" decision prompt (1-day threshold)         | no                    | Needs S-05, S-03                                                                          |
+| S-08       | zaaplikowano-followup-flag   | "Czas na follow-up z rekruterem" flag (7-day threshold)            | no                    | Needs S-06; parallel with S-07, S-09                                                      |
+| S-09       | rozmowa-followup-flag        | "Czas na follow-up po rozmowie" flag (4-business-day threshold)    | no                    | Needs S-06; parallel with S-07, S-08                                                      |
+| S-10       | reject-to-archive            | Mark application as rejected; move to archive state                | no                    | Needs S-05                                                                                |
+| S-11       | archive-view                 | Archive list page + read-only full card view                       | no                    | Needs S-10, S-06                                                                          |
 
 ## Open Roadmap Questions
 
@@ -257,5 +257,6 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 - **S-01: log in and see an empty 3-column board + top nav** — Archived 2026-06-23 → `context/archive/2026-05-26-kanban-shell-and-nav/`. Lesson: —.
 - **S-02: add a job application by typing fields** — Archived 2026-06-23 → `context/archive/2026-05-29-manual-add-application/`. Lesson: —.
 - **S-05: move a card between active columns; lastActionAt is reset** — Archived 2026-06-23 → `context/archive/2026-05-29-kanban-status-transitions/`. Lesson: —.
-- **S-04: paste a portal URL and get a pre-filled add form *(north star)*** — Archived 2026-06-23 → `context/archive/2026-05-29-parser-driven-add/`. Lesson: —.
+- **S-04: paste a portal URL and get a pre-filled add form _(north star)_** — Archived 2026-06-23 → `context/archive/2026-05-29-parser-driven-add/`. Lesson: —.
 - **S-03: edit any field on a card; delete a card from any column** — Archived 2026-06-24 → `context/archive/2026-06-23-edit-and-delete-application/`. Lesson: —.
+- **S-06: write follow-up notes and read note history on a card** — Archived 2026-07-09 → `context/archive/2026-06-30-notes-and-card-detail/`. Lesson: —.

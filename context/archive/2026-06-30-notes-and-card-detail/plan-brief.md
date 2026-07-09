@@ -16,15 +16,15 @@ A "Szczegóły" menu item opens a modal showing the application's fields read-on
 
 ## Key Decisions Made
 
-| Decision                         | Choice                                   | Why (1 sentence)                                                                 | Source |
-| -------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------- | ------ |
-| Detail surface                   | Modal Dialog                             | Reuses the exact `EditApplicationDialog` pattern; keeps user on the board.       | Plan   |
-| Note history load                | Client `GET` on modal open               | Always fresh, keeps the board query lean, matches the React board's fetch model. | Plan   |
-| Save UX                          | Optimistic prepend, board reload on close| History feels instant; modal stays open to write several notes.                  | Plan   |
-| Note mutability                  | Full edit + delete                       | User wants a correctable log (beyond roadmap's write+read).                       | Plan   |
-| Detail vs field editing          | Fields read-only; edit stays in `EditApplicationDialog` | Clean separation, no duplicated form logic, foreshadows S-11 read-only view. | Plan |
-| Timestamp format                 | Absolute date + time (new `formatDateTime`) | A historical log needs precise "when"; relative time ages into uselessness.   | Plan   |
-| Edit/delete effect on timer      | No effect (insert-only bump)             | Same logic that excludes field edits in F-01; needs no trigger change.           | Plan   |
+| Decision                    | Choice                                                  | Why (1 sentence)                                                                 | Source |
+| --------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ |
+| Detail surface              | Modal Dialog                                            | Reuses the exact `EditApplicationDialog` pattern; keeps user on the board.       | Plan   |
+| Note history load           | Client `GET` on modal open                              | Always fresh, keeps the board query lean, matches the React board's fetch model. | Plan   |
+| Save UX                     | Optimistic prepend, board reload on close               | History feels instant; modal stays open to write several notes.                  | Plan   |
+| Note mutability             | Full edit + delete                                      | User wants a correctable log (beyond roadmap's write+read).                      | Plan   |
+| Detail vs field editing     | Fields read-only; edit stays in `EditApplicationDialog` | Clean separation, no duplicated form logic, foreshadows S-11 read-only view.     | Plan   |
+| Timestamp format            | Absolute date + time (new `formatDateTime`)             | A historical log needs precise "when"; relative time ages into uselessness.      | Plan   |
+| Edit/delete effect on timer | No effect (insert-only bump)                            | Same logic that excludes field edits in F-01; needs no trigger change.           | Plan   |
 
 ## Scope
 
@@ -38,11 +38,11 @@ Bottom-up. Phase 1 builds `src/lib/services/notes.ts` + zod schemas + routes `GE
 
 ## Phases at a Glance
 
-| Phase                         | What it delivers                                  | Key risk                                                                 |
-| ----------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------ |
-| 1. Notes API & service        | Tested CRUD endpoints over `application_notes`     | Mapping the cross-user RLS rejection to 404 (not 500) on POST.           |
-| 2. Card-detail modal (core)   | Read-only fields + note history + add note (S-06)  | dnd-kit drag must be suppressed while modal open; board reload on close.  |
-| 3. Note edit & delete         | Inline edit + confirmed delete per note            | Optimistic list reconciliation + restore-on-failure without board reload. |
+| Phase                       | What it delivers                                  | Key risk                                                                  |
+| --------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------- |
+| 1. Notes API & service      | Tested CRUD endpoints over `application_notes`    | Mapping the cross-user RLS rejection to 404 (not 500) on POST.            |
+| 2. Card-detail modal (core) | Read-only fields + note history + add note (S-06) | dnd-kit drag must be suppressed while modal open; board reload on close.  |
+| 3. Note edit & delete       | Inline edit + confirmed delete per note           | Optimistic list reconciliation + restore-on-failure without board reload. |
 
 **Prerequisites:** F-01 (done — schema/RLS/trigger), S-02 (done — card surface). All satisfied.
 **Estimated effort:** ~2–3 sessions across 3 phases.
