@@ -310,3 +310,7 @@ The migration's entire point is token efficiency: snapshots go to disk (read on 
 
 - [x] 3.5 Fresh skill run drives the browser via `playwright-cli` with the MCP server removed — 6970fcc
 - [x] 3.6 `.gitignore` ignores generated `.playwright-cli/` artifacts and `auth.json` (clean working tree after a run) — 6970fcc
+
+## Post-merge follow-ups
+
+- 116bd72 — impl-review fix (F1): `.claude/skills/e2e-browser/SKILL.md` Gotchas/Related-docs references to the archived MCP spike pointed at `context/changes/agent-e2e-playwright-mcp/change.md`, which doesn't exist post-archive. Corrected to `context/archive/2026-07-07-agent-e2e-playwright-mcp/change.md`. See `context/changes/agent-browser-playwright-cli/reviews/impl-review.md`.
