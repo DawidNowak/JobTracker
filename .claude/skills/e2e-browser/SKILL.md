@@ -92,7 +92,7 @@ Form sign-in **works** under workerd (verified 2026-07-08). Same steps as above 
 
 ## Gotchas
 
-- **`internal error; reference = <id>` on sign-in = wedged dev server, not an auth bug.** Root-caused 2026-07-08: the message is the Cloudflare workerd/miniflare dev-runtime's own internal-error response (the `signInWithPassword` fetch dies inside the runtime and never reaches GoTrue), passed through verbatim by supabase-js. Trigger: stale, long-lived `astro dev` processes squatting ports — the browser talks to the oldest one no matter how many fresh servers you start. **Kill and restart the server; do not debug the auth path.** Full evidence: `context/changes/agent-e2e-playwright-mcp/change.md` (Spike findings).
+- **`internal error; reference = <id>` on sign-in = wedged dev server, not an auth bug.** Root-caused 2026-07-08: the message is the Cloudflare workerd/miniflare dev-runtime's own internal-error response (the `signInWithPassword` fetch dies inside the runtime and never reaches GoTrue), passed through verbatim by supabase-js. Trigger: stale, long-lived `astro dev` processes squatting ports — the browser talks to the oldest one no matter how many fresh servers you start. **Kill and restart the server; do not debug the auth path.** Full evidence: `context/archive/2026-07-07-agent-e2e-playwright-mcp/change.md` (Spike findings).
 - **Stale servers reject valid cookies too** — a wedged server bounces a freshly minted session cookie to `/auth/signin`, indistinguishable from broken auth. Always run prerequisite 4.
 - **Empty page on the first navigation after a fresh server start = vite re-optimization, not an app bug.** Observed 2026-07-08: a request landing during vite's "optimized dependencies changed. reloading" window returns an empty body, and the dev log shows a transient React SSR error ("Invalid hook call" / `Cannot read properties of null (reading 'useState')` in the rendered component). The server self-recovers within seconds. **Reload the page once before debugging anything** — `curl` the route to confirm the server is serving HTML again.
 - **The snapshot from the same call as `playwright-cli open` can come back empty** (page still mid-load, sometimes with a console 404 for `favicon.ico`). Observed 2026-07-09. Run `playwright-cli reload` then take a fresh `playwright-cli snapshot` before interacting with elements.
@@ -131,4 +131,4 @@ Form sign-in **works** under workerd (verified 2026-07-08). Same steps as above 
 - `tests/README.md` — testing conventions; "Browser verification (agent-driven)" section points here.
 - `scripts/e2e-session.ts` — the session bootstrap script (local-stack guard, `--seed`, `--cleanup`).
 - `context/foundation/test-plan.md` §4 — stack snapshot; e2e-not-a-gate decision (§7).
-- `context/changes/agent-e2e-playwright-mcp/change.md` — spike findings with the full evidence trail.
+- `context/archive/2026-07-07-agent-e2e-playwright-mcp/change.md` — spike findings with the full evidence trail.

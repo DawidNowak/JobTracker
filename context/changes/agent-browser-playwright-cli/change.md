@@ -1,7 +1,7 @@
 ---
 change_id: agent-browser-playwright-cli
 title: Migrate agent-driven browser verification from Playwright MCP to Playwright CLI
-status: implemented
+status: impl_reviewed
 created: 2026-07-09
 updated: 2026-07-09
 ---
