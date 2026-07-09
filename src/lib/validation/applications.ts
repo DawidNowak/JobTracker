@@ -39,13 +39,9 @@ export const applicationStatusUpdateSchema = z.object({
   status: applicationStatusSchema,
 });
 
-export const applicationNoteCreateSchema = z.object({
-  application_id: z.uuid(),
-  body: z.string().min(1),
-});
-
+// Notes carry `application_id` / `noteId` in the URL, so the request body is
+// just `{ body }`. One schema covers both create (POST) and edit (PATCH).
 export const applicationNoteBodySchema = z.object({ body: z.string().min(1) });
-export const applicationNoteUpdateSchema = z.object({ body: z.string().min(1) });
 
 export const applicationParseSchema = z.object({
   source: z.string().min(1),
@@ -54,7 +50,5 @@ export const applicationParseSchema = z.object({
 export type ApplicationCreate = z.infer<typeof applicationCreateSchema>;
 export type ApplicationUpdate = z.infer<typeof applicationUpdateSchema>;
 export type ApplicationStatusUpdate = z.infer<typeof applicationStatusUpdateSchema>;
-export type ApplicationNoteCreate = z.infer<typeof applicationNoteCreateSchema>;
 export type ApplicationNoteBody = z.infer<typeof applicationNoteBodySchema>;
-export type ApplicationNoteUpdate = z.infer<typeof applicationNoteUpdateSchema>;
 export type ApplicationParse = z.infer<typeof applicationParseSchema>;

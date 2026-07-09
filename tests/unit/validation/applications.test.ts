@@ -5,7 +5,7 @@ import {
   applicationCreateSchema,
   applicationUpdateSchema,
   applicationStatusUpdateSchema,
-  applicationNoteCreateSchema,
+  applicationNoteBodySchema,
   applicationParseSchema,
 } from "@/lib/validation/applications";
 
@@ -143,30 +143,17 @@ describe("applicationStatusUpdateSchema", () => {
   });
 });
 
-describe("applicationNoteCreateSchema", () => {
-  const VALID_UUID = "550e8400-e29b-41d4-a716-446655440000";
-
-  it("accepts a valid UUID and non-empty body", () => {
-    expect(
-      applicationNoteCreateSchema.safeParse({ application_id: VALID_UUID, body: "Follow-up sent to recruiter." })
-        .success,
-    ).toBe(true);
+describe("applicationNoteBodySchema", () => {
+  it("accepts a non-empty body", () => {
+    expect(applicationNoteBodySchema.safeParse({ body: "Follow-up sent to recruiter." }).success).toBe(true);
   });
 
   it("rejects empty body — notes must contain content", () => {
-    expect(applicationNoteCreateSchema.safeParse({ application_id: VALID_UUID, body: "" }).success).toBe(false);
+    expect(applicationNoteBodySchema.safeParse({ body: "" }).success).toBe(false);
   });
 
   it("rejects missing body", () => {
-    expect(applicationNoteCreateSchema.safeParse({ application_id: VALID_UUID }).success).toBe(false);
-  });
-
-  it("rejects non-UUID application_id", () => {
-    expect(applicationNoteCreateSchema.safeParse({ application_id: "not-a-uuid", body: "note" }).success).toBe(false);
-  });
-
-  it("rejects missing application_id", () => {
-    expect(applicationNoteCreateSchema.safeParse({ body: "note" }).success).toBe(false);
+    expect(applicationNoteBodySchema.safeParse({}).success).toBe(false);
   });
 });
 

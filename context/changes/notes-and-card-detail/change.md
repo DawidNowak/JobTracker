@@ -1,9 +1,9 @@
 ---
 change_id: notes-and-card-detail
 title: Notes and card detail
-status: implemented
+status: impl_reviewed
 created: 2026-06-30
-updated: 2026-07-08
+updated: 2026-07-09
 archived_at: null
 ---
 

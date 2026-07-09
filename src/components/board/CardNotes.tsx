@@ -37,7 +37,10 @@ export default function CardNotes({ applicationId }: Props) {
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/applications/${applicationId}/notes`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load notes: ${res.status}`);
+        return res.json();
+      })
       .then((data: { notes: ApplicationNoteRow[] }) => {
         if (!cancelled) {
           setNotes(data.notes);

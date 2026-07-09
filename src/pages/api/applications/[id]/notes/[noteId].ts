@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase";
-import { applicationNoteUpdateSchema } from "@/lib/validation/applications";
+import { applicationNoteBodySchema } from "@/lib/validation/applications";
 import { updateNote, deleteNote } from "@/lib/services/notes";
 import { jsonResponse, formatZodErrors } from "@/lib/http";
 
@@ -33,7 +33,7 @@ export const PATCH: APIRoute = async (context) => {
     return jsonResponse(400, { error: "Nieprawidłowe żądanie." });
   }
 
-  const parsed = applicationNoteUpdateSchema.safeParse(body);
+  const parsed = applicationNoteBodySchema.safeParse(body);
   if (!parsed.success) {
     return jsonResponse(422, { errors: formatZodErrors(parsed.error) });
   }
