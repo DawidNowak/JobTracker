@@ -301,12 +301,12 @@ The migration's entire point is token efficiency: snapshots go to disk (read on 
 
 #### Automated
 
-- [x] 3.1 `.mcp.json` parses as JSON and contains only the `cloudflare` server
-- [x] 3.2 `.claude/settings.local.json` parses with no `mcp__playwright` / `playwright` MCP entries
-- [x] 3.3 Repo-wide grep for `mcp__playwright` / `@playwright/mcp` / `.playwright-mcp` returns no live references
-- [x] 3.4 `.playwright-mcp/` directory no longer exists
+- [x] 3.1 `.mcp.json` parses as JSON and contains only the `cloudflare` server — 6970fcc
+- [x] 3.2 `.claude/settings.local.json` parses with no `mcp__playwright` / `playwright` MCP entries — 6970fcc
+- [x] 3.3 Repo-wide grep for `mcp__playwright` / `@playwright/mcp` / `.playwright-mcp` returns no live references — 6970fcc
+- [x] 3.4 `.playwright-mcp/` directory no longer exists — 6970fcc
 
 #### Manual
 
-- [x] 3.5 Fresh skill run drives the browser via `playwright-cli` with the MCP server removed
-- [x] 3.6 `.gitignore` ignores generated `.playwright-cli/` artifacts and `auth.json` (clean working tree after a run)
+- [x] 3.5 Fresh skill run drives the browser via `playwright-cli` with the MCP server removed — 6970fcc
+- [x] 3.6 `.gitignore` ignores generated `.playwright-cli/` artifacts and `auth.json` (clean working tree after a run) — 6970fcc
