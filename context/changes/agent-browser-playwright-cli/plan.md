@@ -272,30 +272,30 @@ The migration's entire point is token efficiency: snapshots go to disk (read on 
 
 #### Automated
 
-- [x] 1.1 Local Supabase stack reachable (`npx supabase status`)
-- [x] 1.2 Ports 4321–4324/8787 clean before the run
-- [x] 1.3 Saved `auth.json` parses as JSON and contains `sb-127-auth-token` in `cookies`
+- [x] 1.1 Local Supabase stack reachable (`npx supabase status`) — 91f79e8
+- [x] 1.2 Ports 4321–4324/8787 clean before the run — 91f79e8
+- [x] 1.3 Saved `auth.json` parses as JSON and contains `sb-127-auth-token` in `cookies` — 91f79e8
 
 #### Manual
 
-- [x] 1.4 CLI drives form sign-in to authenticated `/dashboard` on `:4321`
-- [x] 1.5 `state-save`→`state-load` in a separate shell restores the authenticated session
-- [x] 1.6 `kill-all`/teardown leaves no orphaned daemon, browser, or port squatter
-- [x] 1.7 Working commands + state-file schema + teardown command recorded in `change.md`
+- [x] 1.4 CLI drives form sign-in to authenticated `/dashboard` on `:4321` — 91f79e8
+- [x] 1.5 `state-save`→`state-load` in a separate shell restores the authenticated session — 91f79e8
+- [x] 1.6 `kill-all`/teardown leaves no orphaned daemon, browser, or port squatter — 91f79e8
+- [x] 1.7 Working commands + state-file schema + teardown command recorded in `change.md` — 91f79e8
 
 ### Phase 2: Skill + Docs Rewrite
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`npm run typecheck`)
-- [ ] 2.2 No `document.cookie` / `mcp__playwright` references remain in `SKILL.md` or `e2e-session.ts`
-- [ ] 2.3 `SKILL.md` references `playwright-cli` and `state-load`
+- [x] 2.1 Type checking passes (`npm run typecheck`)
+- [x] 2.2 No `document.cookie` / `mcp__playwright` references remain in `SKILL.md` or `e2e-session.ts`
+- [x] 2.3 `SKILL.md` references `playwright-cli` and `state-load`
 
 #### Manual
 
-- [ ] 2.4 Rewritten skill drives an authenticated `/dashboard` via `playwright-cli` end-to-end
-- [ ] 2.5 All original gotchas, prerequisites, routes, and `wrangler dev` variant still present and accurate
-- [ ] 2.6 `npm run e2e:session` still prints usable credentials + `Cookie:` header + cleanup command
+- [x] 2.4 Rewritten skill drives an authenticated `/dashboard` via `playwright-cli` end-to-end
+- [x] 2.5 All original gotchas, prerequisites, routes, and `wrangler dev` variant still present and accurate
+- [x] 2.6 `npm run e2e:session` still prints usable credentials + `Cookie:` header + cleanup command
 
 ### Phase 3: Config Cutover + Cleanup
 

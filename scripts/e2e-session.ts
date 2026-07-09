@@ -60,17 +60,11 @@ async function main() {
     console.log(`Seeded ${n} application(s) for user ${userId}`);
   }
 
-  const cookiePairs = cookieString.split("; ");
-
   console.log("\n=== E2E Session ===");
   console.log(`userId:   ${userId}`);
   console.log(`email:    ${email}`);
   console.log(`password: ${password}`);
   console.log(`\nCookie header (for HTTP requests):\n  Cookie: ${cookieString}`);
-  console.log(`\nCookie pairs (for document.cookie injection, one per line):`);
-  cookiePairs.forEach((pair) => {
-    console.log(`  document.cookie = ${JSON.stringify(`${pair}; path=/`)}`);
-  });
   console.log(`\nCleanup command:\n  npm run e2e:session -- --cleanup ${userId}`);
   console.log("==================\n");
 }
