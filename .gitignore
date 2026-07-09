@@ -46,5 +46,6 @@ pnpm-debug.log*
 stryker.log
 reports/
 
-# playwright mcp artifacts
-.playwright-mcp/
+# playwright cli artifacts
+.playwright-cli/
+auth.json

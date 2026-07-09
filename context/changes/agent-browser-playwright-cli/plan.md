@@ -287,26 +287,26 @@ The migration's entire point is token efficiency: snapshots go to disk (read on 
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`npm run typecheck`)
-- [x] 2.2 No `document.cookie` / `mcp__playwright` references remain in `SKILL.md` or `e2e-session.ts`
-- [x] 2.3 `SKILL.md` references `playwright-cli` and `state-load`
+- [x] 2.1 Type checking passes (`npm run typecheck`) — a9cb7d2
+- [x] 2.2 No `document.cookie` / `mcp__playwright` references remain in `SKILL.md` or `e2e-session.ts` — a9cb7d2
+- [x] 2.3 `SKILL.md` references `playwright-cli` and `state-load` — a9cb7d2
 
 #### Manual
 
-- [x] 2.4 Rewritten skill drives an authenticated `/dashboard` via `playwright-cli` end-to-end
-- [x] 2.5 All original gotchas, prerequisites, routes, and `wrangler dev` variant still present and accurate
-- [x] 2.6 `npm run e2e:session` still prints usable credentials + `Cookie:` header + cleanup command
+- [x] 2.4 Rewritten skill drives an authenticated `/dashboard` via `playwright-cli` end-to-end — a9cb7d2
+- [x] 2.5 All original gotchas, prerequisites, routes, and `wrangler dev` variant still present and accurate — a9cb7d2
+- [x] 2.6 `npm run e2e:session` still prints usable credentials + `Cookie:` header + cleanup command — a9cb7d2
 
 ### Phase 3: Config Cutover + Cleanup
 
 #### Automated
 
-- [ ] 3.1 `.mcp.json` parses as JSON and contains only the `cloudflare` server
-- [ ] 3.2 `.claude/settings.local.json` parses with no `mcp__playwright` / `playwright` MCP entries
-- [ ] 3.3 Repo-wide grep for `mcp__playwright` / `@playwright/mcp` / `.playwright-mcp` returns no live references
-- [ ] 3.4 `.playwright-mcp/` directory no longer exists
+- [x] 3.1 `.mcp.json` parses as JSON and contains only the `cloudflare` server
+- [x] 3.2 `.claude/settings.local.json` parses with no `mcp__playwright` / `playwright` MCP entries
+- [x] 3.3 Repo-wide grep for `mcp__playwright` / `@playwright/mcp` / `.playwright-mcp` returns no live references
+- [x] 3.4 `.playwright-mcp/` directory no longer exists
 
 #### Manual
 
-- [ ] 3.5 Fresh skill run drives the browser via `playwright-cli` with the MCP server removed
-- [ ] 3.6 `.gitignore` ignores generated `.playwright-cli/` artifacts and `auth.json` (clean working tree after a run)
+- [x] 3.5 Fresh skill run drives the browser via `playwright-cli` with the MCP server removed
+- [x] 3.6 `.gitignore` ignores generated `.playwright-cli/` artifacts and `auth.json` (clean working tree after a run)
