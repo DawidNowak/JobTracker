@@ -1,10 +1,10 @@
 ---
 change_id: e2e-playwright-harness
 title: Playwright E2E harness with board-load exemplar and delete-confirmation test
-status: impl_reviewed
+status: archived
 created: 2026-07-09
 updated: 2026-07-13
-archived_at: null
+archived_at: 2026-07-13T09:26:32Z
 ---
 
 ## Notes
