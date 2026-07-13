@@ -284,17 +284,17 @@ None — purely additive. No schema, data, or runtime changes to the app. `.dev.
 
 #### Automated
 
-- [x] 1.1 `@playwright/test` present in `package.json` and `npx playwright install chromium` succeeds
-- [x] 1.2 `npm run test:e2e` boots the app and passes `board-load.spec.ts` (chromium) green
-- [x] 1.3 `npm run typecheck` (astro check) passes with the new spec/fixtures present
-- [x] 1.4 `npm run lint` passes on `tests/e2e/**`
-- [x] 1.5 `npm test` (Vitest) still runs and does not pick up `*.spec.ts`
+- [x] 1.1 `@playwright/test` present in `package.json` and `npx playwright install chromium` succeeds — a2bda16
+- [x] 1.2 `npm run test:e2e` boots the app and passes `board-load.spec.ts` (chromium) green — a2bda16
+- [x] 1.3 `npm run typecheck` (astro check) passes with the new spec/fixtures present — a2bda16
+- [x] 1.4 `npm run lint` passes on `tests/e2e/**` — a2bda16
+- [x] 1.5 `npm test` (Vitest) still runs and does not pick up `*.spec.ts` — a2bda16
 
 #### Manual
 
-- [x] 1.6 `.dev.vars` byte-identical to pre-run content and `.dev.vars.e2e-backup` gone after a run
-- [x] 1.7 No leftover `astro dev` process on the E2E port; no leftover `u-<uuid>@test.local` users
-- [x] 1.8 Wrapper refuses to run when `SUPABASE_URL` is non-local (guard fires)
+- [x] 1.6 `.dev.vars` byte-identical to pre-run content and `.dev.vars.e2e-backup` gone after a run — a2bda16
+- [x] 1.7 No leftover `astro dev` process on the E2E port; no leftover `u-<uuid>@test.local` users — a2bda16
+- [x] 1.8 Wrapper refuses to run when `SUPABASE_URL` is non-local (guard fires) — a2bda16
 
 ### Phase 2: Delete-confirmation risk test
 
