@@ -1,10 +1,10 @@
 ---
 change_id: interesujace-decision-prompt
 title: Interesujace decision prompt
-status: impl_reviewed
+status: archived
 created: 2026-07-13
 updated: 2026-07-13
-archived_at: null
+archived_at: 2026-07-13T12:01:08Z
 ---
 
 ## Notes
