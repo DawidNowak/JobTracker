@@ -238,25 +238,25 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Existing tests still pass: `npm run test`
+- [x] 2.1 Type checking passes: `npm run typecheck` — 14e2bca
+- [x] 2.2 Linting passes: `npm run lint` — 14e2bca
+- [x] 2.3 Existing tests still pass: `npm run test` — 14e2bca
 
 #### Manual
 
-- [ ] 2.4 Prompt shows on stale Interesujące card, hidden on fresh card
-- [ ] 2.5 Aplikuj moves card optimistically; rolls back + banner on server error
-- [ ] 2.6 Pomiń opens dialog with correct copy; confirm removes the card
-- [ ] 2.7 Buttons don't start a drag; drag suppressed while action in flight / dialog open
+- [x] 2.4 Prompt shows on stale Interesujące card, hidden on fresh card
+- [x] 2.5 Aplikuj moves card optimistically; rolls back + banner on server error
+- [x] 2.6 Pomiń opens dialog with correct copy; confirm removes the card
+- [x] 2.7 Buttons don't start a drag; drag suppressed while action in flight / dialog open
 
 ### Phase 3: E2E coverage
 
 #### Automated
 
-- [ ] 3.1 E2E spec passes: `npm run test:e2e`
-- [ ] 3.2 Type checking passes: `npm run typecheck`
-- [ ] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 E2E spec passes: `npm run test:e2e`
+- [x] 3.2 Type checking passes: `npm run typecheck`
+- [x] 3.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 Spec runs against a fresh dev server without client:load flakiness
+- [x] 3.4 Spec runs against a fresh dev server without client:load flakiness
