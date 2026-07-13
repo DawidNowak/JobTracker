@@ -184,10 +184,10 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 E2E spec passes (Playwright command per `@tests/README.md`)
-- [x] 2.2 Type checking passes: `npm run typecheck`
-- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 E2E spec passes (Playwright command per `@tests/README.md`) — b8d28f3
+- [x] 2.2 Type checking passes: `npm run typecheck` — b8d28f3
+- [x] 2.3 Linting passes: `npm run lint` — b8d28f3
 
 #### Manual
 
-- [x] 2.4 New spec is stable across two consecutive runs
+- [x] 2.4 New spec is stable across two consecutive runs — b8d28f3
