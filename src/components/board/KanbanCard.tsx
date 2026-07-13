@@ -108,6 +108,7 @@ function KanbanCardBody({
   const sourceHref = parseSourceHref(application.source);
   const relative = formatRelative(application.last_action_at);
   const showPrompt = application.status === "Interesujące" && isStale(application.last_action_at, 1);
+  const showFollowUp = application.status === "Zaaplikowano" && isStale(application.last_action_at, 7);
 
   return (
     <article className={cn("rounded-md border border-neutral-200 bg-white p-3 shadow-sm")}>
@@ -172,7 +173,25 @@ function KanbanCardBody({
             {application.work_mode}
           </span>
         )}
-        {showPrompt ? (
+        {showFollowUp ? (
+          <div className="flex items-center justify-between gap-2">
+            <p className={cn("rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700")}>
+              Czas na follow-up z rekruterem
+            </p>
+            <Button
+              size="sm"
+              disabled={isMutating}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+              }}
+              onClick={() => {
+                onDetailOpenChange?.(true);
+              }}
+            >
+              Napisz follow-up
+            </Button>
+          </div>
+        ) : showPrompt ? (
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-neutral-500">Zdecyduj — aplikujesz?</p>
             <div className="flex gap-1">
