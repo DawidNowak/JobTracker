@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Manual Add Application (S-02)
 
 - **Plan**: context/changes/manual-add-application/plan.md
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | PASS |
-| Lean Execution | PASS |
+| Dimension             | Verdict |
+| --------------------- | ------- |
+| End-State Alignment   | PASS    |
+| Lean Execution        | PASS    |
 | Architectural Fitness | WARNING |
-| Blind Spots | WARNING |
-| Plan Completeness | FAIL |
+| Blind Spots           | WARNING |
+| Plan Completeness     | FAIL    |
 
 ## Grounding
 
@@ -34,7 +35,7 @@
   - Phase 2 Manual bullet #5 (line 218) — cross-user/read-isolation smoke; no `2.8` in Progress.
   - Phase 3 Manual bullet #2 (line 300) — "Clicking the Interesujące `+` opens a modal titled 'Nowa aplikacja w kolumnie Interesujące' with all seven fields visible. Cancel and Save buttons appear." Progress jumps from `3.4` (button presence) to `3.5` (empty-Źródło error).
   - Phase 3 Manual bullet #9 (line 307) — "console shows no React warnings". No Progress item.
-  `/10x-implement` parses Progress strictly; these checks won't get tracked.
+    `/10x-implement` parses Progress strictly; these checks won't get tracked.
 - **Fix**: Add three Progress entries to mirror the plan body:
   - Phase 2 § Manual: add `2.8 Cross-user read isolation: user B sees only own rows, never user A's`.
   - Phase 3 § Manual: insert `3.5 Clicking + opens modal with correct title, all 7 fields, Cancel + Dodaj buttons` (renumber existing `3.5–3.10` to `3.6–3.11`) and append `3.11 No React warnings in browser console`.

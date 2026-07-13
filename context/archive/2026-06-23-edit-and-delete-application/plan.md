@@ -66,6 +66,7 @@ Add service functions and wire the existing `[id].ts` route to support full upda
 **Intent**: Add `updateApplication` (full field update) and `deleteApplication`, mirroring the ownership-scoped pattern already used by `updateApplicationStatus`.
 
 **Contract**:
+
 - `updateApplication(supabase: Client, id: string, input: ApplicationUpdate, userId: string): Promise<ApplicationRow | null>` — `.update(input).eq("id", id).eq("user_id", userId).select("*").maybeSingle()`; returns `null` when no owned row matches (drives 404).
 - `deleteApplication(supabase: Client, id: string, userId: string): Promise<boolean>` — `.delete().eq("id", id).eq("user_id", userId).select("id").maybeSingle()`; returns whether a row was deleted (drives 404). `ApplicationUpdate` is imported from `@/lib/validation/applications`.
 
@@ -76,6 +77,7 @@ Add service functions and wire the existing `[id].ts` route to support full upda
 **Intent**: Switch the PATCH handler to validate with `applicationUpdateSchema` and call `updateApplication` (so it serves both `{ status }` drag-drop bodies and full edits), and add a `DELETE` handler. Keep the existing 401/400(id)/422/404/500 response shape and `export const prerender = false`.
 
 **Contract**:
+
 - `PATCH` validates body with `applicationUpdateSchema`; on success calls `updateApplication`; `null` → 404, row → `200 { application: row }`.
 - `DELETE` validates the `:id` param (existing `uuidSchema`), requires `context.locals.user`, calls `deleteApplication`; `false` → `404 { error: "Nie znaleziono aplikacji." }`, `true` → `200 { ok: true }` (or `204`). Reuse `jsonResponse` / `formatZodErrors` from `@/lib/http`.
 - `applicationStatusUpdateSchema` is no longer referenced by the route; leave the export in place (harmless) or remove if unused elsewhere.

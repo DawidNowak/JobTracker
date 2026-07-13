@@ -22,6 +22,7 @@ The parser-HTML-drift canary (Risk #1 slow-burn class) was deliberately not buil
 **What it is:** A scheduled CI job (GitHub Actions cron) that fetches a live LinkedIn and JustJoin.it job-offer page, runs the respective parser, and diffs the output against fixture-derived field expectations. Alerts (failing check or notification) when portal HTML drifts enough to silently corrupt a field.
 
 **Open design questions before opening a `/10x-new` for it:**
+
 - Rate-limit / ToS risk: LinkedIn's guest API and JJIT both serve publicly accessible URLs, but automated scheduled crawls may hit rate limits or violate terms. The canary must use polite delays and a real User-Agent.
 - Alerting: a failing cron check does not block PRs; a separate notification channel (GitHub Actions email, Slack webhook, or a dedicated status badge) is needed so drift is noticed before it accumulates.
 - Flakiness isolation: portal HTML can change for cosmetic reasons (layout, A/B tests) without breaking the parser. The canary should be scoped to the fields the parser actually extracts (`position`, `company`, `description`, `salary`, `work_mode`) and must not red on unrelated DOM changes.

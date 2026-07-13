@@ -13,10 +13,10 @@ Dane są jednoznaczne — follow-up działa i jest pozytywnie odbierany przez re
 
 ### Kiedy i ile razy wysłać follow-up?
 
-| Etap | Kiedy |
-|------|-------|
-| Po aplikacji | po 7-10 dniach roboczych bez odpowiedzi |
-| Po rozmowie | podziękowanie w ciągu 24-48h + follow-up po 3-5 dniach jeśli brak informacji zwrotnej |
+| Etap         | Kiedy                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------- |
+| Po aplikacji | po 7-10 dniach roboczych bez odpowiedzi                                               |
+| Po rozmowie  | podziękowanie w ciągu 24-48h + follow-up po 3-5 dniach jeśli brak informacji zwrotnej |
 
 Maksymalnie 1-2 wiadomości — więcej może być odebrane negatywnie.
 

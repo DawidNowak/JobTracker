@@ -36,13 +36,14 @@ The codebase is well-positioned for both test families, but **one scope assumpti
 > **The applications API exposes only two handlers: `POST /api/applications` and `PATCH /api/applications/[id]`. There is no GET, PUT, or DELETE handler anywhere under `src/pages/api/`.** (Confirmed by direct inspection — `[id].ts` exports only `PATCH`; `index.ts` exports only `POST`; a repo-wide grep for `export const GET|PUT|DELETE` under `src/pages/api/` returns nothing.)
 
 Consequences for Risk #5:
+
 - The HTTP-layer **(verb × owner × actor)** ownership matrix can only be exercised for **PATCH `/api/applications/[id]`** (the one mutating, id-addressed verb). POST has no id to attack; `parse.ts` is stateless and IDOR-irrelevant.
 - A cross-user PATCH already returns **404** today, via the right mechanism: the service query carries an explicit `.eq("user_id", userId)` clause and uses `.maybeSingle()`, so a non-owned row resolves to `null` → handler returns 404 (`src/lib/services/applications.ts:20-38`, `src/pages/api/applications/[id].ts:40-46`). This is exactly the defence-in-depth the risk asks for — there is already an existing test asserting it (`tests/http/patch-applications.test.ts`).
 - SELECT / DELETE / non-status UPDATE ownership has **no HTTP surface**, so those legs of the matrix can only be (and already are) proven at the **RLS/PostgREST layer** in `tests/integration/rls-applications.test.ts`. The Phase 3 plan should explicitly state this split rather than write HTTP tests for verbs that don't exist.
 
 For Risk #3, all four invariants are real, row-level assertable, and need **no new test infrastructure** — they can be read through the admin (service-role) Supabase client over PostgREST columns (`created_at`, `last_action_at`), the pattern `tests/http/patch-applications.test.ts:67-74` already uses. There is **no `pg`/raw-SQL client** in the repo; introducing one is unnecessary because every column the invariants assert on is PostgREST-selectable.
 
-A subtlety worth a dedicated test: the status-change trigger is `BEFORE UPDATE ... WHEN (old.status IS DISTINCT FROM NEW.status)`. A non-status edit does **not** fire it, so the "unchanged" invariant is genuine — but it also means a write that directly sets `last_action_at` on a non-status edit would *not* be corrected by the trigger. No API path allows that today (PATCH only accepts `status`), so this is a row-level note, not an endpoint hole.
+A subtlety worth a dedicated test: the status-change trigger is `BEFORE UPDATE ... WHEN (old.status IS DISTINCT FROM NEW.status)`. A non-status edit does **not** fire it, so the "unchanged" invariant is genuine — but it also means a write that directly sets `last_action_at` on a non-status edit would _not_ be corrected by the trigger. No API path allows that today (PATCH only accepts `status`), so this is a row-level note, not an endpoint hole.
 
 ## Detailed Findings
 
@@ -50,8 +51,9 @@ A subtlety worth a dedicated test: the status-change trigger is `BEFORE UPDATE .
 
 **Schema & triggers** — `supabase/migrations/20260526123145_applications_schema.sql`:
 
-- `applications.last_action_at timestamptz not null default now()` and `created_at timestamptz not null default now()` (lines ~24-26). Both default to `now()`, which is **transaction-start time and stable within a statement**, so on a single INSERT they are *exactly equal* — the equality is a reliable assertion, not a "within N ms" approximation.
+- `applications.last_action_at timestamptz not null default now()` and `created_at timestamptz not null default now()` (lines ~24-26). Both default to `now()`, which is **transaction-start time and stable within a statement**, so on a single INSERT they are _exactly equal_ — the equality is a reliable assertion, not a "within N ms" approximation.
 - Status-bump trigger (lines 108-122):
+
   ```sql
   create or replace function public.applications_bump_last_action_at_on_status_change()
   returns trigger language plpgsql as $$
@@ -66,12 +68,15 @@ A subtlety worth a dedicated test: the status-change trigger is `BEFORE UPDATE .
     when (old.status is distinct from new.status)
     execute function public.applications_bump_last_action_at_on_status_change();
   ```
+
   The `WHEN (old.status is distinct from new.status)` guard is what makes the "non-status edit leaves it unchanged" invariant true.
+
 - Note → parent bump (lines 128-157): a `SECURITY DEFINER` helper `bump_application_last_action_at(app_id uuid)` (with `set search_path = ''`) does `update public.applications set last_action_at = now() where id = app_id`, called from an **AFTER INSERT** trigger `application_notes_bumps_parent_last_action` on `application_notes` via `application_notes_bump_parent_trigger()`.
 
-**Hardening migration** — `supabase/migrations/20260528153903_lock_trigger_function_search_path.sql:16-36` recreates both plpgsql trigger functions with `set search_path = ''` (the SECURITY DEFINER helper already had it). This is the "triggers are in scope for follow-up patches" evidence the test-plan cites — the regression test must re-run green against the DB *after* all migrations are applied.
+**Hardening migration** — `supabase/migrations/20260528153903_lock_trigger_function_search_path.sql:16-36` recreates both plpgsql trigger functions with `set search_path = ''` (the SECURITY DEFINER helper already had it). This is the "triggers are in scope for follow-up patches" evidence the test-plan cites — the regression test must re-run green against the DB _after_ all migrations are applied.
 
 **No direct writes from app code** (the anti-pattern the risk warns about is absent):
+
 - `createApplication()` inserts `{ ...input, user_id: userId }` only — no `last_action_at` (`src/lib/services/applications.ts:40-54`).
 - `updateApplicationStatus()` updates `{ status }` only (`src/lib/services/applications.ts:20-38`).
 - The only `last_action_at` assignment in TS is an **optimistic client-side UI** update in `src/components/board/KanbanBoard.tsx:70` (local React state after drag; the API call sends `{ status }` only). The DB value is trigger-driven. The auto-generated `Insert`/`Update` types mark `last_action_at?` optional (`src/lib/database.types.ts:96,111`) but no code exploits it.
@@ -81,29 +86,33 @@ A subtlety worth a dedicated test: the status-change trigger is `BEFORE UPDATE .
 **Table/column names** (snake_case in DB): `applications(id, user_id, status, created_at, last_action_at)`; `application_notes(id, application_id, user_id, body, created_at)`.
 
 **Four invariants to assert (row level, via admin client):**
+
 1. After INSERT → `last_action_at == created_at`.
 2. After status UPDATE (e.g. `Interesujące` → `Zaaplikowano`) → `last_action_at > created_at` (advanced to now).
 3. After non-status UPDATE (e.g. `source`) → `last_action_at` unchanged from its pre-edit value.
 4. After `application_notes` INSERT → parent `last_action_at` advanced to now.
-(Plus the implicit "survives the migrated DB" property: the suite runs against the fully-migrated local stack.)
+   (Plus the implicit "survives the migrated DB" property: the suite runs against the fully-migrated local stack.)
 
 ### Risk #5 — applications endpoint IDOR
 
 **Endpoint inventory** (`src/pages/api/applications/`):
+
 - `index.ts` — `POST` only (create). Uses `createClient(headers, cookies)` then `createApplication(supabase, data, user.id)` with explicit `user_id: userId`; 401 if no `context.locals.user`; 422 on validation; 500 if insert throws. No id, so not an IDOR target.
 - `[id].ts` — `PATCH` only (status update). Validates `idParam` against `uuidSchema` (400 on malformed); calls `updateApplicationStatus(supabase, idParam, status, user.id)`; **`null` row → 404** (lines 40-46).
 - `parse.ts` — stateless URL parse; no DB ownership; out of scope for IDOR.
 
 **Why a cross-user PATCH is already 404** — `src/lib/services/applications.ts:20-38`:
+
 ```ts
 const { data, error } = await supabase
   .from("applications")
   .update({ status })
   .eq("id", id)
-  .eq("user_id", userId)   // explicit ownership clause — defence in depth, not RLS-only
+  .eq("user_id", userId) // explicit ownership clause — defence in depth, not RLS-only
   .select("*")
-  .maybeSingle();          // not-owned / not-found → data === null
+  .maybeSingle(); // not-owned / not-found → data === null
 ```
+
 The `.eq("user_id", userId)` is the positive enforcement the risk wants; `.maybeSingle()` + the handler's `if (!row) return 404` collapses "not found" and "not yours" into an identical 404 with no existence leak.
 
 **Auth plumbing** — `src/middleware.ts:1-25`: builds the SSR client from cookies, sets `context.locals.user = (await supabase.auth.getUser()).user ?? null`. `PROTECTED_ROUTES` (`/dashboard`, `/archive`) redirect when unauthenticated; API routes don't redirect — each handler returns 401 itself.
@@ -151,9 +160,9 @@ The `.eq("user_id", userId)` is the positive enforcement the risk wants; `.maybe
 
 ## Architecture Insights
 
-- **Defence in depth is real, not aspirational**: the mutating endpoint enforces ownership in *both* the app query (`.eq("user_id", …)`) and RLS. A future regression to a service-role client would lose RLS but keep the explicit clause; dropping the clause would lose the app check but keep RLS. The Phase 3 tests should pin *both* layers (HTTP for the app-query path, integration/RLS for the policy path) so either regression reds a test.
+- **Defence in depth is real, not aspirational**: the mutating endpoint enforces ownership in _both_ the app query (`.eq("user_id", …)`) and RLS. A future regression to a service-role client would lose RLS but keep the explicit clause; dropping the clause would lose the app check but keep RLS. The Phase 3 tests should pin _both_ layers (HTTP for the app-query path, integration/RLS for the policy path) so either regression reds a test.
 - **404-collapse is a deliberate existence-leak guard** (`.maybeSingle()` → `null` → 404). Tests must assert `toBe(404)` exactly, never `toBeGreaterThanOrEqual` — per test-plan §6.3.
-- **The mutation surface is intentionally tiny** (POST + PATCH-status only). Status-only PATCH is *why* the "non-status edit unchanged" invariant has no HTTP path and must be asserted at the row level.
+- **The mutation surface is intentionally tiny** (POST + PATCH-status only). Status-only PATCH is _why_ the "non-status edit unchanged" invariant has no HTTP path and must be asserted at the row level.
 - **PostgREST is sufficient as the assertion oracle** for trigger invariants; a raw pg connection would be net-new infra for zero added signal, since `created_at`/`last_action_at` are selectable columns.
 - **`now()` transaction-stability** makes invariant #1 an exact equality and invariants #2/#4 a strict `>` against the captured pre-state — deterministic without sleeps.
 

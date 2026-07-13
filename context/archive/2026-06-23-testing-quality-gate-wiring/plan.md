@@ -11,13 +11,13 @@ against a local Supabase stack booted in CI, with **no coverage threshold** (per
 ## Current State Analysis
 
 - **CI today** (`.github/workflows/ci.yml`): one `ci` job on `ubuntu-latest` running
-  `npm ci → astro sync → typecheck → lint → build`. The `build` step reads the *remote*
+  `npm ci → astro sync → typecheck → lint → build`. The `build` step reads the _remote_
   project's `secrets.SUPABASE_URL` / `secrets.SUPABASE_KEY`. There is no test step.
 - **Test suite runtime needs** (heavier than the current job):
   - A **local Supabase stack** — `npx supabase start` boots Postgres + Auth + PostgREST and
     applies `supabase/migrations/` (`supabase` is a devDependency, `2.101.0`).
   - A populated **`.env.test`** with `SUPABASE_URL`, `SUPABASE_KEY`,
-    `SUPABASE_SERVICE_ROLE_KEY`. `tests/setup.ts:23` *hard-refuses* to run unless
+    `SUPABASE_SERVICE_ROLE_KEY`. `tests/setup.ts:23` _hard-refuses_ to run unless
     `SUPABASE_URL` starts with `http://127.0.0.1:54321` or `http://localhost:54321`.
   - A spawned **`astro dev`** for the HTTP smoke suite — handled inside the run by
     `tests/global-setup.ts` (swaps `.dev.vars` → local stack, spawns dev server on a free
@@ -112,6 +112,7 @@ for fast feedback.
 **Contract**: A new top-level job (suggested id `test`, so the check name is stable for
 branch protection) on `runs-on: ubuntu-latest`, sharing the workflow's existing
 `on: { push: branches:[master], pull_request: branches:[master] }` triggers. Step sequence:
+
 - `actions/checkout@v4`
 - `actions/setup-node@v4` with `node-version: 22`, `cache: npm` (mirror the `ci` job)
 - `npm ci`

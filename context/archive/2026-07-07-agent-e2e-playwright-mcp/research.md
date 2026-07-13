@@ -81,9 +81,9 @@ From prior-session experience (assistant memory, **not documented in the repo** 
 
 Two viable targets, both backed by the local Supabase stack (`npx supabase start`; API on 54321, Studio on 54323, Inbucket on 54324 — `supabase/config.toml`):
 
-| Target | Command | Runtime | Notes |
-|---|---|---|---|
-| Dev server | `npm run dev` (port 4321) | Node.js | `.dev.vars` already points at local stack. UI sign-in **broken** (finding 3) — use cookie injection. |
+| Target              | Command                             | Runtime | Notes                                                                                                                                                                                               |
+| ------------------- | ----------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dev server          | `npm run dev` (port 4321)           | Node.js | `.dev.vars` already points at local stack. UI sign-in **broken** (finding 3) — use cookie injection.                                                                                                |
 | Production-faithful | `npm run build && npx wrangler dev` | workerd | Established convention for parser/Workers verification (`context/foundation/infrastructure.md:75-77`, `context/archive/2026-05-21-deployment/deployment-plan.md:77-94`). Sign-in behavior untested. |
 
 Hazards:
@@ -122,7 +122,7 @@ Existing homes for agent-facing knowledge, in precedence order:
 
 ### 8. Relationship to the test-plan philosophy
 
-`context/foundation/test-plan.md:97` ("E2E not planned for MVP") and the dropped R2 (`test-plan.md:108`) rejected e2e **as a test gate** on cost × signal grounds, with an explicit "reconsider via `--refresh` if a regression class appears that integration cannot catch". Agent-driven Playwright MCP sessions are not that: they are the automation of the *already-sanctioned* manual verification step (`infrastructure.md:89-100` risk-register mitigations; `deployment-plan.md:88-93` manual checklist: sign-up, sign-in, protected-route redirect, sign-out). The playbook should state this framing explicitly so it doesn't read as a backdoor e2e suite.
+`context/foundation/test-plan.md:97` ("E2E not planned for MVP") and the dropped R2 (`test-plan.md:108`) rejected e2e **as a test gate** on cost × signal grounds, with an explicit "reconsider via `--refresh` if a regression class appears that integration cannot catch". Agent-driven Playwright MCP sessions are not that: they are the automation of the _already-sanctioned_ manual verification step (`infrastructure.md:89-100` risk-register mitigations; `deployment-plan.md:88-93` manual checklist: sign-up, sign-in, protected-route redirect, sign-out). The playbook should state this framing explicitly so it doesn't read as a backdoor e2e suite.
 
 ## Code References
 
@@ -143,7 +143,7 @@ Existing homes for agent-facing knowledge, in precedence order:
 
 ## Architecture Insights
 
-- **Cookie-injection over UI sign-in** is the load-bearing pattern: `signInAndCaptureCookies` deliberately uses the same `@supabase/ssr` `createServerClient` path as production middleware, so its output is byte-compatible with what `src/middleware.ts` expects. Anything that can present those cookies (fetch header *or* browser cookie jar) is authenticated.
+- **Cookie-injection over UI sign-in** is the load-bearing pattern: `signInAndCaptureCookies` deliberately uses the same `@supabase/ssr` `createServerClient` path as production middleware, so its output is byte-compatible with what `src/middleware.ts` expects. Anything that can present those cookies (fetch header _or_ browser cookie jar) is authenticated.
 - **`.dev.vars` is the single env source of truth under the Cloudflare adapter** — `process.env` does not reach `astro:env/server` in dev. Any e2e tooling must respect (and not race) the `tests/global-setup.ts` swap.
 - **Ephemeral users are a convention, not an accident** — cascade-delete cleanup and per-test isolation (`tests/README.md:74-82`). An e2e playbook should reuse `provisionUser` rather than introduce a seeded account.
 - **Two-runtime split** (`astro dev` = Node, `wrangler dev` = workerd) is the project's documented divergence risk (`infrastructure.md:75-77`); a browser playbook should name which runtime it targets and why.

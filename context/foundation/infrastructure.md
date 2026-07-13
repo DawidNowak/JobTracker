@@ -24,14 +24,14 @@ The project is already wired: `wrangler.jsonc` targets the Workers entrypoint (`
 
 Scoring: Pass = 2 / Partial = 1 / Fail = 0. Cost soft-weight applied (user priority: minimize cost).
 
-| Platform | CLI-first | Managed | Agent docs | Stable API | MCP | Score | Cost/mo |
-|---|---|---|---|---|---|---|---|
-| **Cloudflare Workers** | Pass | Pass | Pass | Pass | Pass | **10** | $0 |
-| Vercel | Pass | Pass | Pass | Pass | Partial | 9 | ~$20 (Pro required) |
-| Netlify | Partial | Pass | Pass | Partial | Pass | 8 | $0 |
-| Render | Partial | Pass | Pass | Partial | Pass | 8 | $7 |
-| Fly.io | Pass | Partial | Fail | Pass | Partial | 6 | $5–15 |
-| Railway | Partial | Pass | Partial | Partial | Partial | 6 | $5–8 |
+| Platform               | CLI-first | Managed | Agent docs | Stable API | MCP     | Score  | Cost/mo             |
+| ---------------------- | --------- | ------- | ---------- | ---------- | ------- | ------ | ------------------- |
+| **Cloudflare Workers** | Pass      | Pass    | Pass       | Pass       | Pass    | **10** | $0                  |
+| Vercel                 | Pass      | Pass    | Pass       | Pass       | Partial | 9      | ~$20 (Pro required) |
+| Netlify                | Partial   | Pass    | Pass       | Partial    | Pass    | 8      | $0                  |
+| Render                 | Partial   | Pass    | Pass       | Partial    | Pass    | 8      | $7                  |
+| Fly.io                 | Pass      | Partial | Fail       | Pass       | Partial | 6      | $5–15               |
+| Railway                | Partial   | Pass    | Partial    | Partial    | Partial | 6      | $5–8                |
 
 **Scoring notes:**
 
@@ -88,16 +88,16 @@ The team shipped the MVP on Cloudflare Workers at the end of week 4. Everything 
 
 ## Risk Register
 
-| Risk | Source | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| HTML parser library uses Node.js globals not available in workerd | Devil's advocate | High | High | Test the parsing endpoint with `npx wrangler dev` (not `astro dev`) against real job listing HTML before shipping. Choose parsers explicitly tested on Cloudflare Workers (e.g., `node-html-parser`, `linkedom`). |
-| Free-tier 10ms CPU limit exceeded by HTML parsing | Pre-mortem | Medium | Medium | Benchmark the parser against large real payloads in `wrangler dev`. If CPU time exceeds 8ms, upgrade to Workers Paid ($5/month) before launch. |
-| Supabase project in wrong region adds 100–200ms per request | Unknown unknown | Medium | Medium | Check Supabase project region in dashboard. If not `eu-central-1` or `eu-west-1`, migrate the project now (free tier allows one active project). |
-| Supabase free project pauses after inactivity | Unknown unknown | Medium | High | Keep the Supabase project active during development. Upgrade to Supabase Pro ($25/month) before the first external user demo. |
-| Cloudflare Auto Minify breaks React hydration | Unknown unknown | Medium | High | In Cloudflare dashboard → Speed → Optimization, disable Auto Minify for JavaScript before the first browser test. |
-| CI deploy fails silently (missing CLOUDFLARE_ACCOUNT_ID secret) | Unknown unknown | High | Medium | Add both `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` to GitHub repository secrets before writing the deploy workflow step. |
-| Supabase connection latency spikes at 20+ concurrent users | Devil's advocate | Low | Medium | At MVP scale this is unlikely. If the 500ms NFR is breached under load, enable Hyperdrive in `wrangler.jsonc` to pool connections. |
-| Worker name "10x-astro-starter" deployed as-is | Research finding | High | Low | Rename `name` in `wrangler.jsonc` to `job-tracker` before first `wrangler deploy`. The name becomes the Worker subdomain on `workers.dev`. |
+| Risk                                                              | Source           | Likelihood | Impact | Mitigation                                                                                                                                                                                                        |
+| ----------------------------------------------------------------- | ---------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTML parser library uses Node.js globals not available in workerd | Devil's advocate | High       | High   | Test the parsing endpoint with `npx wrangler dev` (not `astro dev`) against real job listing HTML before shipping. Choose parsers explicitly tested on Cloudflare Workers (e.g., `node-html-parser`, `linkedom`). |
+| Free-tier 10ms CPU limit exceeded by HTML parsing                 | Pre-mortem       | Medium     | Medium | Benchmark the parser against large real payloads in `wrangler dev`. If CPU time exceeds 8ms, upgrade to Workers Paid ($5/month) before launch.                                                                    |
+| Supabase project in wrong region adds 100–200ms per request       | Unknown unknown  | Medium     | Medium | Check Supabase project region in dashboard. If not `eu-central-1` or `eu-west-1`, migrate the project now (free tier allows one active project).                                                                  |
+| Supabase free project pauses after inactivity                     | Unknown unknown  | Medium     | High   | Keep the Supabase project active during development. Upgrade to Supabase Pro ($25/month) before the first external user demo.                                                                                     |
+| Cloudflare Auto Minify breaks React hydration                     | Unknown unknown  | Medium     | High   | In Cloudflare dashboard → Speed → Optimization, disable Auto Minify for JavaScript before the first browser test.                                                                                                 |
+| CI deploy fails silently (missing CLOUDFLARE_ACCOUNT_ID secret)   | Unknown unknown  | High       | Medium | Add both `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` to GitHub repository secrets before writing the deploy workflow step.                                                                                 |
+| Supabase connection latency spikes at 20+ concurrent users        | Devil's advocate | Low        | Medium | At MVP scale this is unlikely. If the 500ms NFR is breached under load, enable Hyperdrive in `wrangler.jsonc` to pool connections.                                                                                |
+| Worker name "10x-astro-starter" deployed as-is                    | Research finding | High       | Low    | Rename `name` in `wrangler.jsonc` to `job-tracker` before first `wrangler deploy`. The name becomes the Worker subdomain on `workers.dev`.                                                                        |
 
 ## Getting Started
 
@@ -108,16 +108,19 @@ The scaffold is already configured for Cloudflare Workers deployment. Four steps
 2. **Get a Cloudflare API token** — log into dash.cloudflare.com → My Profile → API Tokens → Create Token. Use the "Edit Cloudflare Workers" template (grants `Workers Scripts:Edit` + `Workers Routes:Edit`). Copy the token and your Account ID from the dashboard sidebar.
 
 3. **Wire Worker secrets** — run these two commands (interactive prompt for values):
+
    ```
    npx wrangler secret put SUPABASE_URL
    npx wrangler secret put SUPABASE_KEY
    ```
 
 4. **First manual deploy** — build and deploy to verify the scaffold is live:
+
    ```
    npm run build
    npx wrangler deploy
    ```
+
    The command prints the live URL (`https://job-tracker.<your-subdomain>.workers.dev`). Visit it and confirm the Supabase auth flow works.
 
 5. **Wire CI for auto-deploy on merge** — add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub repository secrets, then append a deploy step to `.github/workflows/ci.yml` (run only on `master`, after the build step):
@@ -133,6 +136,7 @@ The scaffold is already configured for Cloudflare Workers deployment. Four steps
 ## Out of Scope
 
 The following were not evaluated in this research:
+
 - Docker image configuration
 - CI/CD pipeline setup beyond the deploy step above
 - Production-scale architecture (multi-region, HA, DR)

@@ -25,14 +25,14 @@ wired gate; the parser-drift canary is recorded as a deferred follow-up.
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Job layout | Separate `test` job, parallel to `ci` | Keeps lint/typecheck/build fast-failing; stable check name for branch protection | Plan |
-| Supabase in CI | `supabase start` + derive keys via `supabase status -o env` | Local stack keys are deterministic demo keys — no secrets to manage | Plan |
-| Triggers | push to `master` + PR (match current `ci`) | Keeps `master` provably green; required check works on PRs | Plan |
-| Enforcement | Plan provides `gh` branch-protection command; user runs it | Outward-facing repo-settings change belongs to the admin | Plan |
-| Canary (Risk #1 slow-burn) | Defer — document as a follow-up change | Live-network drift detection needs its own design (ToS, alerting, flakiness) | Plan |
-| Coverage / workerd gates | Excluded | §7 of test-plan.md forbids both | Foundation |
+| Decision                   | Choice                                                      | Why (1 sentence)                                                                 | Source     |
+| -------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------- |
+| Job layout                 | Separate `test` job, parallel to `ci`                       | Keeps lint/typecheck/build fast-failing; stable check name for branch protection | Plan       |
+| Supabase in CI             | `supabase start` + derive keys via `supabase status -o env` | Local stack keys are deterministic demo keys — no secrets to manage              | Plan       |
+| Triggers                   | push to `master` + PR (match current `ci`)                  | Keeps `master` provably green; required check works on PRs                       | Plan       |
+| Enforcement                | Plan provides `gh` branch-protection command; user runs it  | Outward-facing repo-settings change belongs to the admin                         | Plan       |
+| Canary (Risk #1 slow-burn) | Defer — document as a follow-up change                      | Live-network drift detection needs its own design (ToS, alerting, flakiness)     | Plan       |
+| Coverage / workerd gates   | Excluded                                                    | §7 of test-plan.md forbids both                                                  | Foundation |
 
 ## Scope
 
@@ -51,10 +51,10 @@ the running CLI. Branch protection lists the `test` check as required to make it
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Wire the test job | Green `test` job booting Supabase + running both pools in CI | `astro dev` cold-compile / Supabase boot timing; CLI key-name mapping |
-| 2. Enforce + close out docs | Required-check branch protection (user-run) + doc reconciliation + canary follow-up | Branch protection needs admin; check-name must match the real run |
+| Phase                       | What it delivers                                                                    | Key risk                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1. Wire the test job        | Green `test` job booting Supabase + running both pools in CI                        | `astro dev` cold-compile / Supabase boot timing; CLI key-name mapping |
+| 2. Enforce + close out docs | Required-check branch protection (user-run) + doc reconciliation + canary follow-up | Branch protection needs admin; check-name must match the real run     |
 
 **Prerequisites:** Phases 1–3 complete (they are); GitHub admin rights for branch protection.
 **Estimated effort:** ~1 session — one workflow edit + a CI debug loop, then docs.

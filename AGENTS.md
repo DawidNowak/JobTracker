@@ -29,6 +29,7 @@ Job tracking application built with Astro 6 SSR, React 19, Tailwind CSS 4, Supab
 ## Commands
 
 See `@package.json` for the full script list. Key context:
+
 - `dev` runs under the Cloudflare workerd runtime (not standard Node)
 - `lint` is the CI gate — must pass before merge
 - Pre-commit hooks (husky + lint-staged) auto-run `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`

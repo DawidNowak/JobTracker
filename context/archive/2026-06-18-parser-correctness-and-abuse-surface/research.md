@@ -23,8 +23,8 @@ last_updated_by: Dawid Nowak
 
 Two risks from `context/foundation/test-plan.md` §2 — to be addressed jointly because they share the same code surface (`/api/applications/parse` + `src/lib/parsers/*`) and Phase 2 of the rollout (§3) packages them together:
 
-- **Risk #1** — *Parser silently saves wrong fields to a card. Portal HTML drifts; `/api/applications/parse` returns plausible but incorrect position/company/description and the user accepts it without noticing.*
-- **Risk #4** — *`/api/applications/parse` issues fetch to a non-portal URL (SSRF / abuse). `recognize()` allowlist gap lets an authenticated user coerce the Worker to GET internal Cloudflare metadata, follow redirect chains, or hammer arbitrary hosts.*
+- **Risk #1** — _Parser silently saves wrong fields to a card. Portal HTML drifts; `/api/applications/parse` returns plausible but incorrect position/company/description and the user accepts it without noticing._
+- **Risk #4** — _`/api/applications/parse` issues fetch to a non-portal URL (SSRF / abuse). `recognize()` allowlist gap lets an authenticated user coerce the Worker to GET internal Cloudflare metadata, follow redirect chains, or hammer arbitrary hosts._
 
 For each, the goal of this research is to ground the future `/10x-plan` in concrete code: what the current implementation actually does, where the failure modes live, what evidence Phase 2 tests will have to assert, and what defensive gaps the planner can choose to close (or explicitly leave open).
 
@@ -34,7 +34,7 @@ The parser surface is small, self-contained, and already hardened against most o
 
 Concrete shape Phase 2 should land:
 
-1. **Risk #1 (silent drift) — pure unit tests over captured HTML fixtures, one per portal.** The status branches in `parse.ts:37-43` are easy to test with synthetic `ParseResult` inputs, but the *parsers themselves* need real captured HTML to give honest signal — every past bug (LinkedIn description tag-collapse, the "Show more" leak, JJIT `workplace_type` → `workplaceType` rename, JJIT body `$<ref>` flight encoding) was a shape-of-payload bug invisible to synthetic input. Oracle for assertions is the visible job page, not the parser output — re-asserting `result.position === "X"` after reading what the parser returned is a tautology and violates the test-plan §2 anti-pattern for Risk #1.
+1. **Risk #1 (silent drift) — pure unit tests over captured HTML fixtures, one per portal.** The status branches in `parse.ts:37-43` are easy to test with synthetic `ParseResult` inputs, but the _parsers themselves_ need real captured HTML to give honest signal — every past bug (LinkedIn description tag-collapse, the "Show more" leak, JJIT `workplace_type` → `workplaceType` rename, JJIT body `$<ref>` flight encoding) was a shape-of-payload bug invisible to synthetic input. Oracle for assertions is the visible job page, not the parser output — re-asserting `result.position === "X"` after reading what the parser returned is a tautology and violates the test-plan §2 anti-pattern for Risk #1.
 2. **Risk #4 (outbound abuse) — endpoint-level tests with `fetch` stubbed at `globalThis`.** The cleanest assertion ("zero outbound calls on disallowed inputs") fires before `HTMLRewriter` is ever touched, which sidesteps the Node-vs-workerd gap (the parsers themselves can't run under the project's current `node`-environment Vitest because `HTMLRewriter` is a workerd global; see §"Constraints" below). For positive recognize() coverage, a table-of-URLs unit test on `recognize()` alone is sufficient.
 
 Three defensive gaps surface as planner inputs, none currently exploitable:
@@ -43,7 +43,7 @@ Three defensive gaps surface as planner inputs, none currently exploitable:
 - The JJIT URL interpolation `https://justjoin.it/job-offer/${slug}` does not wrap the slug in `encodeURIComponent` (linkedin.ts does). It is currently safe because `recognize()` constrains slug to `^[a-z0-9-]+$`, but the safety depends entirely on that regex never loosening.
 - No defence-in-depth re-validation between `recognize()` and the parser-internal fetch. `recognize()` is the only gate.
 
-The first prior impl-review already narrowed one allowlist gap (F3 in `context/changes/parser-driven-add/reviews/impl-review.md`): suffix-match on `*.linkedin.com` was replaced with explicit equality on three hosts. Phase 2's tests should *lock in* that narrowing as a regression guard.
+The first prior impl-review already narrowed one allowlist gap (F3 in `context/changes/parser-driven-add/reviews/impl-review.md`): suffix-match on `*.linkedin.com` was replaced with explicit equality on three hosts. Phase 2's tests should _lock in_ that narrowing as a regression guard.
 
 ## Detailed Findings
 
@@ -73,22 +73,23 @@ Per-portal "expected set" at `parse.ts:28-31`:
 - **JJIT**: `position`, `company`, `description`, `salary`, `work_mode` (skills do not exist as a separate key — they are prepended into `description`).
 
 `ParseStatus` enum at `src/lib/parsers/types.ts:11`:
+
 ```
 "ok" | "partial" | "empty" | "unsupported" | "fetch_failed"
 ```
 
 Failure modes collapse to non-`ok` envelope (`parse.ts:65-92`):
 
-| Cause | Status | HTTP |
-|---|---|---|
-| `recognize()` returns null | `unsupported` | 200 |
-| Parser throws (any reason — network, non-200, malformed HTML, missing offer, JSON.parse fail) | `fetch_failed` | 200 |
-| Parser returns `{}` (no fields populated) | `empty` | 200 |
-| Parser returns ≥1 field but at least one expected key missing | `partial` | 200 |
-| All expected keys populated | `ok` | 200 |
-| No auth | — | 401 (`parse.ts:46-49`) |
-| Body not JSON | — | 400 (`parse.ts:52-56`) |
-| Zod fail | — | 422 (`parse.ts:58-61`) |
+| Cause                                                                                         | Status         | HTTP                   |
+| --------------------------------------------------------------------------------------------- | -------------- | ---------------------- |
+| `recognize()` returns null                                                                    | `unsupported`  | 200                    |
+| Parser throws (any reason — network, non-200, malformed HTML, missing offer, JSON.parse fail) | `fetch_failed` | 200                    |
+| Parser returns `{}` (no fields populated)                                                     | `empty`        | 200                    |
+| Parser returns ≥1 field but at least one expected key missing                                 | `partial`      | 200                    |
+| All expected keys populated                                                                   | `ok`           | 200                    |
+| No auth                                                                                       | —              | 401 (`parse.ts:46-49`) |
+| Body not JSON                                                                                 | —              | 400 (`parse.ts:52-56`) |
+| Zod fail                                                                                      | —              | 422 (`parse.ts:58-61`) |
 
 **The Risk #1 anti-pattern from the test plan ("If `position` is non-empty, the whole result is trustworthy") would manifest here.** A future change to `resolveStatus` that treated "any field populated" as `ok` would silently turn partial → ok and the dialog would suppress its amber banner. A unit test over `resolveStatus` with synthetic `ParseResult` inputs locks the matrix.
 
@@ -123,12 +124,14 @@ Failure modes collapse to non-`ok` envelope (`parse.ts:65-92`):
 `src/lib/parsers/justjoinit.ts`. Fetches `https://justjoin.it/job-offer/${slug}` (line 222 — note: no `encodeURIComponent`, see §Risk #4 below) and pulls the React Server Components Flight payload out of `self.__next_f.push([1, "..."])` chunks (lines 247-256). Field extraction depends on locating the **offer object** — a JSON sub-string inside the concatenated Flight buffer.
 
 Marker-key strategy (lines 188-219):
+
 - The marker key is `"workplaceType"` (camelCase). **History-proven bug** (`plan.md:428`, commit `2b9e722`): the original implementation searched for `"workplace_type"` (snake_case, matching the old REST schema). JJIT renamed the key in late May 2026 and every JJIT parse silently returned `fetch_failed`. The fix in `2b9e722` not only changed the key — it also restructured the search to **try multiple candidates** (`MAX_OFFER_CANDIDATES = 8`, line 8) before giving up, because a benign instance of the key might appear in a non-offer object first.
 - String-aware brace matching (`sliceObjectAround`, lines 135-186) walks backward to find the enclosing `{` and forward to find the matching `}`, tracking string-literal state so that `{`/`}` characters inside the HTML body don't mis-close the slice.
 - Validates the slice contains both `"title"` and `"companyName"` before attempting `JSON.parse` (line 211).
 - Fails closed: throws on any inconsistency → `fetch_failed`.
 
 Field mapping (lines 264-301):
+
 - `position ← offer.title`
 - `company ← offer.companyName` (note: also camelCase post-drift — the field was `company_name` in the legacy schema)
 - `description ← htmlToPlainText(resolveTextRef(flight, offer.body))` — `offer.body` is a **Flight text reference** of the form `$<hex>` (line 273), resolved against the joined Flight buffer (`resolveTextRef`, lines 98-109). The plan.md post-merge entry `d45d704` documents that the description was originally returned as HTML and re-rendered as `<p>...</p>` inside the Textarea — the fix added `htmlToPlainText()` (lines 121-133) which collapses tags, decodes entities, and preserves list/paragraph boundaries.
@@ -143,10 +146,12 @@ Buffer caps (lines 7, 243-245, 258-260): `MAX_BUFFER_CHARS = 4_000_000` for both
 The test-plan §2 anti-pattern for Risk #1 is explicit: **"writing assertions by re-reading what the parser currently returns instead of from the independent source (the visible job page). Snapshot-against-self is a tautology."**
 
 This rules out:
+
 - ❌ `expect(result).toMatchSnapshot()` style tests against the captured HTML — the snapshot is just "whatever the parser currently does."
 - ❌ Generating expected values by running the parser once and freezing the output.
 
 What it does allow:
+
 - ✅ Capture a real HTML payload (LinkedIn guest endpoint response, JJIT job page). Read the rendered job page in a browser. Type the expected `position`, `company`, salient lines from `description`, `salary`, `work_mode` **by hand** into the test file. Assert against those.
 - ✅ One happy fixture per portal as the baseline. One or two "field-missing" fixtures (e.g., a JJIT posting with no salary entries; a LinkedIn posting with no `.compensation__salary` div) that prove `undefined` (not `""`, not a default) for the missing field.
 - ✅ One "deliberately corrupted" fixture per portal (e.g., LinkedIn HTML with `.topcard__title` missing → must throw → endpoint maps to `fetch_failed`; JJIT Flight with no `"workplaceType"` → throws → `fetch_failed`).
@@ -156,6 +161,7 @@ These fixtures are the only honest signal Phase 2 can land for Risk #1. They are
 #### F. Current test coverage of the parser surface — **zero**
 
 Confirmed by repo-wide search:
+
 - No `tests/**/*parser*`, no `tests/**/*linkedin*`, no `tests/**/*justjoin*`, no `tests/**/*recognize*`, no `tests/**/*parse*`.
 - No `.html` fixtures in the repo outside `node_modules`.
 - No `fetch` mock helpers, no `nock`/`msw`/`undici-mock-agent` in `package.json` devDeps.
@@ -166,6 +172,7 @@ Confirmed by repo-wide search:
 #### A. The allowlist as a set of mutually exclusive branches
 
 `src/lib/parsers/recognize.ts`. Preconditions before any non-null return:
+
 - Trimmed input non-empty (line 6).
 - `new URL(trimmed)` succeeds (lines 8-12). No base URL — must be absolute.
 - `url.protocol` is exactly `http:` or `https:` (line 14). Rejects `javascript:`, `data:`, `file:`, `gopher:`, `ftp:`, etc.
@@ -173,11 +180,11 @@ Confirmed by repo-wide search:
 
 Non-null branches:
 
-| # | kind | Host (exact, lowercased) | Path / query shape | Extracted |
-|---|---|---|---|---|
-| A | `linkedin` | `linkedin.com` ∨ `www.linkedin.com` ∨ `pl.linkedin.com` (line 18) | `?currentJobId=` matches `/^\d{8,}$/` (lines 19-22) | `jobId` (digits-only) |
-| B | `linkedin` | same host set | pathname matches `/(\d{8,})(?:[/?#]|$)/` (lines 23-26) | `jobId` (digits-only) |
-| C | `jjit` | `justjoin.it` exactly (line 30) | pathname matches `/^\/job-offer\/([a-z0-9-]+)\/?$/` (line 31) | `slug` (lowercase + digits + hyphen only) |
+| #   | kind       | Host (exact, lowercased)                                          | Path / query shape                                            | Extracted                                 |
+| --- | ---------- | ----------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------- | --------------------- |
+| A   | `linkedin` | `linkedin.com` ∨ `www.linkedin.com` ∨ `pl.linkedin.com` (line 18) | `?currentJobId=` matches `/^\d{8,}$/` (lines 19-22)           | `jobId` (digits-only)                     |
+| B   | `linkedin` | same host set                                                     | pathname matches `/(\d{8,})(?:[/?#]                           | $)/` (lines 23-26)                        | `jobId` (digits-only) |
+| C   | `jjit`     | `justjoin.it` exactly (line 30)                                   | pathname matches `/^\/job-offer\/([a-z0-9-]+)\/?$/` (line 31) | `slug` (lowercase + digits + hyphen only) |
 
 Everything else returns `null` → `unsupported` status, no fetch.
 
@@ -187,20 +194,20 @@ The current state is the **post-F3** allowlist. The pre-F3 version (commit befor
 
 For each shape commonly tried against URL allowlists, the verdict and the line that decides it:
 
-| Shape | Verdict | Why |
-|---|---|---|
-| Trailing dot host (`linkedin.com.`) | SAFE | `url.hostname` preserves trailing dot; `"linkedin.com." === "linkedin.com"` is false (line 18) → null |
-| Mixed case (`LinkedIn.COM`) | SAFE | `.toLowerCase()` on line 16 normalizes |
-| Userinfo (`https://www.linkedin.com@evil.com/...`) | SAFE | WHATWG `URL` puts `evil.com` in `hostname` |
-| Port-prefix tricks (`https://www.linkedin.com:80@evil.com`) | SAFE | Same — `hostname` is `evil.com` |
-| Explicit port on allowed host (`https://www.linkedin.com:8080/...`) | SAFE | Passes `recognize()` but parsers ignore the original URL — they build outbound URLs from extracted id only (linkedin.ts:32, justjoinit.ts:222), so the port is dropped |
-| IDN / punycode look-alike (`linkedın.com`, dotless-i) | SAFE | WHATWG `URL` converts to punycode (`xn--linkedn-...`) which fails the equality check |
-| Subdomain confusion (`linkedin.com.evil.com`, `evil-linkedin.com`) | SAFE | Equality is exact, not suffix |
-| Other LinkedIn locales (`uk.linkedin.com`, `business.linkedin.com`) | INTENTIONALLY BLOCKED | Three-host allowlist (line 18) excludes everything else; this is the F3 narrowing |
-| `www.justjoin.it` | INTENTIONALLY BLOCKED | Line 30 requires bare `justjoin.it` |
-| JJIT path with extra segments | BLOCKED | Anchored regex `^...\/?$` (line 31) |
-| `javascript:` / `data:` / `file:` / `gopher:` | SAFE | Protocol allowlist (line 14) |
-| `http:` LinkedIn (downgrade) | SAFE | `recognize()` accepts it, parsers force `https://` literally (linkedin.ts:32, justjoinit.ts:222) — no plaintext outbound |
+| Shape                                                               | Verdict               | Why                                                                                                                                                                    |
+| ------------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trailing dot host (`linkedin.com.`)                                 | SAFE                  | `url.hostname` preserves trailing dot; `"linkedin.com." === "linkedin.com"` is false (line 18) → null                                                                  |
+| Mixed case (`LinkedIn.COM`)                                         | SAFE                  | `.toLowerCase()` on line 16 normalizes                                                                                                                                 |
+| Userinfo (`https://www.linkedin.com@evil.com/...`)                  | SAFE                  | WHATWG `URL` puts `evil.com` in `hostname`                                                                                                                             |
+| Port-prefix tricks (`https://www.linkedin.com:80@evil.com`)         | SAFE                  | Same — `hostname` is `evil.com`                                                                                                                                        |
+| Explicit port on allowed host (`https://www.linkedin.com:8080/...`) | SAFE                  | Passes `recognize()` but parsers ignore the original URL — they build outbound URLs from extracted id only (linkedin.ts:32, justjoinit.ts:222), so the port is dropped |
+| IDN / punycode look-alike (`linkedın.com`, dotless-i)               | SAFE                  | WHATWG `URL` converts to punycode (`xn--linkedn-...`) which fails the equality check                                                                                   |
+| Subdomain confusion (`linkedin.com.evil.com`, `evil-linkedin.com`)  | SAFE                  | Equality is exact, not suffix                                                                                                                                          |
+| Other LinkedIn locales (`uk.linkedin.com`, `business.linkedin.com`) | INTENTIONALLY BLOCKED | Three-host allowlist (line 18) excludes everything else; this is the F3 narrowing                                                                                      |
+| `www.justjoin.it`                                                   | INTENTIONALLY BLOCKED | Line 30 requires bare `justjoin.it`                                                                                                                                    |
+| JJIT path with extra segments                                       | BLOCKED               | Anchored regex `^...\/?$` (line 31)                                                                                                                                    |
+| `javascript:` / `data:` / `file:` / `gopher:`                       | SAFE                  | Protocol allowlist (line 14)                                                                                                                                           |
+| `http:` LinkedIn (downgrade)                                        | SAFE                  | `recognize()` accepts it, parsers force `https://` literally (linkedin.ts:32, justjoinit.ts:222) — no plaintext outbound                                               |
 
 No input shape I could construct passes `recognize()` and causes a `fetch()` to a host other than `www.linkedin.com` or `justjoin.it`.
 
@@ -233,11 +240,12 @@ Either is testable via `fetch` stub: install a stub that returns a 302 to `http:
 ```ts
 const trimmed = parsed.data.source.trim();
 const recognized = recognize(trimmed);
-if (!recognized) { /* unsupported */ }
+if (!recognized) {
+  /* unsupported */
+}
 // ...
-const result = recognized.kind === "linkedin"
-  ? await parseLinkedIn(recognized.jobId)
-  : await parseJustJoinIT(recognized.slug);
+const result =
+  recognized.kind === "linkedin" ? await parseLinkedIn(recognized.jobId) : await parseJustJoinIT(recognized.slug);
 ```
 
 `recognize()` is the **only** gate. The endpoint does not re-validate `recognized.jobId` against `/^\d{8,}$/` nor `recognized.slug` against `/^[a-z0-9-]+$/` before delegating. The parsers themselves do not re-validate either. The safety depends entirely on `recognize()` being correct. This is **fine for a single gate** but means a single-line regression in `recognize()` removes the entire SSRF defence. A defence-in-depth re-check inside each parser (cheap — `if (!/^\d{8,}$/.test(jobId)) throw new Error(...)`) is the planner's call.
@@ -262,6 +270,7 @@ Phase 1 (`testing-bootstrap-and-data-isolation`) and Phase 3 (HTTP smoke) shippe
 - **`tests/helpers/supabase-clients.ts`** + the ephemeral-user pattern — for any test that needs to confirm "after a successful parse, the form persists what the parser returned" (probably **out of scope** for Phase 2; would belong to a future end-to-end pass).
 
 What does **not** exist yet and must be added by Phase 2:
+
 - `tests/fixtures/parsers/` — captured HTML payloads (LinkedIn guest fragment + JJIT page) plus a `README.md` documenting the capture procedure (`curl -A "<UA>" <url> > linkedin-<jobId>.html`).
 - Either `@cloudflare/vitest-pool-workers` (path a above) or an `astro dev` HTTP-only pattern for parser tests (path b).
 - A `fetch` stub helper (`tests/helpers/fetch.ts`?) for the SSRF assertions. Could be as small as a `withFetchStub(handler, fn)` wrapper around `vi.stubGlobal("fetch", ...)` + `vi.unstubAllGlobals()`.

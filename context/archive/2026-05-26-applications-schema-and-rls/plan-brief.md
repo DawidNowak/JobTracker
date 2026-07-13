@@ -16,21 +16,22 @@ A developer runs `npm run db:reset` and gets a local Supabase instance with both
 
 ## Key Decisions Made
 
-| Decision                         | Choice                                                                                | Why                                                                                                                          | Source |
-| -------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Skills column                    | Omitted; absorbed into `description`                                                  | No querying or filtering on skills planned; one less column is one less invariant.                                           | Plan   |
-| Salary representation            | Single free-form `text` column                                                        | No filtering or aggregation; parser output goes in verbatim.                                                                 | Plan   |
-| `work_mode` storage              | `text` + CHECK constraint (`Zdalna`, `Hybrydowa`, `Stacjonarna`)                      | Strict at write time, refactorable without `ALTER TYPE` pain.                                                                | Plan   |
-| `status` storage                 | `text` + CHECK (`Interesujące`, `Zaaplikowano`, `Rozmowa`)                            | Same convention as `work_mode`. Polish values stored verbatim — UI is a passthrough.                                          | Plan   |
-| Archive representation           | Nullable `archived_at timestamptz` column; status enum stays 3-value                  | Preserves the active column at time of archive; clean read predicates; matches FR-017's read-only archive contract.          | Plan   |
-| Note → parent timestamp update    | `SECURITY DEFINER` function owned by `postgres`, called from AFTER INSERT trigger      | Trigger must update parent row across RLS; SECURITY DEFINER is the standard pattern. RLS still gates the note insert itself. | Plan   |
-| Zod placement                    | Ship in F-01 as `src/lib/validation/applications.ts`; no consumers until S-02         | Roadmap F-01 outcome names Zod schemas as part of the foundation; S-02 imports rather than defines.                          | Roadmap |
-| Verification                     | Lightweight: `db reset` + committed types + manual RLS/trigger runbook                 | Foundation correctness is verified once; no pgTAP/Vitest+Docker scope inflation inside the 4-week MVP budget.                | Plan   |
-| CI additions                     | `astro check` typecheck step only; no `db lint` job                                   | `supabase db lint` (CLI 2.101.0) requires a live DB and cannot statically lint SQL files. Booting Docker per PR or wiring a hosted-DB secret outweighs the marginal value for a small, frozen foundation migration. Type drift is the highest-value gate; `astro check` catches it. | Plan (revised during impl) |
+| Decision                       | Choice                                                                            | Why                                                                                                                                                                                                                                                                                 | Source                     |
+| ------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Skills column                  | Omitted; absorbed into `description`                                              | No querying or filtering on skills planned; one less column is one less invariant.                                                                                                                                                                                                  | Plan                       |
+| Salary representation          | Single free-form `text` column                                                    | No filtering or aggregation; parser output goes in verbatim.                                                                                                                                                                                                                        | Plan                       |
+| `work_mode` storage            | `text` + CHECK constraint (`Zdalna`, `Hybrydowa`, `Stacjonarna`)                  | Strict at write time, refactorable without `ALTER TYPE` pain.                                                                                                                                                                                                                       | Plan                       |
+| `status` storage               | `text` + CHECK (`Interesujące`, `Zaaplikowano`, `Rozmowa`)                        | Same convention as `work_mode`. Polish values stored verbatim — UI is a passthrough.                                                                                                                                                                                                | Plan                       |
+| Archive representation         | Nullable `archived_at timestamptz` column; status enum stays 3-value              | Preserves the active column at time of archive; clean read predicates; matches FR-017's read-only archive contract.                                                                                                                                                                 | Plan                       |
+| Note → parent timestamp update | `SECURITY DEFINER` function owned by `postgres`, called from AFTER INSERT trigger | Trigger must update parent row across RLS; SECURITY DEFINER is the standard pattern. RLS still gates the note insert itself.                                                                                                                                                        | Plan                       |
+| Zod placement                  | Ship in F-01 as `src/lib/validation/applications.ts`; no consumers until S-02     | Roadmap F-01 outcome names Zod schemas as part of the foundation; S-02 imports rather than defines.                                                                                                                                                                                 | Roadmap                    |
+| Verification                   | Lightweight: `db reset` + committed types + manual RLS/trigger runbook            | Foundation correctness is verified once; no pgTAP/Vitest+Docker scope inflation inside the 4-week MVP budget.                                                                                                                                                                       | Plan                       |
+| CI additions                   | `astro check` typecheck step only; no `db lint` job                               | `supabase db lint` (CLI 2.101.0) requires a live DB and cannot statically lint SQL files. Booting Docker per PR or wiring a hosted-DB secret outweighs the marginal value for a small, frozen foundation migration. Type drift is the highest-value gate; `astro check` catches it. | Plan (revised during impl) |
 
 ## Scope
 
 **In scope:**
+
 - Single SQL migration creating both tables with all columns, CHECK constraints, indexes
 - RLS enabled with four policies per table scoping to `auth.uid()`
 - SECURITY DEFINER trigger function + BEFORE UPDATE trigger on applications + AFTER INSERT trigger on application_notes
@@ -43,6 +44,7 @@ A developer runs `npm run db:reset` and gets a local Supabase instance with both
 - Manual verification runbook in plan
 
 **Out of scope:**
+
 - Any API endpoint (all S-02+)
 - Any UI (all S-01+)
 - pgTAP, Vitest, Playwright, or any test framework
@@ -85,11 +87,11 @@ App layer (this slice ships, S-02+ consumes):
 
 ## Phases at a Glance
 
-| Phase                                                        | What it delivers                                                              | Key risk                                                                              |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| 1. Schema migration with RLS and triggers                    | Tables, constraints, RLS, SECURITY DEFINER function, two triggers, config.toml | Trigger / RLS interaction wrong → silently broken `last_action_at` for note inserts   |
-| 2. Generated types, Zod write-shapes, npm scripts            | `database.types.ts`, Zod module, `db:reset` / `db:types` / `typecheck` scripts | Generated types drift from migration silently — closed by Phase 3 CI typecheck        |
-| 3. CI gate — typecheck step                                  | `npm run typecheck` step in the existing `ci` job catches type drift on every PR | Type errors that only surface at runtime (e.g., Polish-diacritic enum mishandling) are still uncaught — astro check is static |
+| Phase                                             | What it delivers                                                                 | Key risk                                                                                                                      |
+| ------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 1. Schema migration with RLS and triggers         | Tables, constraints, RLS, SECURITY DEFINER function, two triggers, config.toml   | Trigger / RLS interaction wrong → silently broken `last_action_at` for note inserts                                           |
+| 2. Generated types, Zod write-shapes, npm scripts | `database.types.ts`, Zod module, `db:reset` / `db:types` / `typecheck` scripts   | Generated types drift from migration silently — closed by Phase 3 CI typecheck                                                |
+| 3. CI gate — typecheck step                       | `npm run typecheck` step in the existing `ci` job catches type drift on every PR | Type errors that only surface at runtime (e.g., Polish-diacritic enum mishandling) are still uncaught — astro check is static |
 
 **Prerequisites:** Supabase CLI on the developer's machine (Docker required for `supabase start`); foundation auth (already in baseline).
 **Estimated effort:** ~1 focused session (3-5 hours) across the three phases. Phase 1 is the bulk; Phases 2 and 3 are mechanical.

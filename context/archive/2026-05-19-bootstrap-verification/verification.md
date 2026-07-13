@@ -39,10 +39,10 @@ JobTracker is a solo-built web app with a 4-week after-hours timeline requiring 
 
 ## Pre-scaffold verification
 
-| Signal      | Value                                          | Severity | Notes                                         |
-| ----------- | ---------------------------------------------- | -------- | --------------------------------------------- |
-| npm package | not run                                        | —        | git-clone strategy; cmd_template starts with `git clone`, npm check skipped |
-| GitHub repo | przeprogramowani/10x-astro-starter last pushed 2026-05-17 | fresh | from card.docs_url |
+| Signal      | Value                                                     | Severity | Notes                                                                       |
+| ----------- | --------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| npm package | not run                                                   | —        | git-clone strategy; cmd_template starts with `git clone`, npm check skipped |
+| GitHub repo | przeprogramowani/10x-astro-starter last pushed 2026-05-17 | fresh    | from card.docs_url                                                          |
 
 ## Scaffold log
 
@@ -75,11 +75,13 @@ None.
 #### MODERATE findings
 
 **Direct:**
+
 - **@astrojs/check** ≥0.9.3 — via `@astrojs/language-server` → `volar-service-yaml` → `yaml-language-server` → `yaml`. Fix: downgrade to `@astrojs/check@0.9.2` (semver-major).
 - **@astrojs/cloudflare** ≥12.2.4 — via `@cloudflare/vite-plugin` + `wrangler`. Fix: `@astrojs/cloudflare@12.6.13` (semver-major).
 - **wrangler** ≥3.108.0 — via `miniflare` → `ws`. Fix: `wrangler@3.107.3` (semver-major).
 
 **Transitive (log only):**
+
 - **@astrojs/language-server** ≥2.14.0 — via `volar-service-yaml`
 - **@cloudflare/vite-plugin** — via `miniflare` + `wrangler` + `ws`
 - **miniflare** — via `ws` (uninitialized memory disclosure in `ws` <8.20.1)
@@ -94,27 +96,28 @@ None.
 
 ## Hints recorded but not acted on
 
-| Hint                    | Value               |
-| ----------------------- | ------------------- |
-| bootstrapper_confidence | first-class         |
-| quality_override        | false               |
-| path_taken              | standard            |
-| self_check_answers      | null                |
-| team_size               | solo                |
-| deployment_target       | cloudflare-pages    |
-| ci_provider             | github-actions      |
+| Hint                    | Value                |
+| ----------------------- | -------------------- |
+| bootstrapper_confidence | first-class          |
+| quality_override        | false                |
+| path_taken              | standard             |
+| self_check_answers      | null                 |
+| team_size               | solo                 |
+| deployment_target       | cloudflare-pages     |
+| ci_provider             | github-actions       |
 | ci_default_flow         | auto-deploy-on-merge |
-| has_auth                | true                |
-| has_payments            | false               |
-| has_realtime            | false               |
-| has_ai                  | false               |
-| has_background_jobs     | false               |
+| has_auth                | true                 |
+| has_payments            | false                |
+| has_realtime            | false                |
+| has_ai                  | false                |
+| has_background_jobs     | false                |
 
 ## Next steps
 
 Next: a future skill will set up agent context (CLAUDE.md, AGENTS.md). For now, your project is scaffolded and verified — happy hacking.
 
 Useful manual steps in the meantime:
+
 - Review `CLAUDE.md` — the starter ships one; it will be updated by the agent-context skill later.
 - Configure Supabase: create a project at supabase.com, copy credentials into `.env` (see `.env.example`).
 - Configure Cloudflare: update `wrangler.jsonc` with your account/project details.

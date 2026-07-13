@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Kanban Status Transitions (S-05)
 
 - **Plan**: context/changes/kanban-status-transitions/plan.md
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | PASS |
-| Lean Execution | PASS |
-| Architectural Fitness | PASS |
-| Blind Spots | WARNING |
-| Plan Completeness | FAIL |
+| Dimension             | Verdict |
+| --------------------- | ------- |
+| End-State Alignment   | PASS    |
+| Lean Execution        | PASS    |
+| Architectural Fitness | PASS    |
+| Blind Spots           | WARNING |
+| Plan Completeness     | FAIL    |
 
 ## Grounding
 
@@ -48,7 +49,7 @@ Blast radius: `KanbanBoard.astro` consumed only by `dashboard.astro`; `KanbanCol
   - t=0 drag A from Interesujące → Zaaplikowano (PATCH-A in flight; snapshot1 = state-before-A)
   - t=1 drag B from Zaaplikowano → Rozmowa (PATCH-B in flight; snapshot2 = state-after-A, before-B)
   - t=2 PATCH-A rejects (e.g., slow Supabase 5xx) → `setApplications(snapshot1)` wipes BOTH A's move AND B's move, because snapshot1 predates B as well.
-  The user sees B's card silently teleport back to its original column with no banner about B at all, only the banner for A. PRD's single-user model justifies last-write-wins for tab-vs-tab; this is a different case.
+    The user sees B's card silently teleport back to its original column with no banner about B at all, only the banner for A. PRD's single-user model justifies last-write-wins for tab-vs-tab; this is a different case.
 - **Fix A ⭐ Recommended**: Single-flight — disable drag while a PATCH is in flight (`isMutating` flag); release on completion.
   - Strength: Trivial to add; one boolean; PRD's single-user model makes serializing drops acceptable UX. Mirrors `AddApplicationDialog`'s `submitting` flag (`AddApplicationDialog.tsx:51`).
   - Tradeoff: On slow networks the board feels less snappy; user perceives latency that optimistic UI would otherwise hide.

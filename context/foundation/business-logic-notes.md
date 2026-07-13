@@ -10,7 +10,7 @@ Aplikacja oblicza, które oferty wymagają follow-upu, porównując czas od osta
 
 ### Precyzja semantyczna `lastActionAt`
 
-Dokument definiuje wprost, co resetuje licznik: zapis notatki lub zmiana statusu. I równie wprost: co go *nie* resetuje — edycja pól (stanowisko, firma, opis, wynagrodzenie). To jest decyzja domenowa, nie techniczna. Poprawka literówki w nazwie firmy nie jest sygnałem, że użytkownik zadbał o ofertę. Zapis notatki z treścią follow-upu — już tak. Ta granica pokazuje, że twórca myślał o tym, co naprawdę oznacza „akcja" w kontekście job trackingu.
+Dokument definiuje wprost, co resetuje licznik: zapis notatki lub zmiana statusu. I równie wprost: co go _nie_ resetuje — edycja pól (stanowisko, firma, opis, wynagrodzenie). To jest decyzja domenowa, nie techniczna. Poprawka literówki w nazwie firmy nie jest sygnałem, że użytkownik zadbał o ofertę. Zapis notatki z treścią follow-upu — już tak. Ta granica pokazuje, że twórca myślał o tym, co naprawdę oznacza „akcja" w kontekście job trackingu.
 
 ### Progi zróżnicowane per status
 

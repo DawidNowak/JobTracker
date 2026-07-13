@@ -17,27 +17,29 @@ When the source field contains a recognized LinkedIn or JustJoinIT URL, a button
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-| --- | --- | --- | --- |
-| Fetch + parse strategy | Worker-side `fetch` + `HTMLRewriter` + regex on JJIT RSC payload | Deterministic, no third-party service, zero-dependency, fits Workers compressed-bundle budget. | Research |
-| `skills` field resolution | Prepend to description (`"Wymagane umiejętności: …"`) | Avoids a schema migration in this slice; round-trip editable enough for MVP; LinkedIn has no structured skills surface anyway. | Plan |
-| URL host whitelist | `*.linkedin.com` (any subdomain) + exact `justjoin.it` | Matches real-world LinkedIn variants (`pl.linkedin.com`, `comm/...`); deterministic jobId extraction bounds risk. | Plan |
-| JJIT salary normalization | Semicolon-joined, Polish contract labels (B2B, UoP, UZ, staż) | Preserves contract-type signal users care about; matches research's recommended format. | Plan |
-| Partial-result UX | Fill what's present; non-blocking amber inline message above form fields | Aligns with NFR "no silent garbage pre-fill"; user immediately sees what to complete manually. | Plan |
-| Button activation | Client + server share `recognize()`; button enabled only when it returns non-null | Honest affordance per FR-004 wording; one source of truth. | Plan |
-| Caching | None in MVP | User-initiated low-frequency action; metric doesn't measure latency; revisit if rate-limits bite. | Plan |
-| Request safety | 8s timeout via `AbortSignal.timeout()`, no rate limit, no body cap | Small known user base; isolate-local rate limit would be best-effort anyway; KV-backed limit is MVP overkill. | Plan |
-| LinkedIn failure rate | Accept 30–60% Worker-IP block rate; surface soft message | No paid proxy; PRD's graceful-fallback contract is load-bearing; JJIT carries the 80% metric. | Research |
+| Decision                  | Choice                                                                            | Why                                                                                                                            | Source   |
+| ------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| Fetch + parse strategy    | Worker-side `fetch` + `HTMLRewriter` + regex on JJIT RSC payload                  | Deterministic, no third-party service, zero-dependency, fits Workers compressed-bundle budget.                                 | Research |
+| `skills` field resolution | Prepend to description (`"Wymagane umiejętności: …"`)                             | Avoids a schema migration in this slice; round-trip editable enough for MVP; LinkedIn has no structured skills surface anyway. | Plan     |
+| URL host whitelist        | `*.linkedin.com` (any subdomain) + exact `justjoin.it`                            | Matches real-world LinkedIn variants (`pl.linkedin.com`, `comm/...`); deterministic jobId extraction bounds risk.              | Plan     |
+| JJIT salary normalization | Semicolon-joined, Polish contract labels (B2B, UoP, UZ, staż)                     | Preserves contract-type signal users care about; matches research's recommended format.                                        | Plan     |
+| Partial-result UX         | Fill what's present; non-blocking amber inline message above form fields          | Aligns with NFR "no silent garbage pre-fill"; user immediately sees what to complete manually.                                 | Plan     |
+| Button activation         | Client + server share `recognize()`; button enabled only when it returns non-null | Honest affordance per FR-004 wording; one source of truth.                                                                     | Plan     |
+| Caching                   | None in MVP                                                                       | User-initiated low-frequency action; metric doesn't measure latency; revisit if rate-limits bite.                              | Plan     |
+| Request safety            | 8s timeout via `AbortSignal.timeout()`, no rate limit, no body cap                | Small known user base; isolate-local rate limit would be best-effort anyway; KV-backed limit is MVP overkill.                  | Plan     |
+| LinkedIn failure rate     | Accept 30–60% Worker-IP block rate; surface soft message                          | No paid proxy; PRD's graceful-fallback contract is load-bearing; JJIT carries the 80% metric.                                  | Research |
 
 ## Scope
 
 **In scope:**
+
 - New `src/lib/parsers/` directory: pure `recognize()` utility + two portal parser modules + shared types.
 - New `POST /api/applications/parse` endpoint (cookie auth, Zod validation, soft-failure envelope).
 - One textbox + one button addition to `AddApplicationDialog.tsx` with parsing state + inline message.
 - Skills appended into description prefix when parser provides them (JJIT only).
 
 **Out of scope:**
+
 - No `skills` column migration.
 - No KV cache, no per-user rate limit, no response body cap, no retries.
 - No third-party scraping service, no headless browser, no paid proxy.
@@ -65,12 +67,12 @@ All upstream-fetch failures collapse to `status: "fetch_failed"` and HTTP 200 �
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Shared URL recognition + parse endpoint scaffold | `recognize()`, `applicationParseSchema`, `POST /api/applications/parse` with soft-failure envelope, both parsers stubbed | Getting the envelope shape wrong forces rework in both portal parsers + form |
-| 2. JustJoinIT parser | Real JJIT fetch + Flight chunk extraction + field mapping + salary normalization + skills-into-description | Locating the offer JSON inside concatenated Flight chunks is the one fragile step |
-| 3. LinkedIn parser | Guest-endpoint fetch + HTMLRewriter selectors + work_mode sniffer | HTTP 999 / authwall failure rate (~30–60% from Worker IPs); contract is graceful fallback, not high success |
-| 4. Form integration | Button + activation predicate + parsing state + partial-fill + inline amber message | Visual polish of the inline message; ensuring state resets between dialog opens |
+| Phase                                               | What it delivers                                                                                                         | Key risk                                                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 1. Shared URL recognition + parse endpoint scaffold | `recognize()`, `applicationParseSchema`, `POST /api/applications/parse` with soft-failure envelope, both parsers stubbed | Getting the envelope shape wrong forces rework in both portal parsers + form                                |
+| 2. JustJoinIT parser                                | Real JJIT fetch + Flight chunk extraction + field mapping + salary normalization + skills-into-description               | Locating the offer JSON inside concatenated Flight chunks is the one fragile step                           |
+| 3. LinkedIn parser                                  | Guest-endpoint fetch + HTMLRewriter selectors + work_mode sniffer                                                        | HTTP 999 / authwall failure rate (~30–60% from Worker IPs); contract is graceful fallback, not high success |
+| 4. Form integration                                 | Button + activation predicate + parsing state + partial-fill + inline amber message                                      | Visual polish of the inline message; ensuring state resets between dialog opens                             |
 
 **Prerequisites:** S-02 manual add shipped (✅ commit `b3ff36b` on master). Live JJIT and LinkedIn URLs available for manual testing.
 **Estimated effort:** ~2–3 sessions across 4 phases (1 + 2 + 3 + 4; phases 2 and 3 can be parallelized after phase 1).

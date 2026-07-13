@@ -22,7 +22,7 @@ What exists today (verified in repo):
 - AGENTS.md hard rule: "React components are only permitted when browser events, state, or hooks are required." The empty shell has zero interactivity, so the entire slice is `.astro` files.
 - AGENTS.md: "Use `cn()` from `@/lib/utils` for all class name merging." Verified at `src/lib/utils.ts`.
 - The current cosmic backdrop is heavy (`bg-cosmic` + three blurred orbs + radial star field). It is appropriate for marketing/auth pages; it will make a card-dense kanban hard to scan. **Decision:** drop it on authenticated app surfaces; keep it on the public `index.astro` and the auth pages.
-- The existing `Topbar.astro` is a *public-site* nav (shows Sign in / Sign up to anonymous users). It is the wrong shape for an authenticated app nav (which should show Tablica / Archiwum). Build a new `AppNav` rather than overloading `Topbar`.
+- The existing `Topbar.astro` is a _public-site_ nav (shows Sign in / Sign up to anonymous users). It is the wrong shape for an authenticated app nav (which should show Tablica / Archiwum). Build a new `AppNav` rather than overloading `Topbar`.
 - Roadmap S-01 outcome specifies "log in and see an empty 3-column board." Today's signin redirect (`/`) lands authenticated users on the public marketing page — a one-line change to `signin.ts` is the smallest fix that delivers the outcome, and it belongs in this slice since the slice owns the post-login landing surface.
 
 ## Desired End State
@@ -79,6 +79,7 @@ Introduce a new layout (`AppShell.astro`) and a new nav component (`AppNav.astro
 **Intent**: A thin layout for authenticated app pages. Composes `Layout.astro` (which carries `<head>`, global CSS, and the config-status `<Banner>`s) and renders `<AppNav />` above `<slot />` inside a neutral-themed page container. This is the visual home for `/dashboard` and `/archive`.
 
 **Contract**:
+
 - Props: `title?: string`, `activeNav: "tablica" | "archiwum"`. Both forwarded — `title` to `Layout`, `activeNav` to `AppNav`.
 - Renders structure: `<Layout title={title}><div class="min-h-screen bg-neutral-50"><AppNav activeNav={activeNav} /><main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"><slot /></main></div></Layout>`.
 - Uses plain neutral surface (`bg-neutral-50`) — no `bg-cosmic`, no blurred orbs. Cosmic theme stays on public/auth pages only.
@@ -90,6 +91,7 @@ Introduce a new layout (`AppShell.astro`) and a new nav component (`AppNav.astro
 **Intent**: The persistent top nav for authenticated pages. Renders the brand, the two primary links (Tablica → `/dashboard`, Archiwum → `/archive`), the signed-in user's email, and a signout form. Highlights the currently active link based on the `activeNav` prop.
 
 **Contract**:
+
 - Props: `activeNav: "tablica" | "archiwum"`.
 - Reads `Astro.locals.user` (typed `User | null` in `src/env.d.ts:3`). The middleware guarantees a non-null user at runtime on protected routes, but TypeScript can't infer that. Use a conditional render to satisfy the compiler — `{user && <span>{user.email}</span>}` — not a non-null assertion. Matches the pattern already in `src/components/Topbar.astro:8-9`.
 - Both nav links are real anchors to `/dashboard` and `/archive` (no `aria-disabled`, no `#`, no JS). Active link gets a distinct visual treatment (e.g., bolder text + a thin underline or accent border); the other gets a hover style. Uses `cn()` from `@/lib/utils` to merge class strings.
@@ -129,6 +131,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: A single column on the kanban board. Renders a Polish-language column title and an empty-state placeholder. Receives no children for now — slices S-02+ will render cards inside.
 
 **Contract**:
+
 - Props: `title: string` (the Polish status label, e.g., `"Interesujące"`).
 - Renders a column container with a header (`title`) and a body containing a muted empty-state message (e.g., `"Brak aplikacji"`). The column has a visible boundary (border + rounded corners) and sufficient min-height to read as a column even when empty.
 - No prop, no `<slot />`, no `+` button, no interactive controls in this slice. S-02 will introduce a `<slot />` together with an empty-state guard (e.g., `Astro.slots.has("default") ? <slot /> : <p>Brak aplikacji</p>`) so cards and the placeholder never render simultaneously. Keeping the slot out of S-01 avoids a footgun where S-02 forgets the guard.
@@ -141,6 +144,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: The three-column layout. Renders one `KanbanColumn` per active status in the order Interesujące → Zaaplikowano → Rozmowa.
 
 **Contract**:
+
 - No props.
 - Renders a horizontal flex/grid layout (3 columns on desktop, equal width). Uses Tailwind utility classes.
 - Imports the canonical status order constant if it makes the source readable; otherwise enumerates the three Polish labels inline (the values are stable per FR-007 and pinned in `src/lib/validation/applications.ts`'s `applicationStatusValues`). Either approach is acceptable; prefer reusing `applicationStatusValues` to avoid duplicate string literals.
@@ -152,6 +156,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: Swap the starter's placeholder hero card for the authenticated app shell + kanban board.
 
 **Contract**:
+
 - Replaces the existing body entirely. Renders `<AppShell title="Tablica" activeNav="tablica"><KanbanBoard /></AppShell>`.
 - Removes the previous `Layout.astro`-based markup, the `bg-cosmic` wrapper, the welcome card, and the inline signout form (signout now lives in `AppNav`).
 - `const { user } = Astro.locals;` line and the email reference are removed — `AppNav` reads it directly.
@@ -164,6 +169,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: Placeholder page so the `Archiwum` nav link is never broken. Same shell, "Wkrótce" body.
 
 **Contract**:
+
 - Renders `<AppShell title="Archiwum" activeNav="archiwum"><section>...placeholder...</section></AppShell>`.
 - Body content: a centered heading and a one-line note in Polish, e.g., heading `"Archiwum"` and copy `"Wkrótce. Pełna lista archiwalnych aplikacji pojawi się tutaj po wdrożeniu funkcji archiwizacji."` Use muted text styling.
 - No data fetching, no `<slot />`, no nav inside this page (the shell owns the nav).
@@ -175,6 +181,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: Extend `PROTECTED_ROUTES` so unauthenticated visits to `/archive` redirect to `/auth/signin`, same as `/dashboard`.
 
 **Contract**:
+
 - Edit one line: `const PROTECTED_ROUTES = ["/dashboard", "/archive"];`. Nothing else in the middleware changes.
 
 #### 6. Redirect signin success to the board
@@ -184,6 +191,7 @@ Compose `AppShell` + the new board components into `/dashboard`. Create `/archiv
 **Intent**: Land authenticated users on the board after signin, fulfilling roadmap S-01's "log in and see the board" outcome.
 
 **Contract**:
+
 - Change the final success redirect on line 19 from `context.redirect("/")` to `context.redirect("/dashboard")`. Nothing else in the file changes. Error redirects (lines 11, 16) stay pointing at `/auth/signin?error=…`. `signup.ts` and `signout.ts` are not modified — signup goes to `/auth/confirm-email`, signout to `/` (both correct).
 
 ### Success Criteria:

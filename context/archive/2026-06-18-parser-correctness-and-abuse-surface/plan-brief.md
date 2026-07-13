@@ -17,18 +17,18 @@ A two-pool Vitest setup runs parser unit tests under `@cloudflare/vitest-pool-wo
 
 ## Key Decisions Made
 
-| Decision                              | Choice                                                        | Why (1 sentence)                                                                                                       | Source   |
-| ------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
-| Hardening in scope?                   | Bundle hardening + tests                                       | Each hardening line ships with its own regression test, avoiding a follow-up change folder for ~10 lines of code        | Plan     |
-| Parser unit test runner               | Add `@cloudflare/vitest-pool-workers`                          | Native `HTMLRewriter` in-process; no cross-process `fetch`-stubbing dance; matches production runtime                   | Plan     |
-| Fixtures per portal                   | 3 (happy + field-missing + corrupted) = 6 total                | Covers all three status branches per portal with minimal maintenance burden                                             | Plan     |
-| Redirect policy                       | `redirect: "manual"` (3xx → throw → `fetch_failed`)            | Symmetry with the fail-closed posture; SSRF "redirect to internal" test passes trivially                                | Plan     |
-| JJIT slug interpolation               | Add `encodeURIComponent`                                       | Symmetry with LinkedIn parser; future-proof against any loosening of `recognize.ts:31` regex                            | Plan     |
-| Fixture capture procedure             | Manual `curl` + README documenting URL + date per file         | Versioned ground truth; a re-capture script would mask the drift the suite is designed to catch                         | Plan     |
-| Phase ordering                        | Infra → Risk #4 → Risk #1 → hardening regressions              | Cheapest signal lands first; fixtures only required once the workers pool is proven; hardening pairs with its test     | Plan     |
-| Scheduled drift canary                | Defer to test-plan §3 Phase 4 (CI quality-gate wiring)         | Phase 4 already owns the cron + GH Actions secret + LinkedIn-HTTP-999 question                                          | Plan     |
-| `recognize()` post-F3 narrowing       | Lock in as regression rows in the classifier table             | Documented as FIXED in `parser-driven-add/reviews/impl-review.md` F3; the table now guards against re-widening          | Research |
-| Test oracle for fixtures              | Hand-typed values read from the visible job page at capture     | Snapshot-against-self is the test-plan §2 anti-pattern for Risk #1                                                      | Research |
+| Decision                        | Choice                                                      | Why (1 sentence)                                                                                                   | Source   |
+| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- |
+| Hardening in scope?             | Bundle hardening + tests                                    | Each hardening line ships with its own regression test, avoiding a follow-up change folder for ~10 lines of code   | Plan     |
+| Parser unit test runner         | Add `@cloudflare/vitest-pool-workers`                       | Native `HTMLRewriter` in-process; no cross-process `fetch`-stubbing dance; matches production runtime              | Plan     |
+| Fixtures per portal             | 3 (happy + field-missing + corrupted) = 6 total             | Covers all three status branches per portal with minimal maintenance burden                                        | Plan     |
+| Redirect policy                 | `redirect: "manual"` (3xx → throw → `fetch_failed`)         | Symmetry with the fail-closed posture; SSRF "redirect to internal" test passes trivially                           | Plan     |
+| JJIT slug interpolation         | Add `encodeURIComponent`                                    | Symmetry with LinkedIn parser; future-proof against any loosening of `recognize.ts:31` regex                       | Plan     |
+| Fixture capture procedure       | Manual `curl` + README documenting URL + date per file      | Versioned ground truth; a re-capture script would mask the drift the suite is designed to catch                    | Plan     |
+| Phase ordering                  | Infra → Risk #4 → Risk #1 → hardening regressions           | Cheapest signal lands first; fixtures only required once the workers pool is proven; hardening pairs with its test | Plan     |
+| Scheduled drift canary          | Defer to test-plan §3 Phase 4 (CI quality-gate wiring)      | Phase 4 already owns the cron + GH Actions secret + LinkedIn-HTTP-999 question                                     | Plan     |
+| `recognize()` post-F3 narrowing | Lock in as regression rows in the classifier table          | Documented as FIXED in `parser-driven-add/reviews/impl-review.md` F3; the table now guards against re-widening     | Research |
+| Test oracle for fixtures        | Hand-typed values read from the visible job page at capture | Snapshot-against-self is the test-plan §2 anti-pattern for Risk #1                                                 | Research |
 
 ## Scope
 
@@ -59,12 +59,12 @@ Two-pool Vitest layout: **node project** runs Supabase integration + HTTP smoke 
 
 ## Phases at a Glance
 
-| Phase                                                  | What it delivers                                                                                                       | Key risk                                                                                              |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 1. Workers test pool infrastructure                    | `@cloudflare/vitest-pool-workers` added; vitest split into node + workers projects; one-line `HTMLRewriter` smoke test | pool-workers vs `@astrojs/cloudflare` v13.5 compatibility — risk-front-loaded by landing this first   |
-| 2. Risk #4 — `recognize()` classifier + endpoint SSRF  | Pure-function table + endpoint envelope test; `withFetchStub` helper                                                   | Endpoint test's "zero outbound" claim is structural (via `unsupported` envelope), not call-count-based |
-| 3. Risk #1 — fixture suite + parser tests              | 6 HTML fixtures + 3 parser test files + `resolveStatus` matrix test; `status.ts` extraction                            | Oracle integrity — values must be hand-typed from the visible page, not from parser output            |
-| 4. Defence-in-depth hardening + regression tests       | `redirect: "manual"`, `encodeURIComponent` on JJIT slug, parser-side input re-check; one regression test per change    | `redirect: "manual"` behaviour under workerd — needs to be verified by a stubbed-302 test             |
+| Phase                                                 | What it delivers                                                                                                       | Key risk                                                                                               |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1. Workers test pool infrastructure                   | `@cloudflare/vitest-pool-workers` added; vitest split into node + workers projects; one-line `HTMLRewriter` smoke test | pool-workers vs `@astrojs/cloudflare` v13.5 compatibility — risk-front-loaded by landing this first    |
+| 2. Risk #4 — `recognize()` classifier + endpoint SSRF | Pure-function table + endpoint envelope test; `withFetchStub` helper                                                   | Endpoint test's "zero outbound" claim is structural (via `unsupported` envelope), not call-count-based |
+| 3. Risk #1 — fixture suite + parser tests             | 6 HTML fixtures + 3 parser test files + `resolveStatus` matrix test; `status.ts` extraction                            | Oracle integrity — values must be hand-typed from the visible page, not from parser output             |
+| 4. Defence-in-depth hardening + regression tests      | `redirect: "manual"`, `encodeURIComponent` on JJIT slug, parser-side input re-check; one regression test per change    | `redirect: "manual"` behaviour under workerd — needs to be verified by a stubbed-302 test              |
 
 **Prerequisites:** Phase 1 + Phase 3 of the test rollout shipped (`testing-bootstrap-and-data-isolation` + HTTP smoke); local Supabase running for the HTTP suite; `@astrojs/cloudflare` v13.5 stays the build adapter.
 **Estimated effort:** ~3-4 sessions across 4 phases. Phase 1 is the smallest (infra wiring); Phase 3 is the largest (HTML capture + oracle writing per portal).
@@ -73,7 +73,7 @@ Two-pool Vitest layout: **node project** runs Supabase integration + HTTP smoke 
 
 - `@cloudflare/vitest-pool-workers` may have a compat issue with `@astrojs/cloudflare` v13.5 or vitest v3.2 — risk-front-loaded by Phase 1 (discovered before any fixture work).
 - `redirect: "manual"` under workerd may surface as `response.type === "opaqueredirect"` rather than a 3xx status — the redirect regression test will verify this empirically when written.
-- LinkedIn / JJIT will eventually change HTML enough to red the happy fixtures — this is the *signal* the suite is designed to produce, and the drift canary in test-plan §3 Phase 4 will catch it on a cron.
+- LinkedIn / JJIT will eventually change HTML enough to red the happy fixtures — this is the _signal_ the suite is designed to produce, and the drift canary in test-plan §3 Phase 4 will catch it on a cron.
 
 ## Success Criteria (Summary)
 

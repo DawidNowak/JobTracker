@@ -16,17 +16,18 @@ An authenticated user lands on `/dashboard` and sees a clean three-column board 
 
 ## Key Decisions Made
 
-| Decision                                | Choice                                          | Why (1 sentence)                                                                                                            | Source |
-| --------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Route names                             | `/dashboard` (board) + `/archive`                | Avoid churn — middleware redirects and signin success already point to `/dashboard`; English routes alongside Polish UI is an acceptable mild mismatch. | Plan   |
-| Archive link target                     | Stub page renders "Wkrótce" with same nav        | PRD wants the nav placement permanent and obvious; a broken/disabled link contradicts that, and a stub is one extra file.    | Plan   |
-| Visual theme for authenticated surfaces | Drop `bg-cosmic`; use plain neutral surface     | Cosmic backdrop will be unreadable on a dense kanban; keep cosmic on public/auth pages only.                                | Plan   |
-| Shell rendering                         | Pure Astro components (no React island in S-01) | AGENTS.md hard rule: React only when browser events/state/hooks are required; nothing in this slice qualifies.               | Plan   |
-| Auth ratification depth                 | Defer all DB-side auth verification to S-02     | User chose to skip the RLS smoke query in S-01; S-02 hits the DB for real and is the natural gate.                          | Plan   |
+| Decision                                | Choice                                          | Why (1 sentence)                                                                                                                                        | Source |
+| --------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Route names                             | `/dashboard` (board) + `/archive`               | Avoid churn — middleware redirects and signin success already point to `/dashboard`; English routes alongside Polish UI is an acceptable mild mismatch. | Plan   |
+| Archive link target                     | Stub page renders "Wkrótce" with same nav       | PRD wants the nav placement permanent and obvious; a broken/disabled link contradicts that, and a stub is one extra file.                               | Plan   |
+| Visual theme for authenticated surfaces | Drop `bg-cosmic`; use plain neutral surface     | Cosmic backdrop will be unreadable on a dense kanban; keep cosmic on public/auth pages only.                                                            | Plan   |
+| Shell rendering                         | Pure Astro components (no React island in S-01) | AGENTS.md hard rule: React only when browser events/state/hooks are required; nothing in this slice qualifies.                                          | Plan   |
+| Auth ratification depth                 | Defer all DB-side auth verification to S-02     | User chose to skip the RLS smoke query in S-01; S-02 hits the DB for real and is the natural gate.                                                      | Plan   |
 
 ## Scope
 
 **In scope:**
+
 - New `src/layouts/AppShell.astro` (authenticated layout with nav)
 - New `src/components/app/AppNav.astro` (top nav: brand, Tablica, Archiwum, email, Wyloguj)
 - New `src/components/board/KanbanBoard.astro` (3-column container)
@@ -36,6 +37,7 @@ An authenticated user lands on `/dashboard` and sees a clean three-column board 
 - Extend `PROTECTED_ROUTES` in `src/middleware.ts` to include `/archive`
 
 **Out of scope:**
+
 - Any data fetching, any call to `applications` or `application_notes`
 - Add (`+`) buttons, card components, drag, status transitions (S-02 / S-05)
 - Real archive list rendering (S-11)
@@ -58,10 +60,10 @@ Pure SSR Astro — no React, no client JS, no Supabase queries. Middleware adds 
 
 ## Phases at a Glance
 
-| Phase                              | What it delivers                                                                | Key risk                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1. Authenticated app shell         | `AppShell.astro` + `AppNav.astro` (not yet wired to routes)                     | Active-link styling inconsistent with Tailwind 4 conventions; mitigated by reusing `cn()`.     |
-| 2. Board + archive routes          | `dashboard.astro` swap, `archive.astro` stub, `KanbanBoard` + `KanbanColumn`, middleware update | Routes load auth user via middleware; if `Astro.locals.user` is `undefined`-typed, TS may complain — middleware guarantees it for protected routes. |
+| Phase                      | What it delivers                                                                                | Key risk                                                                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Authenticated app shell | `AppShell.astro` + `AppNav.astro` (not yet wired to routes)                                     | Active-link styling inconsistent with Tailwind 4 conventions; mitigated by reusing `cn()`.                                                          |
+| 2. Board + archive routes  | `dashboard.astro` swap, `archive.astro` stub, `KanbanBoard` + `KanbanColumn`, middleware update | Routes load auth user via middleware; if `Astro.locals.user` is `undefined`-typed, TS may complain — middleware guarantees it for protected routes. |
 
 **Prerequisites:** F-01 merged (it is, per `context/changes/applications-schema-and-rls/`). No env/config changes needed.
 **Estimated effort:** ~1 short session, 2 small commits.

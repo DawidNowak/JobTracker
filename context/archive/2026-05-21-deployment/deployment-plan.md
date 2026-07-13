@@ -9,6 +9,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 0 — Prerequisites & CLI Setup
 
 > **Current state** (verified 2026-05-21):
+>
 > - Node.js v24.15.0 ✅ | npm 11.12.1 ✅
 > - Wrangler: `package-lock.json` resolves to `4.93.0` but `node_modules` contains `3.107.3` — stale install
 > - Supabase CLI: `2.98.2` installed, minor update available (`2.100.1`)
@@ -17,37 +18,49 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 > - Supabase CLI auth: **not logged in**
 
 - [x] **0.1** Sync dependencies — node_modules is stale (wrangler 3.x installed, lock file pins 4.93.0):
+
   ```
   npm ci
   ```
+
   Verify after: `npx wrangler --version` should print `4.93.x`
 
 - [x] **0.2** Authenticate Wrangler with your Cloudflare account (browser OAuth):
+
   ```
   npx wrangler login
   ```
+
   A browser tab opens → log in → grant access. Confirm with:
+
   ```
   npx wrangler whoami
   ```
+
   Expected: `You are logged in with an OAuth Token, associated with the email <your@email>.`
 
   > **Edge case — no browser / headless env**: use an API token instead:
+  >
   > ```
   > set CLOUDFLARE_API_TOKEN=<your-token>
   > npx wrangler whoami
   > ```
+  >
   > The token must have `Workers Scripts:Edit` + `Account:Read` permissions.
 
 - [x] **0.3** Authenticate Supabase CLI (needed for region checks and project management):
+
   ```
   npx supabase login
   ```
+
   Paste your Supabase personal access token when prompted (dashboard → Account → Access Tokens).
   Confirm with:
+
   ```
   npx supabase projects list
   ```
+
   Expected: a table listing your Supabase projects with their regions.
 
   > **Note**: `.dev.vars` already holds `SUPABASE_URL` and `SUPABASE_KEY` for local Cloudflare dev — those are separate from the CLI login. The CLI login is only needed for management commands (region checks, migrations, etc.).
@@ -61,6 +74,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ---
 
 ## Phase 1 — Local Config Fixes
+
 > Changes to committed files before any deploy happens.
 
 - [x] **1.1** Rename Worker: edit `wrangler.jsonc`, change `"name"` from `"10x-astro-starter"` → `"job-tracker"`
@@ -75,14 +89,17 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ---
 
 ## Phase 2 — Local Workerd Smoke Test
+
 > Run the production-faithful runtime locally **before** touching any cloud resources.
 > Use `wrangler dev`, NOT `npm run dev` — they use different runtimes (workerd vs Node.js).
 
 - [x] **2.1** Create `.dev.vars` at project root (git-ignored) with real Supabase credentials:
+
   ```
   SUPABASE_URL=https://<your-project>.supabase.co
   SUPABASE_KEY=<your-anon-key>
   ```
+
   (Copy from Supabase dashboard → Settings → API)
 
 - [x] **2.2** Run `npm run build && npx wrangler dev` and manually test:
@@ -103,6 +120,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ---
 
 ## Phase 3 — Cloudflare Account Setup
+
 > One-time human steps (require a browser and a Cloudflare login).
 
 - [x] **3.1** Log into [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile → API Tokens → Create Token**
@@ -113,10 +131,12 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 - [x] **3.2** Copy your **Account ID** from the Cloudflare dashboard sidebar (shown on the Workers & Pages overview page)
 
 - [x] **3.3** Wire Worker secrets (run in terminal, interactive prompt for each value):
+
   ```
   npx wrangler secret put SUPABASE_URL
   npx wrangler secret put SUPABASE_KEY
   ```
+
   Verify with: `npx wrangler secret list`
   Expected output: two entries — `SUPABASE_URL` and `SUPABASE_KEY`
 
@@ -133,21 +153,26 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ---
 
 ## Phase 4 — First Manual Deploy
+
 > Verify the full build + deploy pipeline end-to-end before automating it.
 
 - [x] **4.1** Run:
+
   ```
   npm run build
   npx wrangler deploy
   ```
+
   Expected output: `Deployed job-tracker ... https://job-tracker.<your-subdomain>.workers.dev`
 
 - [x] **4.2** Visit the live URL in a browser. Run the same smoke-test checklist as Phase 2.2 (home, sign-up, sign-in, protected route, sign-out).
 
 - [x] **4.3** Check logs in real-time during smoke test:
+
   ```
   npx wrangler tail job-tracker --format json
   ```
+
   No errors should appear for the happy path.
 
 - [ ] **4.4** Disable Cloudflare Auto Minify (edge case — breaks React hydration):
@@ -158,6 +183,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ---
 
 ## Phase 5 — CI/CD Auto-Deploy via Cloudflare Git Integration
+
 > Connect the GitHub repo directly to Cloudflare so that every push to `master` triggers a build and deploy on Cloudflare's own infrastructure — no GitHub Actions secrets or `wrangler deploy` step needed.
 
 - [x] **5.1** In the Cloudflare dashboard → **Workers & Pages** → select (or create) `job-tracker` → **Settings** → **Build & Deployments** → **Connect to Git**
@@ -192,6 +218,7 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 ## Phase 6 — Post-Deploy Validation & Monitoring
 
 - [x] **6.1** Error log monitoring: run for 2 minutes after deploy, confirm no 5xx errors:
+
   ```
   npx wrangler tail job-tracker --status error
   ```
@@ -211,10 +238,10 @@ The JobTracker project is an Astro 6 SSR app with Supabase auth. The `@astrojs/c
 
 ## Critical Files
 
-| File | Change |
-|------|--------|
-| `wrangler.jsonc` | Rename `name` field |
-| `package.json` | Rename `name` field |
+| File                           | Change                       |
+| ------------------------------ | ---------------------------- |
+| `wrangler.jsonc`               | Rename `name` field          |
+| `package.json`                 | Rename `name` field          |
 | `.dev.vars` (new, git-ignored) | Local Cloudflare dev secrets |
 
 > `.github/workflows/ci.yml` does **not** need a deploy step — deployment is handled by Cloudflare's Git integration, not GitHub Actions.

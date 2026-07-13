@@ -17,17 +17,17 @@ A fresh agent session invokes the `e2e-browser` skill and, without consulting re
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Framing | Agent-assisted manual verification, not an e2e gate | Test plan dropped R2 deliberately; this automates the sanctioned manual check instead | Research |
-| Test user | Ephemeral via existing `provisionUser`; no seed user | Established convention; cascade cleanup; no state drift | Research |
-| Auth mechanism | Cookie injection (primary unless spike fixes sign-in) | UI sign-in fails under `astro dev`; helper output is byte-compatible with middleware | Research |
-| Empirical unknowns | Spike phase in this change (injection trial + `wrangler dev` check) | Playbook ships battle-tested, not hypothetical | Plan |
-| Sign-in bug | **In scope**: diagnose to root cause during spike; fix only if contained | If fixed cheaply, the playbook collapses to real form sign-in — higher fidelity forever | Plan |
-| MCP config | Promote to `.mcp.json` as `playwright` (fix typo); remove user-scoped duplicate | Repo-durable capability; existing `mcp__playwright` wildcard permission already covers the renamed server | Plan |
-| Script shape | Standalone `scripts/e2e-session.ts` via `tsx` (new devDep) | Talks only to Supabase — no `.dev.vars` swap, no test-harness startup | Plan |
-| Runtime target | `astro dev` primary; `wrangler dev` documented variant | Fast everyday loop plus the production-faithful path the smoke checklist needs | Plan |
-| Skill scope | Full session playbook (prereqs → bootstrap → seeding → verify → teardown + gotchas) | The whole point is "stop re-deriving the flow each session" | Plan |
+| Decision           | Choice                                                                              | Why (1 sentence)                                                                                          | Source   |
+| ------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------- |
+| Framing            | Agent-assisted manual verification, not an e2e gate                                 | Test plan dropped R2 deliberately; this automates the sanctioned manual check instead                     | Research |
+| Test user          | Ephemeral via existing `provisionUser`; no seed user                                | Established convention; cascade cleanup; no state drift                                                   | Research |
+| Auth mechanism     | Cookie injection (primary unless spike fixes sign-in)                               | UI sign-in fails under `astro dev`; helper output is byte-compatible with middleware                      | Research |
+| Empirical unknowns | Spike phase in this change (injection trial + `wrangler dev` check)                 | Playbook ships battle-tested, not hypothetical                                                            | Plan     |
+| Sign-in bug        | **In scope**: diagnose to root cause during spike; fix only if contained            | If fixed cheaply, the playbook collapses to real form sign-in — higher fidelity forever                   | Plan     |
+| MCP config         | Promote to `.mcp.json` as `playwright` (fix typo); remove user-scoped duplicate     | Repo-durable capability; existing `mcp__playwright` wildcard permission already covers the renamed server | Plan     |
+| Script shape       | Standalone `scripts/e2e-session.ts` via `tsx` (new devDep)                          | Talks only to Supabase — no `.dev.vars` swap, no test-harness startup                                     | Plan     |
+| Runtime target     | `astro dev` primary; `wrangler dev` documented variant                              | Fast everyday loop plus the production-faithful path the smoke checklist needs                            | Plan     |
+| Skill scope        | Full session playbook (prereqs → bootstrap → seeding → verify → teardown + gotchas) | The whole point is "stop re-deriving the flow each session"                                               | Plan     |
 
 ## Scope
 
@@ -41,12 +41,12 @@ Sequenced so each phase feeds the next: promote the MCP server first (later work
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. MCP server promotion | Repo-durable `playwright` server, clean permissions | Mid-session tool-prefix change requires a restart |
-| 2. Session bootstrap script | One command → user + cookies (+ seeded board state) | Path-alias/env resolution outside the test harness |
-| 3. Spike | Verified answers to injection / sign-in bug / `wrangler dev` | Sign-in diagnosis is open-ended; fix only if contained |
-| 4. Playbook + docs | `e2e-browser` skill, README section, test-plan refresh | Skill encodes a flow that drifts as routes/helpers evolve |
+| Phase                       | What it delivers                                             | Key risk                                                  |
+| --------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| 1. MCP server promotion     | Repo-durable `playwright` server, clean permissions          | Mid-session tool-prefix change requires a restart         |
+| 2. Session bootstrap script | One command → user + cookies (+ seeded board state)          | Path-alias/env resolution outside the test harness        |
+| 3. Spike                    | Verified answers to injection / sign-in bug / `wrangler dev` | Sign-in diagnosis is open-ended; fix only if contained    |
+| 4. Playbook + docs          | `e2e-browser` skill, README section, test-plan refresh       | Skill encodes a flow that drifts as routes/helpers evolve |
 
 **Prerequisites:** local Supabase stack (`npx supabase start`), populated `.env.test`, session restart after Phase 1.
 **Estimated effort:** ~2 sessions — Phases 1–2 in one, the spike + docs in another (spike needs live stack + browser).

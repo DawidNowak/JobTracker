@@ -117,6 +117,7 @@ A standalone script that provisions an ephemeral user and prints everything a br
 **Intent**: One command that yields an authenticated session's ingredients. Loads `.env.test` via `dotenv`, hard-asserts `SUPABASE_URL` is the local stack (mirror `tests/setup.ts` — this script wields the service-role key), then reuses the existing helpers.
 
 **Contract**: Three modes, dispatched on argv:
+
 - default — `provisionUser(createAdminClient())` + `signInAndCaptureCookies(email, password)`; prints userId, email, password, and the cookie pairs (both as a single `Cookie:` header string and as one `name=value` per line for `document.cookie` injection).
 - `--seed <n>` — additionally inserts `n` application rows for the new user via `tests/helpers/seed.ts` `seedApplication`, so the board has state to verify against.
 - `--cleanup <userId>` — `cleanupUser(admin, userId)`; cascade wipes the user's rows.
@@ -217,6 +218,7 @@ Encode the verified flow into a project skill and promote the private-memory kno
 **Intent**: The full session playbook, written from Phase 3's verified facts. Follows the `blocker-resolved` skill shape (frontmatter with name + invocation-trigger description; numbered steps; explicit edge cases; related-docs links).
 
 **Contract**: Must cover, in order:
+
 - **Framing**: agent-assisted manual verification, not an e2e gate (link `test-plan.md` dropped R2).
 - **Prerequisites**: `npx supabase status` (else `start`), `.env.test` populated, no concurrent `npm test` (`.dev.vars` race).
 - **Primary flow** (branch on spike outcome): start `npm run dev` in background, `npm run e2e:session [-- --seed <n>]`, then either form sign-in (if B fixed it) or cookie injection (exact verified steps from Experiment A).

@@ -272,6 +272,7 @@ Three small parser-internal changes, each shipped with a regression test that re
 **Files**: `tests/unit/parsers/linkedin.test.ts`, `tests/unit/parsers/justjoinit.test.ts` (extend existing files from phase 3)
 
 **Intent**: Three new `it` blocks per portal:
+
 - Redirect test: stub `fetch` to return `new Response(null, { status: 302, headers: { Location: "https://example.com/" } })`; assert parser throws.
 - Input re-check test: call `parseLinkedIn("not-a-jobid")` / `parseJustJoinIT("Not-A-Slug!")` directly; assert throws **without** any `fetch` call (`expect(fetch).not.toHaveBeenCalled()`).
 - (JJIT only) Slug encoding test: call `parseJustJoinIT("valid-slug-123")` with the regex check disabled (by passing in a slug containing a `/` via a temporary direct call after mutating the regex to allow it — alternatively, assert the URL passed to `fetch` via a stub spy contains `encodeURIComponent`'d form for an edge-case input). Simpler approach: assert `fetch.mock.calls[0][0]` matches `https://justjoin.it/job-offer/valid-slug-123` for the happy path AND that an explicit `parseJustJoinIT("a%2Fb")` would not interpolate raw `/` (verify via stub spy).

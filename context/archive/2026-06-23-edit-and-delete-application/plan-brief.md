@@ -16,14 +16,14 @@ Every kanban card shows a kebab (⋮) menu with **Edytuj** and **Usuń**. Edit o
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Card action trigger | 3-dot dropdown menu | Clean, extensible, isolates click from drag listeners | Plan |
-| Edit form | Extract shared `ApplicationForm` | Single source of truth for fields across add + edit | Plan |
-| Update API shape | Unify PATCH onto `applicationUpdateSchema` | One handler serves drag-drop `{status}` and full edits; schema already exists | Plan |
-| Delete confirmation | Column-aware text, one dialog | Matches FR-006/FR-016 wording exactly | Frame (PRD) |
-| Edit scope | All create fields, no status, no-op save allowed | Excluding status keeps `last_action_at` intact via existing trigger | Plan |
-| Test coverage | Service + API integration incl. RLS isolation | Protects the PRD data-isolation guardrail | Frame (PRD) |
+| Decision            | Choice                                           | Why (1 sentence)                                                              | Source      |
+| ------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------- | ----------- |
+| Card action trigger | 3-dot dropdown menu                              | Clean, extensible, isolates click from drag listeners                         | Plan        |
+| Edit form           | Extract shared `ApplicationForm`                 | Single source of truth for fields across add + edit                           | Plan        |
+| Update API shape    | Unify PATCH onto `applicationUpdateSchema`       | One handler serves drag-drop `{status}` and full edits; schema already exists | Plan        |
+| Delete confirmation | Column-aware text, one dialog                    | Matches FR-006/FR-016 wording exactly                                         | Frame (PRD) |
+| Edit scope          | All create fields, no status, no-op save allowed | Excluding status keeps `last_action_at` intact via existing trigger           | Plan        |
+| Test coverage       | Service + API integration incl. RLS isolation    | Protects the PRD data-isolation guardrail                                     | Frame (PRD) |
 
 ## Scope
 
@@ -37,11 +37,11 @@ Bottom-up: (1) add `updateApplication`/`deleteApplication` services and extend `
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Backend | Update/delete services, route handlers, RLS tests | Unifying PATCH must not break drag-drop status path |
-| 2. Shared form | `ApplicationForm` extracted, Add refactored | Regression to working create flow |
-| 3. Edit/delete UI | Kebab menu, edit + delete dialogs | Menu trigger vs dnd-kit drag listeners; overlay must hide menu |
+| Phase             | What it delivers                                  | Key risk                                                       |
+| ----------------- | ------------------------------------------------- | -------------------------------------------------------------- |
+| 1. Backend        | Update/delete services, route handlers, RLS tests | Unifying PATCH must not break drag-drop status path            |
+| 2. Shared form    | `ApplicationForm` extracted, Add refactored       | Regression to working create flow                              |
+| 3. Edit/delete UI | Kebab menu, edit + delete dialogs                 | Menu trigger vs dnd-kit drag listeners; overlay must hide menu |
 
 **Prerequisites:** none (no migration). Phase 3 needs `npx shadcn add dropdown-menu alert-dialog`.
 **Estimated effort:** ~2-3 sessions across 3 phases.

@@ -97,6 +97,7 @@ Make the board read cards from the database. Add a server-side query to `dashboa
 **Intent**: Fetch the signed-in user's active applications, group them by status, and pass the groups into `KanbanBoard`. RLS handles per-user isolation; the query just needs to filter out archived rows and order by `created_at desc`.
 
 **Contract**:
+
 - Import the per-request Supabase client; call it with `Astro.request.headers` and `Astro.cookies`. Middleware guarantees `Astro.locals.user` is set on `/dashboard`, but if `supabase` is `null` (env not configured) the page should render an empty board rather than crash — match the existing helper-null pattern used by the auth pages.
 - Call `listActiveApplications(supabase)` from `src/lib/services/applications.ts` (defined in § 6). No direct `supabase.from(...)` call in the frontmatter — the service owns the query.
 - Group the returned rows in the Astro frontmatter into a `Record<ApplicationStatus, ApplicationRow[]>` keyed by the three `applicationStatusValues`. Pass the map into `<KanbanBoard applications={...} />`.
@@ -110,6 +111,7 @@ Make the board read cards from the database. Add a server-side query to `dashboa
 **Intent**: Forward each status's slice of the applications array into its `KanbanColumn`, plus the header-action slot for the addable columns.
 
 **Contract**:
+
 - Props: `applications: Record<ApplicationStatus, ApplicationRow[]>`. Import `ApplicationStatus` from `@/lib/validation/applications`; import the `Row` type from `@/lib/database.types` (`Database['public']['Tables']['applications']['Row']`) and re-export a local alias if convenient.
 - For each status in `applicationStatusValues`, render `<KanbanColumn title={status} applications={applications[status]} />`. For Interesujące and Zaaplikowano, also render the `+` trigger inside the column's header-action slot (Phase 3 wires the actual React component; in Phase 1 the slot is unused — Interesujące and Zaaplikowano render no header action yet).
 - Status order remains Interesujące → Zaaplikowano → Rozmowa.
@@ -121,6 +123,7 @@ Make the board read cards from the database. Add a server-side query to `dashboa
 **Intent**: Replace the hard-coded "Brak aplikacji" body with a slot-based body that shows cards when provided and the empty-state placeholder when not. Add a named slot in the header for the `+` trigger.
 
 **Contract**:
+
 - Props: `title: string`, `applications: ApplicationRow[]`. The `applications` prop drives both the empty-state guard and the card rendering — `applications.length === 0` → show the muted "Brak aplikacji" placeholder; otherwise iterate and render `<KanbanCard application={app} />` for each row.
 - Header structure: title on the left, `<slot name="header-action" />` on the right. The slot is optional — when no content is passed, no element renders (avoid empty wrapper divs that would leave hover affordances on Rozmowa).
 - Card list uses `flex flex-col gap-2` inside the column body, padding `p-3`. Empty-state styling stays as today (muted, centered).
@@ -133,6 +136,7 @@ Make the board read cards from the database. Add a server-side query to `dashboa
 **Intent**: Server-rendered card surface for a single application. No interactivity (S-03 introduces it).
 
 **Contract**:
+
 - Props: `application: ApplicationRow`.
 - Layout — vertical stack:
   1. Company in bold (e.g., `text-sm font-semibold text-neutral-900`). When `company` is null, fall back to `"—"` (a single em-dash placeholder) so layout doesn't collapse.
@@ -157,6 +161,7 @@ Make the board read cards from the database. Add a server-side query to `dashboa
 **Intent**: Single home for `applications`-table queries, per AGENTS.md (`src/lib/services/ — functions that query Supabase or orchestrate domain operations`). Owns both the read used by `dashboard.astro` (Phase 1 § 1) and the write used by `POST /api/applications` (Phase 2 § 1). S-03/S-04/S-05/S-10/S-11 will extend this module; this slice seeds it with two functions.
 
 **Contract**:
+
 - Imports: a `SupabaseClient` type alias (`type SupabaseClient = NonNullable<ReturnType<typeof createClient>>` — keeps `createClient`'s null branch where it belongs at the call sites). Import `Database['public']['Tables']['applications']['Row']` as `ApplicationRow` (matches § 5) and `ApplicationCreate` from `@/lib/validation/applications`.
 - `export async function listActiveApplications(supabase: SupabaseClient): Promise<ApplicationRow[]>` — runs `supabase.from('applications').select('*').is('archived_at', null).order('created_at', { ascending: false })`. RLS adds the `user_id` predicate. Throw or return `[]` on error — implementer's call, but stay consistent with how `dashboard.astro` consumes it.
 - `export async function createApplication(supabase: SupabaseClient, input: ApplicationCreate, userId: string): Promise<ApplicationRow>` — runs `supabase.from('applications').insert({ ...input, user_id: userId }).select('*').single()`. Throw on DB error; let the API route turn it into the JSON envelope.
@@ -197,6 +202,7 @@ Introduce the first domain API route. Validates input with `applicationCreateSch
 **Intent**: Accept JSON `POST` payloads, validate against `applicationCreateSchema`, persist with `user_id` from the session, return the new row on success or a field-keyed error map on validation failure.
 
 **Contract**:
+
 - `export const prerender = false;` (AGENTS.md hard rule for API routes).
 - `export const POST: APIRoute = async (context) => { ... }` — uppercase handler name (AGENTS.md).
 - Read body as JSON: `const body = await context.request.json();`. On parse failure (malformed JSON), return `400 { error: 'Invalid JSON body.' }`.
@@ -257,6 +263,7 @@ Install the shadcn primitives needed for the form. Build the React island that o
 **Intent**: Owns the open/close state of the modal, the form state for all eight fields, the submit handler that POSTs JSON, the field-level error map, and the banner state for non-422 errors. Renders the trigger button alongside the dialog so a parent only needs to drop one component per column.
 
 **Contract**:
+
 - Props: `targetStatus: 'Interesujące' | 'Zaaplikowano'` (typed via `import type { ApplicationStatus } from '@/lib/validation/applications'` with a narrowing). Optional `triggerLabel` defaulting to a `+` icon (`Plus` from lucide-react).
 - Local state via `useState`:
   - `open: boolean` — modal visibility.
@@ -287,6 +294,7 @@ Install the shadcn primitives needed for the form. Build the React island that o
 **Intent**: Mount the dialog component once per addable column, passing the correct `targetStatus`. The component renders both the trigger button and the modal; the trigger sits inside `KanbanColumn`'s `header-action` slot.
 
 **Contract**:
+
 - Inside the `applicationStatusValues.map(...)`, render the column. For Interesujące and Zaaplikowano, also render `<AddApplicationDialog client:load targetStatus={status} slot="header-action" />` as a child of `<KanbanColumn>`. For Rozmowa, skip the dialog entirely.
 - Use `client:load` (not `client:idle` or `client:visible`) so the dialog is interactive immediately after the page paints. The component is small; load cost is negligible.
 - The `slot="header-action"` attribute hooks into the named slot defined in Phase 1's `KanbanColumn.astro` change.

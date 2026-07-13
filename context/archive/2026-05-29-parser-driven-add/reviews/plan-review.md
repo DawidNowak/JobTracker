@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Parser-driven add
 
 - **Plan**: context/changes/parser-driven-add/plan.md
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | PASS |
-| Lean Execution | PASS |
-| Architectural Fitness | PASS |
-| Blind Spots | WARNING |
-| Plan Completeness | WARNING |
+| Dimension             | Verdict |
+| --------------------- | ------- |
+| End-State Alignment   | PASS    |
+| Lean Execution        | PASS    |
+| Architectural Fitness | PASS    |
+| Blind Spots           | WARNING |
+| Plan Completeness     | WARNING |
 
 ## Grounding
 
@@ -29,7 +30,7 @@
 - **Impact**: 🔬 HIGH — architectural stakes; think carefully before deciding
 - **Dimension**: Plan Completeness / Blind Spots
 - **Location**: Phase 2 — Implementation Approach (§"Find the offer object")
-- **Detail**: Plan says "locate the smallest balanced JSON object substring containing both `\"title\"` and `\"workplace_type\"` keys; JSON.parse it." Research §line 151 also only prose-describes this. The brief itself flags this as Phase 2's "one fragile step", yet plan supplies a code snippet for the *other* tricky bit (Flight chunk extraction) while leaving this prose-only. A naive brace counter that ignores JSON string-literal context will mis-close on `{`/`}` characters inside string values (HTML `body`, arbitrary description text). Failure mode is silent: wrong-but-parseable substring → `JSON.parse` succeeds → `ParseResult` returns wrong fields → endpoint returns `status: "ok"` with garbage. The endpoint catch-all only saves us if parsing throws.
+- **Detail**: Plan says "locate the smallest balanced JSON object substring containing both `\"title\"` and `\"workplace_type\"` keys; JSON.parse it." Research §line 151 also only prose-describes this. The brief itself flags this as Phase 2's "one fragile step", yet plan supplies a code snippet for the _other_ tricky bit (Flight chunk extraction) while leaving this prose-only. A naive brace counter that ignores JSON string-literal context will mis-close on `{`/`}` characters inside string values (HTML `body`, arbitrary description text). Failure mode is silent: wrong-but-parseable substring → `JSON.parse` succeeds → `ParseResult` returns wrong fields → endpoint returns `status: "ok"` with garbage. The endpoint catch-all only saves us if parsing throws.
 - **Fix A ⭐ Recommended**: Specify the algorithm in the plan
   - Approach: Document a string-aware brace counter — scan backward from `"title"` index for the enclosing `{`, walk forward tracking depth while respecting JSON string state (`"`, `\\"`, `\\\\`). Stop at depth zero. Validate captured object contains both keys before `JSON.parse`.
   - Strength: Deterministic and testable; matches what the success criterion implicitly demands. Implementer doesn't have to invent it under pressure.

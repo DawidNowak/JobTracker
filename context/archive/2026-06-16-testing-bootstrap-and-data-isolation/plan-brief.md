@@ -17,21 +17,22 @@ After this plan ships, a contributor runs `npx supabase start && npm test` and s
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-|---|---|---|---|
-| Test runner | Vitest with `getViteConfig` from `astro/config`, Node pool | Canonical Astro setup; inherits Cloudflare adapter + `astro:env/server` for free; no `HTMLRewriter` modules under test in Phase 1 | Research |
-| Endpoint drive path | PostgREST (B) + thin HTTP smoke (A) | Covers Risk #2 at the SQL row level (no mocking) AND locks the 404-collapse existence-leak invariant cheaply | Plan |
-| Coverage scope | Minimal must-have (~7 cases) | Smallest surface that proves Risk #2 + F-01 regression + anon smoke; balanced matrix and trigger-chain tests are deferred to rollout Phase 3 | Plan |
-| Service-role key location | `.env.test` (git-ignored) + `tests/setup.ts` hard guard on `127.0.0.1` | Clear separation from `.dev.vars`; setup guard refuses to construct admin client against non-local URL | Plan |
-| Test user lifecycle | Per-test ephemeral users with `crypto.randomUUID()` emails | Supabase-recommended; `ON DELETE CASCADE` from `auth.users` makes teardown one call per user; survives `--watch` cleanly | Research |
-| `AGENTS.md` revision | Concrete contract: name runner + location + no-mock + no-SR-commit rules | AI agents read AGENTS.md hard-rules; load-bearing rules go where they get enforced | Plan |
-| CI wiring | Deferred to Phase 4 | Matches test plan §3 phase split; keeps Phase 1 footprint reviewable | Plan |
-| `@cloudflare/vitest-pool-workers` | Deferred to Phase 2 | Only `HTMLRewriter` (parsers) needs it; adding now is wasted churn until parser tests exist | Research |
-| Two-client pattern | Always two `supabase-js` clients per user, both `persistSession: false` | Sharing storage between admin + user clients caused real flakiness in the wild | Research |
+| Decision                          | Choice                                                                   | Why                                                                                                                                          | Source   |
+| --------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Test runner                       | Vitest with `getViteConfig` from `astro/config`, Node pool               | Canonical Astro setup; inherits Cloudflare adapter + `astro:env/server` for free; no `HTMLRewriter` modules under test in Phase 1            | Research |
+| Endpoint drive path               | PostgREST (B) + thin HTTP smoke (A)                                      | Covers Risk #2 at the SQL row level (no mocking) AND locks the 404-collapse existence-leak invariant cheaply                                 | Plan     |
+| Coverage scope                    | Minimal must-have (~7 cases)                                             | Smallest surface that proves Risk #2 + F-01 regression + anon smoke; balanced matrix and trigger-chain tests are deferred to rollout Phase 3 | Plan     |
+| Service-role key location         | `.env.test` (git-ignored) + `tests/setup.ts` hard guard on `127.0.0.1`   | Clear separation from `.dev.vars`; setup guard refuses to construct admin client against non-local URL                                       | Plan     |
+| Test user lifecycle               | Per-test ephemeral users with `crypto.randomUUID()` emails               | Supabase-recommended; `ON DELETE CASCADE` from `auth.users` makes teardown one call per user; survives `--watch` cleanly                     | Research |
+| `AGENTS.md` revision              | Concrete contract: name runner + location + no-mock + no-SR-commit rules | AI agents read AGENTS.md hard-rules; load-bearing rules go where they get enforced                                                           | Plan     |
+| CI wiring                         | Deferred to Phase 4                                                      | Matches test plan §3 phase split; keeps Phase 1 footprint reviewable                                                                         | Plan     |
+| `@cloudflare/vitest-pool-workers` | Deferred to Phase 2                                                      | Only `HTMLRewriter` (parsers) needs it; adding now is wasted churn until parser tests exist                                                  | Research |
+| Two-client pattern                | Always two `supabase-js` clients per user, both `persistSession: false`  | Sharing storage between admin + user clients caused real flakiness in the wild                                                               | Research |
 
 ## Scope
 
 **In scope:**
+
 - Vitest + helpers + `.env.test` flow + setup guard
 - Cross-user negative cases on both `applications` and `application_notes` (SELECT/UPDATE/DELETE)
 - F-01 regression test (B inserts note pointing at A's app → policy violation)
@@ -40,6 +41,7 @@ After this plan ships, a contributor runs `npx supabase start && npm test` and s
 - `AGENTS.md` and `README.md` doc updates
 
 **Out of scope:**
+
 - CI integration (Phase 4 of the rollout)
 - `@cloudflare/vitest-pool-workers` (Phase 2)
 - Parser tests, fixtures, URL allowlist tests (Phase 2)
@@ -77,11 +79,11 @@ The harness drives a real local Postgres via two anon `supabase-js` clients per 
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-|---|---|---|
-| 1. Test bootstrap | `vitest.config.ts`, `tests/setup.ts` with no-leak guard, helpers, `.env.test` + `.env.example` + `.gitignore`, `AGENTS.md` + `README.md` rewrites, `npm test` script | The guard message must be obvious enough that a misconfigured contributor diagnoses it without reading source |
-| 2. PostgREST isolation suite | 4 files, ~7 tests: cross-user SELECT/UPDATE/DELETE on both tables + F-01 attack + anon smoke | "Test passes by coincidence" — manual mutation check (drop a policy, see the test go red) is the antidote |
-| 3. HTTP smoke (thin Option A) | Programmatic `astro dev` lifecycle, cookie-jar helper, 401 + 404-collapse + 200 tests on POST/PATCH | Process management for `astro dev` (port binding, clean teardown, watch-mode survival) |
+| Phase                         | What it delivers                                                                                                                                                     | Key risk                                                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1. Test bootstrap             | `vitest.config.ts`, `tests/setup.ts` with no-leak guard, helpers, `.env.test` + `.env.example` + `.gitignore`, `AGENTS.md` + `README.md` rewrites, `npm test` script | The guard message must be obvious enough that a misconfigured contributor diagnoses it without reading source |
+| 2. PostgREST isolation suite  | 4 files, ~7 tests: cross-user SELECT/UPDATE/DELETE on both tables + F-01 attack + anon smoke                                                                         | "Test passes by coincidence" — manual mutation check (drop a policy, see the test go red) is the antidote     |
+| 3. HTTP smoke (thin Option A) | Programmatic `astro dev` lifecycle, cookie-jar helper, 401 + 404-collapse + 200 tests on POST/PATCH                                                                  | Process management for `astro dev` (port binding, clean teardown, watch-mode survival)                        |
 
 **Prerequisites:** `npx supabase start` must work locally (Docker required); `supabase@^2.101.0` is already installed.
 **Estimated effort:** ~1–2 focused sessions across the 3 phases. Each phase is independently shippable.

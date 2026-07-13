@@ -24,6 +24,7 @@ last_updated_by: Dawid Nowak
 How should the S-04 ("parser-driven add") slice fetch and parse a pasted job-posting URL from LinkedIn and JustJoinIT, given the locked constraints: deterministic only (no LLM at parse time), no paid scraping service, running on the Cloudflare Workers edge runtime (`@astrojs/cloudflare`), and gracefully degrading to manual entry when extraction fails (per FR-004 / NFR)?
 
 Concrete test URLs supplied by the user:
+
 - JJIT: `https://justjoin.it/job-offer/skywise-senior-net-backend-developer-gdansk-net`
 - LinkedIn: `https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4399262456`
 
@@ -55,16 +56,17 @@ The S-02 manual add path shipped on `master` (commit `b3ff36b`) and is the host 
 
 **jobId extraction** — every LinkedIn URL maps to a numeric `jobId`. Surfaces in the wild:
 
-| Pattern | Where jobId lives |
-|---|---|
-| `/jobs/view/{id}` | path segment |
-| `/jobs/view/{slug-with-id-at-end}` | trailing digits in slug |
+| Pattern                                            | Where jobId lives                     |
+| -------------------------------------------------- | ------------------------------------- |
+| `/jobs/view/{id}`                                  | path segment                          |
+| `/jobs/view/{slug-with-id-at-end}`                 | trailing digits in slug               |
 | `/jobs/collections/recommended/?currentJobId={id}` | `currentJobId` query (user's example) |
-| `/jobs/search/?currentJobId={id}` | `currentJobId` query |
-| `/comm/jobs/view/{id}` | path segment |
-| `/jobs/view/?refId=...&currentJobId={id}` | `currentJobId` query |
+| `/jobs/search/?currentJobId={id}`                  | `currentJobId` query                  |
+| `/comm/jobs/view/{id}`                             | path segment                          |
+| `/jobs/view/?refId=...&currentJobId={id}`          | `currentJobId` query                  |
 
 Two-step extraction is more robust than one regex:
+
 1. URL-parse → check `searchParams.get('currentJobId')`.
 2. Fallback: `pathname.match(/(\d{8,})(?:[/?#]|$)/)`.
 
@@ -82,6 +84,7 @@ Two-step extraction is more robust than one regex:
 **Canonical `/jobs/view/{id}`** — authwall confirmed. No JSON-LD, no `og:title`, no useful markup. Do not attempt this URL.
 
 **Cloudflare Worker egress reality** — LinkedIn returns **HTTP 999 ("Request Denied")** to crawlers from datacenter/cloud IP ranges, including Cloudflare's anycast. Multiple 2025–2026 sources document this:
+
 - LinkedIn Help: "network blocked" for cloud / data-center IP ranges.
 - Community reports (openclaw#59849, cf-community 575279/696283): LinkedIn, Indeed, Glassdoor all block VPS IP ranges aggressively.
 - Mitigation that works from Workers: realistic browser `User-Agent`, `Accept-Language` header, retries with jitter.
@@ -89,13 +92,13 @@ Two-step extraction is more robust than one regex:
 
 **Field coverage vs PRD requirements** — honest table:
 
-| PRD field | Available from guest endpoint? |
-|---|---|
-| Position (title) | Yes — reliable |
-| Company | Yes — reliable |
-| Description | Yes — `show-more-less-html__markup` block, HTML-formatted |
-| Skills | No structured field; sometimes prose inside description |
-| Salary range | Rarely — `.compensation__salary` is opt-in, US/UK only; Polish postings almost never include it |
+| PRD field                                | Available from guest endpoint?                                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Position (title)                         | Yes — reliable                                                                                                                                         |
+| Company                                  | Yes — reliable                                                                                                                                         |
+| Description                              | Yes — `show-more-less-html__markup` block, HTML-formatted                                                                                              |
+| Skills                                   | No structured field; sometimes prose inside description                                                                                                |
+| Salary range                             | Rarely — `.compensation__salary` is opt-in, US/UK only; Polish postings almost never include it                                                        |
 | Work mode (Zdalna/Hybrydowa/Stacjonarna) | No structured field; sniff from title + location + first 2 KB of description with `/\b(remote\|zdaln\|hybrid\|hybrydow\|on[-\s]?site\|stacjonarn)\b/i` |
 
 ### JustJoinIT
@@ -106,28 +109,29 @@ Two-step extraction is more robust than one regex:
 
 **Field mapping** — based on the RSC-embedded object (matches the legacy `/api/offers` schema, snake_case):
 
-| PRD form field | JJIT JSON path |
-|---|---|
-| `position` | `title` |
-| `company` | `company_name` |
-| `description` | `body` (HTML string) |
-| `skills` | `required_skills[]` (array of strings) — **no DB column exists** |
-| `salary` (single text column) | derive from `employment_types[]` |
-| `work_mode` | `workplace_type` |
+| PRD form field                | JJIT JSON path                                                   |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `position`                    | `title`                                                          |
+| `company`                     | `company_name`                                                   |
+| `description`                 | `body` (HTML string)                                             |
+| `skills`                      | `required_skills[]` (array of strings) — **no DB column exists** |
+| `salary` (single text column) | derive from `employment_types[]`                                 |
+| `work_mode`                   | `workplace_type`                                                 |
 
 Bonus fields available if useful: `experience_level`, `working_time`, `city`, `multilocation[].city`, `apply_url`, `published_at`, `is_offer_active`.
 
 **Work-mode mapping** to the Polish enum:
 
-| `workplace_type` | App enum |
-|---|---|
-| `remote` | `Zdalna` |
-| `hybrid` | `Hybrydowa` |
-| `partly_remote` | `Hybrydowa` (legacy alias) |
-| `office` | `Stacjonarna` |
+| `workplace_type`     | App enum                   |
+| -------------------- | -------------------------- |
+| `remote`             | `Zdalna`                   |
+| `hybrid`             | `Hybrydowa`                |
+| `partly_remote`      | `Hybrydowa` (legacy alias) |
+| `office`             | `Stacjonarna`              |
 | anything else / null | leave empty (do not guess) |
 
 **Salary normalization** — `employment_types` is `[{type, from, to, currency, unit}]`. Algorithm:
+
 1. Filter entries with non-null `from`.
 2. Per entry, format `"{from} – {to} {currency}/{unit-abbrev}"`.
 3. Map `type` → Polish label: `b2b → B2B`, `permanent → UoP`, `mandate_contract → UZ`, `internship_contract → staż`.

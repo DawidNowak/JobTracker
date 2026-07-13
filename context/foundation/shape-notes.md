@@ -81,6 +81,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 - **Then** the form is pre-filled with position, company, description, skills, salary range, and work mode — the user can edit fields and confirms; the card appears in the column whose "+" button was clicked
 
 #### Acceptance Criteria
+
 - "+" add buttons appear only in "Interesujące" and "Zaaplikowano" columns — "Rozmowa" has no add button
 - Source field is required (free text — no URL validation); the "Pobierz dane oferty" button activates only when the entered text is a valid URL from a supported portal (LinkedIn or JustJoinIT)
 - Parser must handle both LinkedIn job URLs and JustJoinIT job URLs
@@ -94,6 +95,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 - **Then** the application card is visually flagged as needing follow-up, and the user can write and save a follow-up note on that card
 
 #### Acceptance Criteria
+
 - Flagging is visible without opening the card detail
 - Saving a follow-up note does NOT automatically change the application status
 - Follow-up notes are appended to a history list (most recent first) visible in the card detail
@@ -105,6 +107,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 - **Then** the application card is visually flagged with a decision prompt ("Zdecyduj — aplikujesz?") and the user can choose to apply or skip
 
 #### Acceptance Criteria
+
 - Flagging is visible on the kanban board without opening the card detail
 - Clicking "Aplikuj" changes status to Zaaplikowano immediately in a single click — no confirmation dialog, no additional form
 - Clicking "Pomiń" shows a confirmation dialog: "Usunąć tę aplikację? Tej akcji nie można cofnąć." — on confirm, the card is permanently deleted and not recoverable; on cancel, nothing changes
@@ -117,6 +120,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 - **Then** the application card is visually flagged as needing follow-up ("Czas na follow-up po rozmowie"), and the user can write a note or change the application's status
 
 #### Acceptance Criteria
+
 - Flagging is visible on the kanban board without opening the card detail
 - Business day count excludes weekends (Saturday, Sunday); public holidays are NOT excluded in MVP
 - Saving a follow-up note or changing the status clears the flag (resets lastActionAt)
@@ -125,12 +129,14 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
 ## Functional Requirements
 
 ### Authentication
+
 - FR-001: User can register and log in via Google OAuth. Priority: must-have
   > Socrates: Counter-argument considered: "email+password is more self-contained, no provider dependency." Resolution: Google OAuth only in MVP — eliminates credential storage, password reset flow, and session hardening. LinkedIn OAuth restricted and slow to approve. Add email+password in v2 if users request it.
 - FR-002: User can log out. Priority: must-have
   > Socrates: No counter-argument; it stands as written.
 
 ### Application management
+
 - FR-003: User can add a job application via the add-application form — the source field is required (free text; any content accepted; no URL format validation); other fields: position, company, description, skills, salary range, work mode; recruiter contact (optional free text). The target column (Interesujące or Zaaplikowano) is determined by which column's "+" button the user clicked. Priority: must-have
   > Socrates: Counter-argument considered: "requiring a URL blocks adding applications from job fairs, networking contacts, or positions discovered verbally." Resolution: field is still required (source tracking is core product value) but free-text — no URL format validation. A user who learned about a position from a recruiter's LinkedIn DM can enter any identifying text. The 'Pobierz dane oferty' button activates conditionally on URL recognition (FR-004), not via field format validation.
 - FR-004: When the source field in the add-application form contains a valid URL from a supported portal (LinkedIn or JustJoinIT), the "Pobierz dane oferty" button activates; clicking it pre-fills position, company, description, skills, salary range, and work mode. The user can edit any pre-filled field before saving. Priority: must-have
@@ -143,6 +149,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
   > Socrates: Counter-argument considered: "permanent delete loses history of listings the user considered." Resolution: kept as delete — no recruiter contact occurred, so there is nothing meaningful to preserve. History value is marginal; operational simplicity outweighs it.
 
 ### Kanban & status tracking
+
 - FR-007: User can view all active applications on a kanban board with three columns: Interesujące, Zaaplikowano, Rozmowa. New applications can be added only to Interesujące and Zaaplikowano — Rozmowa has no add button; it is populated exclusively by status changes from Zaaplikowano. Priority: must-have
   > Socrates: Counter-argument considered: "original spec had four columns including Odrzucony — why remove it?" Resolution: rejected applications moved to a separate archive view to prevent visual dead-weight on the main board. Three active columns, one archive. Rozmowa has no add button because it represents a recruiter-initiated stage — no one "enters" an interview without first applying.
 - FR-008: User can change an application's status — each status change is recorded with a timestamp automatically. Priority: must-have
@@ -159,6 +166,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
   > Socrates: Counter-argument considered: "recruiter contact is redundant — the user can look it up in the original posting." Resolution: kept — the recruiter contact is the direct target of follow-up recommendations (FR-011, FR-012, FR-015); without it the user must hunt for contact info precisely when the app is prompting them to act.
 
 ### Follow-up recommendations
+
 - FR-015: User sees an action prompt when an application in "Interesujące" has had no action (status change or note save) for 1 day (24 hours). The prompt nudges the user to decide: apply (move to Zaaplikowano) or skip (permanently delete). Threshold is fixed, not user-configurable. Priority: must-have
   > Socrates: Counter-argument considered: "24h is too aggressive — job seekers may browse dozens of listings and not process their pipeline daily." Resolution: kept — the intent is exactly pipeline hygiene, not pressure. The prompt is a decision nudge ("apply or skip"), not a recruiter action. A user who checks once per day sees it at their natural review moment. Threshold can be calibrated post-launch.
 - FR-011: User sees a follow-up recommendation when an application in "Zaaplikowano" has had no action (status change or note save) for 7 days. Threshold is fixed, not user-configurable. Priority: must-have
@@ -167,6 +175,7 @@ The insight: job seekers already think in kanban stages (Interested → Applied 
   > Socrates: Counter-argument considered: "business-day counting adds implementation complexity for a minor edge case." Resolution: kept — the edge case is not minor. A Friday interview with a 4-calendar-day threshold fires on Tuesday (2 business days later), which is premature and undermines the rule's intent. Business days (skip Sat/Sun only, no public holidays in MVP) is a small computation cost for a meaningful accuracy improvement. Public holidays excluded from MVP scope — locale-specific, changes yearly, adds dependency.
 
 ### Follow-up history
+
 - FR-013: User can write and save a follow-up note (plain text) on any application. Priority: must-have
   > Socrates: Counter-argument considered: "notes need type labels to have meaning." Resolution: kept as plain text — user provides context in the note content. No type taxonomy in MVP. User responsibility model is correct.
 - FR-014: User can view the full history of follow-up notes for an application, ordered most recent first, with timestamps. Priority: must-have
@@ -200,13 +209,16 @@ Status transitions between active columns are unrestricted in both directions (I
 ## Success Criteria
 
 ### Primary
+
 - At least 80% of job applications are added using "Pobierz dane oferty" auto-fill (supported portal URL), not by typing all fields manually. This verifies the parser delivers real value — if users prefer auto-fill, the integration is worth the build cost.
 
 ### Secondary
+
 - Users actively track applications beyond the initial add — the majority change status at least once.
 - Follow-up recommendations are acted on — the majority of flagged cards receive a note or status change.
 
 ### Guardrails
+
 - **User data isolation**: no user sees another user's applications under any circumstance. An auth failure here is not a P2 bug — it's an incident.
 - **Kanban state durability**: status changes, note saves, and the `lastActionAt` timestamp they produce must persist reliably. Silent loss of any of these corrupts the follow-up timing rule downstream.
 

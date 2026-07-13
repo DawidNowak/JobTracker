@@ -91,6 +91,7 @@ Ship the server-side surface that the DnD code will call in Phase 3. Status-only
 **Intent**: First per-row API route in the repo. Validates the `id` path param as a UUID, validates the JSON body against the status-only schema, calls the service, maps the result to the established envelope. Mirrors the auth-first ordering S-02's impl review pinned (`401` before parsing).
 
 **Contract**: `PATCH` handler exported uppercase per AGENTS.md. `export const prerender = false`. Status map:
+
 - `401 { error: "Brak autoryzacji." }` when `context.locals.user` is missing
 - `400 { error: "Nieprawidłowy identyfikator." }` when `params.id` is not a UUID
 - `400 { error: "Nieprawidłowe żądanie" }` when JSON parse fails
@@ -220,34 +221,37 @@ Make the cards draggable and the columns droppable. Implement the `onDragEnd` st
 function onDragEnd(event: DragEndEvent) {
   const from = event.active.data.current?.from as ApplicationStatus | undefined;
   const to = event.over?.id as ApplicationStatus | undefined;
-  if (!from || !to || from === to) return;          // same-column / no-drop short-circuit
+  if (!from || !to || from === to) return; // same-column / no-drop short-circuit
 
   const snapshot = applications;
-  const card = applications[from].find(c => c.id === event.active.id);
+  const card = applications[from].find((c) => c.id === event.active.id);
   if (!card) return;
   const movedAt = new Date().toISOString();
   setApplications({
     ...applications,
-    [from]: applications[from].filter(c => c.id !== card.id),
-    [to]:   [{ ...card, status: to, last_action_at: movedAt }, ...applications[to]],
+    [from]: applications[from].filter((c) => c.id !== card.id),
+    [to]: [{ ...card, status: to, last_action_at: movedAt }, ...applications[to]],
   });
 
-  setIsMutating(true);                              // single-flight gate: cards can't be picked up while in flight
+  setIsMutating(true); // single-flight gate: cards can't be picked up while in flight
   fetch(`/api/applications/${card.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status: to }),
-  }).then(async (res) => {
-    if (!res.ok) {
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        setApplications(snapshot);
+        setError(await readError(res));
+      }
+    })
+    .catch(() => {
       setApplications(snapshot);
-      setError(await readError(res));
-    }
-  }).catch(() => {
-    setApplications(snapshot);
-    setError("Brak połączenia. Spróbuj ponownie.");
-  }).finally(() => {
-    setIsMutating(false);
-  });
+      setError("Brak połączenia. Spróbuj ponownie.");
+    })
+    .finally(() => {
+      setIsMutating(false);
+    });
 }
 ```
 

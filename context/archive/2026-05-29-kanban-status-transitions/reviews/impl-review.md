@@ -1,4 +1,5 @@
 <!-- IMPL-REVIEW-REPORT -->
+
 # Implementation Review: Kanban Status Transitions (S-05)
 
 - **Plan**: context/changes/kanban-status-transitions/plan.md
@@ -9,18 +10,19 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| Plan Adherence | PASS |
-| Scope Discipline | PASS |
-| Safety & Quality | WARNING |
-| Architecture | PASS |
-| Pattern Consistency | PASS |
-| Success Criteria | PASS |
+| Dimension           | Verdict |
+| ------------------- | ------- |
+| Plan Adherence      | PASS    |
+| Scope Discipline    | PASS    |
+| Safety & Quality    | WARNING |
+| Architecture        | PASS    |
+| Pattern Consistency | PASS    |
+| Success Criteria    | PASS    |
 
 ## Summary
 
 All 13 planned items verified as MATCH (drift agent). All 7 plan invariants hold (safety agent):
+
 - PATCH body excludes `last_action_at` (DB trigger owns it) — `applications.ts:28`.
 - Service scopes `.eq("user_id", userId)` defensively — `applications.ts:30`.
 - Same-column drop short-circuits before snapshot — `KanbanBoard.tsx:59`.
@@ -63,6 +65,6 @@ Automated checks: `npm run lint` clean; `npm run typecheck` clean (4 unrelated h
 - **Impact**: 🏃 LOW
 - **Dimension**: Safety & Quality
 - **Location**: src/components/board/KanbanBoard.tsx:65-91
-- **Detail**: The `isMutating` single-flight gate disables drag-start, not drag-end. A card that was mid-drag at the moment `isMutating` flipped true could in theory complete and then be overwritten by snapshot rollback. In practice extremely unlikely — `PointerSensor` only emits drag-end on pointer release, and a card already being dragged cannot fire a *new* drag-end mid-flight. Flagged for traceability if a future bug ever looks like "second move disappeared after first move failed."
+- **Detail**: The `isMutating` single-flight gate disables drag-start, not drag-end. A card that was mid-drag at the moment `isMutating` flipped true could in theory complete and then be overwritten by snapshot rollback. In practice extremely unlikely — `PointerSensor` only emits drag-end on pointer release, and a card already being dragged cannot fire a _new_ drag-end mid-flight. Flagged for traceability if a future bug ever looks like "second move disappeared after first move failed."
 - **Fix**: None needed; consider noting in the change epilogue if a paper trail is desirable.
 - **Decision**: SKIPPED — paper trail lives in this review file.

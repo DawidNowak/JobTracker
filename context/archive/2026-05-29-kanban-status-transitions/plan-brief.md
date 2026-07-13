@@ -16,22 +16,23 @@ A signed-in user grabs an active card with the mouse, drops it on another active
 
 ## Key Decisions Made
 
-| Decision                                | Choice                                                                | Why (1 sentence)                                                                                                                  | Source |
-| --------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| UI affordance                           | Drag-and-drop between columns                                          | Kanban-native; pulls in dnd-kit + a board-level React island, accepted as scope.                                                  | Plan   |
-| Endpoint shape                          | `PATCH /api/applications/[id]` with `{ status }`                       | Sets the repo's general per-row edit pattern; S-03 will widen the same route to accept more fields.                              | Plan   |
-| Post-success UX                         | Optimistic move + reload only on error (snap-back to snapshot)         | Feels instant inside the 500ms NFR; no targeted refetch needed; reload reconciles on next nav.                                    | Plan   |
-| DnD library                             | `@dnd-kit/core` only (skip `@dnd-kit/sortable`)                        | Within-column ordering is out of scope (server orders by `created_at DESC`); install only what's used.                            | Plan   |
-| Island scope                            | Whole board is the React island (one `DndContext` covers all columns) | dnd-kit needs all draggables/droppables in one React tree — single-card islands cannot share a context.                           | Plan   |
-| Card-face timestamp                     | Switch from `created_at` to `last_action_at`                          | Same variable the follow-up flags will read; surfaces freshness consistent with the flag rule that lands in S-07/S-08/S-09.       | Plan   |
-| Error UX                                | Snap back + dismissible red banner above the board                    | Matches S-02's banner pattern; no new shadcn primitive (no toast/sonner); visual rollback is unambiguous.                         | Plan   |
-| Same-column drop                        | Client-side short-circuit, no PATCH                                   | DB trigger would no-op anyway; avoids a pointless round-trip and the visual flash that the optimistic UI would otherwise produce. | Plan   |
-| Stale-row concurrency                   | Ignore in MVP (last write wins; reload to re-sync)                    | PRD is single-user-per-account; explicit `If-Match` / version column is scope creep for a non-PRD use case.                       | Plan   |
-| DnD accessibility                       | Pointer sensor only (no keyboard, no touch)                            | Explicit user choice; keyboard-only users cannot move cards in MVP — flagged as a known risk below.                               | Plan   |
+| Decision              | Choice                                                                | Why (1 sentence)                                                                                                                  | Source |
+| --------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| UI affordance         | Drag-and-drop between columns                                         | Kanban-native; pulls in dnd-kit + a board-level React island, accepted as scope.                                                  | Plan   |
+| Endpoint shape        | `PATCH /api/applications/[id]` with `{ status }`                      | Sets the repo's general per-row edit pattern; S-03 will widen the same route to accept more fields.                               | Plan   |
+| Post-success UX       | Optimistic move + reload only on error (snap-back to snapshot)        | Feels instant inside the 500ms NFR; no targeted refetch needed; reload reconciles on next nav.                                    | Plan   |
+| DnD library           | `@dnd-kit/core` only (skip `@dnd-kit/sortable`)                       | Within-column ordering is out of scope (server orders by `created_at DESC`); install only what's used.                            | Plan   |
+| Island scope          | Whole board is the React island (one `DndContext` covers all columns) | dnd-kit needs all draggables/droppables in one React tree — single-card islands cannot share a context.                           | Plan   |
+| Card-face timestamp   | Switch from `created_at` to `last_action_at`                          | Same variable the follow-up flags will read; surfaces freshness consistent with the flag rule that lands in S-07/S-08/S-09.       | Plan   |
+| Error UX              | Snap back + dismissible red banner above the board                    | Matches S-02's banner pattern; no new shadcn primitive (no toast/sonner); visual rollback is unambiguous.                         | Plan   |
+| Same-column drop      | Client-side short-circuit, no PATCH                                   | DB trigger would no-op anyway; avoids a pointless round-trip and the visual flash that the optimistic UI would otherwise produce. | Plan   |
+| Stale-row concurrency | Ignore in MVP (last write wins; reload to re-sync)                    | PRD is single-user-per-account; explicit `If-Match` / version column is scope creep for a non-PRD use case.                       | Plan   |
+| DnD accessibility     | Pointer sensor only (no keyboard, no touch)                           | Explicit user choice; keyboard-only users cannot move cards in MVP — flagged as a known risk below.                               | Plan   |
 
 ## Scope
 
 **In scope:**
+
 - `applicationStatusUpdateSchema` (status-only) in `src/lib/validation/applications.ts`.
 - `updateApplicationStatus` service that scopes by `(id, user_id)` and distinguishes 404 (no row) from 500 (other error).
 - `PATCH /api/applications/[id]` route mirroring S-02's JSON envelope (`200 { application } / 401 / 400 / 422 / 404 / 500`).
@@ -42,6 +43,7 @@ A signed-in user grabs an active card with the mouse, drops it on another active
 - `DndContext` + `PointerSensor` + `DragOverlay`; same-column short-circuit; optimistic state machine with snapshot/revert; error banner.
 
 **Out of scope:**
+
 - Edit / delete (S-03), notes (S-06), parser auto-fill (S-04), decision prompt + follow-up flags (S-07/S-08/S-09), archive (S-10/S-11).
 - Drag handles, within-column reordering, multi-select drag.
 - Keyboard / touch DnD sensors.
@@ -56,11 +58,11 @@ Three phases. Phase 1 ships server-only: the PATCH route + service + schema, ver
 
 ## Phases at a Glance
 
-| Phase                                                          | What it delivers                                                                                       | Key risk                                                                                                                                       |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. PATCH endpoint + service + schema                            | First row-mutating API in the repo; status-only PATCH at `/api/applications/[id]`; envelope reuse.     | Setting the per-row precedent S-03 will widen — `user_id`-scoped service + `maybeSingle` → 404 mapping must be right the first time.            |
-| 2. Port board to React (no DnD yet)                             | Three Astro board files become one `KanbanBoard.tsx` island; `AddApplicationDialog` folds in as child. | First domain component goes React-first; Add flow must keep working through the refactor; timestamp source change is the only behavioral delta. |
-| 3. Wire DnD with optimistic move + snap-back                    | `DndContext`, draggable cards, droppable columns, optimistic state machine, error banner.              | Snapshot-before-mutate ordering and same-column short-circuit must be exact; banner-vs-overlay layering on the board surface.                   |
+| Phase                                        | What it delivers                                                                                       | Key risk                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. PATCH endpoint + service + schema         | First row-mutating API in the repo; status-only PATCH at `/api/applications/[id]`; envelope reuse.     | Setting the per-row precedent S-03 will widen — `user_id`-scoped service + `maybeSingle` → 404 mapping must be right the first time.            |
+| 2. Port board to React (no DnD yet)          | Three Astro board files become one `KanbanBoard.tsx` island; `AddApplicationDialog` folds in as child. | First domain component goes React-first; Add flow must keep working through the refactor; timestamp source change is the only behavioral delta. |
+| 3. Wire DnD with optimistic move + snap-back | `DndContext`, draggable cards, droppable columns, optimistic state machine, error banner.              | Snapshot-before-mutate ordering and same-column short-circuit must be exact; banner-vs-overlay layering on the board surface.                   |
 
 **Prerequisites:** F-01 (live), S-01 (live), S-02 (live, shipped 2026-05-29). No new env vars, no new infra, no migrations.
 **Estimated effort:** ~2–3 after-hours sessions; Phase 2 (refactor) and Phase 3 (DnD wiring) are the bulk.

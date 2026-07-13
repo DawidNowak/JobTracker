@@ -169,6 +169,7 @@ Commit generated TypeScript types from the migration, write the Zod write-shape 
 **Intent**: Add three scripts that codify the foundation workflow.
 
 **Contract**: Insert into the existing `"scripts"` object (after `"format"`):
+
 - `"db:reset": "supabase db reset"`
 - `"db:types": "supabase gen types typescript --local > src/lib/database.types.ts"`
 - `"typecheck": "astro check"`

@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Kanban Shell and Nav
 
 - **Plan**: `context/changes/kanban-shell-and-nav/plan.md`
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | PASS |
-| Lean Execution | PASS |
-| Architectural Fitness | PASS |
-| Blind Spots | PASS |
-| Plan Completeness | PASS |
+| Dimension             | Verdict |
+| --------------------- | ------- |
+| End-State Alignment   | PASS    |
+| Lean Execution        | PASS    |
+| Architectural Fitness | PASS    |
+| Blind Spots           | PASS    |
+| Plan Completeness     | PASS    |
 
 ## Grounding
 
@@ -29,7 +30,7 @@
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Plan Completeness
 - **Location**: Phase 2 — #1 `KanbanColumn.astro` contract
-- **Detail**: The contract states both "No prop or slot for cards in this slice (S-02 will add it)" *and* "Use a `<slot />` placeholder so later slices need only a one-line edit." That's self-contradicting, and it leaves the empty-state ↔ slot interaction undefined: if the slot is added now and S-02 fills it with cards, will "Brak aplikacji" render alongside them? An implementer could reasonably ship either shape and S-02 inherits the footgun.
+- **Detail**: The contract states both "No prop or slot for cards in this slice (S-02 will add it)" _and_ "Use a `<slot />` placeholder so later slices need only a one-line edit." That's self-contradicting, and it leaves the empty-state ↔ slot interaction undefined: if the slot is added now and S-02 fills it with cards, will "Brak aplikacji" render alongside them? An implementer could reasonably ship either shape and S-02 inherits the footgun.
 - **Fix**: Pick one in the plan. Either (a) ship without `<slot />` and have S-02 add the slot together with an empty-state guard (`Astro.slots.has("default") ? <slot /> : <p>Brak aplikacji</p>`), or (b) ship the slot now with that conditional already in place. Option (a) is leaner for S-01; option (b) gets closer to a true one-line S-02 edit.
 - **Decision**: FIXED via Fix A — plan now explicitly states no `<slot />` in S-01 and pushes the slot + guard pattern to S-02.
 

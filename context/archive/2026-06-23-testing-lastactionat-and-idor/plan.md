@@ -13,7 +13,7 @@ This is test-authoring work only. No production code changes — the tests pin b
 
 - **Infrastructure is complete and reused as-is.** `tests/integration/**` and `tests/http/**` are both already in the node-pool include globs (`vitest.config.ts`), so Phase 3 tests need **no config change**. Global setup spawns `astro dev`, swaps `.dev.vars` to the local stack, sets `TEST_BASE_URL`, and `tests/setup.ts` hard-asserts the Supabase URL is local (`127.0.0.1:54321`).
 - **Helpers exist** for everything except seeding: `createAdminClient()` / `createUserClient()` (`tests/helpers/supabase-clients.ts`), `provisionUser` / `cleanupUser` (`tests/helpers/users.ts`), `signInAndCaptureCookies` (`tests/helpers/cookies.ts`). There is no shared "seed an application" helper — current tests insert inline (`tests/http/patch-applications.test.ts:22-31`, `tests/integration/rls-applications.test.ts:17-25`).
-- **The trigger mechanics** (`supabase/migrations/20260526123145_applications_schema.sql:24-26,108-157`): `created_at` and `last_action_at` both default `now()` (transaction-stable → exactly equal on a single INSERT); a `BEFORE UPDATE ... WHEN (old.status IS DISTINCT FROM NEW.status)` trigger advances `last_action_at` on status change; an `AFTER INSERT` trigger on `application_notes` calls a `SECURITY DEFINER` helper that advances the parent's `last_action_at`. The hardening migration `20260528153903_lock_trigger_function_search_path.sql:16-36` recreates both functions — evidence that triggers are in scope for future patches, which is why the regression test must run green against the *migrated* DB.
+- **The trigger mechanics** (`supabase/migrations/20260526123145_applications_schema.sql:24-26,108-157`): `created_at` and `last_action_at` both default `now()` (transaction-stable → exactly equal on a single INSERT); a `BEFORE UPDATE ... WHEN (old.status IS DISTINCT FROM NEW.status)` trigger advances `last_action_at` on status change; an `AFTER INSERT` trigger on `application_notes` calls a `SECURITY DEFINER` helper that advances the parent's `last_action_at`. The hardening migration `20260528153903_lock_trigger_function_search_path.sql:16-36` recreates both functions — evidence that triggers are in scope for future patches, which is why the regression test must run green against the _migrated_ DB.
 - **The mutation surface is intentionally tiny.** Only `POST /api/applications` and `PATCH /api/applications/[id]` exist — there is no GET/PUT/DELETE handler anywhere under `src/pages/api/`. A cross-user PATCH already returns 404 via `.eq("user_id", userId)` + `.maybeSingle()` → `null` → 404 (`src/lib/services/applications.ts:20-38`, `src/pages/api/applications/[id].ts:40-46`). An existing test already asserts the single 404 case (`tests/http/patch-applications.test.ts:46-53`); Phase 3 makes the matrix explicit.
 - **No raw `pg`/SQL client exists, and none is needed** — `created_at` and `last_action_at` are PostgREST-selectable columns, readable through `createAdminClient().from("applications").select(...)`.
 
@@ -47,7 +47,7 @@ Verify: `npm test` passes with the local stack up; `npm run typecheck` and `npm 
 
 ## Implementation Approach
 
-Build bottom-up: land the shared `seedApplication` helper first so both suites consume it, then the trigger invariants (Risk #3, pure row-level integration), then the IDOR matrix (Risk #5, HTTP), then the docs correction. Each phase mirrors an existing precedent file so the reviewer sees a familiar shape. All assertions read the DB through the admin client (canonical, RLS-bypassing) for trigger invariants and through the HTTP endpoint for the IDOR matrix, so a regression in either the trigger *or* the ownership clause reds a test.
+Build bottom-up: land the shared `seedApplication` helper first so both suites consume it, then the trigger invariants (Risk #3, pure row-level integration), then the IDOR matrix (Risk #5, HTTP), then the docs correction. Each phase mirrors an existing precedent file so the reviewer sees a familiar shape. All assertions read the DB through the admin client (canonical, RLS-bypassing) for trigger invariants and through the HTTP endpoint for the IDOR matrix, so a regression in either the trigger _or_ the ownership clause reds a test.
 
 ## Phase 1: seedApplication helper + lastActionAt trigger invariants
 
@@ -72,6 +72,7 @@ Add the shared seeder, then assert all four `lastActionAt` invariants at the row
 **Intent**: Prove the four trigger invariants hold against the fully-migrated local DB, reading canonical column values through the admin client.
 
 **Contract**: A `describe` mirroring `rls-applications.test.ts` structure — `provisionUser` two users in `beforeEach` is unnecessary here (one user suffices); `cleanupUser` in `afterEach`. Four `it` cases:
+
 1. **INSERT → equal**: seed a row; assert `last_action_at === created_at` (exact equality, both `now()` at transaction start).
 2. **status UPDATE → advanced**: seed; capture `created_at`; UPDATE `status` (`Interesujące`→`Zaaplikowano` or similar) via the user client; re-read; assert `new Date(last_action_at) > new Date(created_at)`.
 3. **non-status UPDATE → unchanged**: seed; capture `last_action_at`; UPDATE `source` (non-status column) via the user client; re-read; assert `last_action_at` byte-equal to the captured value (the `WHEN` guard means the trigger never fired).
@@ -111,6 +112,7 @@ Make the cross-user ownership matrix explicit on the one live id-addressed mutat
 **Intent**: Expand the existing single non-owner-404 case into an explicit ownership matrix so a future regression to the `.eq("user_id", …)` clause reds here at the HTTP layer (defence-in-depth, independent of RLS). Adopt `seedApplication` for the setup insert.
 
 **Contract**: Reuse the existing two-user `beforeEach` (both users provisioned, both cookie strings captured, one application seeded for user A via `seedApplication(userA.client, userA.userId)`). Ensure the matrix covers, asserting `toBe` exactly:
+
 - non-owner (cookies B) PATCH against A's UUID → **exactly 404**, and the DB row is unchanged (re-read via admin client: status + `last_action_at` untouched — proves the mutation never executed).
 - owner (cookies A) PATCH → 200 + DB reflects the new status and `last_action_at` advanced (existing assertion at `:55-75`).
 - (existing) no-cookie → 401.

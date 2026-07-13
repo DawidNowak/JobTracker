@@ -1,4 +1,5 @@
 <!-- IMPL-REVIEW-REPORT -->
+
 # Implementation Review: Parser correctness + abuse surface
 
 - **Plan**: context/changes/parser-correctness-and-abuse-surface/plan.md
@@ -9,14 +10,14 @@
 
 ## Verdicts (at review time)
 
-| Dimension | Verdict |
-|-----------|---------|
-| Plan Adherence | WARNING (F1) |
-| Scope Discipline | WARNING (F3) |
-| Safety & Quality | WARNING (F2, F4) |
-| Architecture | PASS |
-| Pattern Consistency | WARNING (folded into F2/F3) |
-| Success Criteria | PASS (F5 = flaky setup, fixed) |
+| Dimension           | Verdict                        |
+| ------------------- | ------------------------------ |
+| Plan Adherence      | WARNING (F1)                   |
+| Scope Discipline    | WARNING (F3)                   |
+| Safety & Quality    | WARNING (F2, F4)               |
+| Architecture        | PASS                           |
+| Pattern Consistency | WARNING (folded into F2/F3)    |
+| Success Criteria    | PASS (F5 = flaky setup, fixed) |
 
 Independently verified: `npm run typecheck` (0 errors), `npm run lint` (0 errors),
 `npm test` (12 files / 78 tests across node + workers pools). `recognize()` regexes

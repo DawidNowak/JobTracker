@@ -10,14 +10,14 @@ The fix: install `html-rewriter-wasm`, which is Cloudflare's own WASM build of t
 
 Knowing exactly what needs to work narrows the risk:
 
-| API | Used by |
-|-----|---------|
-| `new HTMLRewriter()` | both |
-| `.on(selector, { text(chunk) })` | both |
-| `.on(selector, { element(el) })` | LinkedIn only |
-| `element.onEndTag(fn)` | LinkedIn only — tracks `inSkippable` counter for button text suppression |
-| `.transform(response)` | both |
-| `await result.text()` | both |
+| API                              | Used by                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| `new HTMLRewriter()`             | both                                                                     |
+| `.on(selector, { text(chunk) })` | both                                                                     |
+| `.on(selector, { element(el) })` | LinkedIn only                                                            |
+| `element.onEndTag(fn)`           | LinkedIn only — tracks `inSkippable` counter for button text suppression |
+| `.transform(response)`           | both                                                                     |
+| `await result.text()`            | both                                                                     |
 
 `element.onEndTag` is the only non-trivial call and is the **key risk** to verify in Step 2.
 
@@ -36,6 +36,7 @@ Check the `html-rewriter-wasm@0.4.1` README or changelog to confirm `element.onE
 **If supported** → proceed to Step 3.
 
 **If not supported**, two options:
+
 - a) Check whether a newer version exists with the API.
 - b) Fall back to the behavioral mock approach (see "Fallback" section at the bottom). Only LinkedIn is affected — JustJoinIT uses no `element()` handlers and would move to Node cleanly regardless.
 

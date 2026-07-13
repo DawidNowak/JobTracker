@@ -43,6 +43,7 @@ S-02 (`b3ff36b`) shipped the manual add path on master. The form (`src/component
 ## Implementation Approach
 
 A new directory `src/lib/parsers/` houses the parser surface:
+
 - `recognize.ts` — pure function `recognize(source: string): { kind: "linkedin"; jobId: string } | { kind: "jjit"; slug: string } | null`. Pure, isomorphic, importable by both the React form and the API route — single source of truth for "is this URL a supported portal?".
 - `types.ts` — `ParseResult` and `ParseStatus` types.
 - `linkedin.ts` — `parseLinkedIn(jobId): Promise<ParseResult>` (fetch + HTMLRewriter).
@@ -58,11 +59,11 @@ The form gains a single new affordance: a button between the source `<Input>` an
 - **Salary normalization (JJIT)**: `employment_types[]` rows with non-null `from` are formatted per row, then joined with `"; "`. Per-row format depends on `to`:
   - `to` is non-null: `"{from} – {to} {currency}/{unit} ({contract-label})"`
   - `to` is null (single-point / "from only" salary): `"{from}+ {currency}/{unit} ({contract-label})"`
-  Contract labels map: `b2b → B2B`, `permanent → UoP`, `mandate_contract → UZ`, `internship_contract → staż`. If no entry has a non-null `from`, omit the field (do not set to empty string).
+    Contract labels map: `b2b → B2B`, `permanent → UoP`, `mandate_contract → UZ`, `internship_contract → staż`. If no entry has a non-null `from`, omit the field (do not set to empty string).
 - **LinkedIn outbound headers**: include `User-Agent: Mozilla/5.0 ... Chrome/...` and `Accept-Language: en-US,en;q=0.9,pl;q=0.8`. Without a realistic UA, LinkedIn returns HTTP 999 even when the IP would otherwise pass.
 - **AbortSignal timeout**: `fetch(url, { signal: AbortSignal.timeout(8000) })` — workerd supports this. Caught timeout collapses to `status: "fetch_failed"`.
 - **Endpoint never throws to the client**: every catch-all returns `status: "fetch_failed"` with an empty result. The client treats non-200 from this endpoint as a hard error only (network glitch); 200 + empty result is the soft-failure path.
-- **Dev-runtime preflight (one-time, before Phase 1 implementation starts)**: `HTMLRewriter` is a workerd global, guaranteed in production. `astro dev` with `@astrojs/cloudflare` v13.5 *should* expose it, but this has not been verified in this repo. Add a temporary route (e.g. `src/pages/api/_probe.ts` returning `new Response(typeof HTMLRewriter)`) and hit it via `curl http://localhost:4321/api/_probe`. Expected: `"function"`. If it reports `"undefined"`, switch all Phase 2/3 manual verification to `npm run preview` (which serves the built worker output) or `wrangler dev`, and document the substitution at the top of Phases 2/3. Delete the probe route before merging.
+- **Dev-runtime preflight (one-time, before Phase 1 implementation starts)**: `HTMLRewriter` is a workerd global, guaranteed in production. `astro dev` with `@astrojs/cloudflare` v13.5 _should_ expose it, but this has not been verified in this repo. Add a temporary route (e.g. `src/pages/api/_probe.ts` returning `new Response(typeof HTMLRewriter)`) and hit it via `curl http://localhost:4321/api/_probe`. Expected: `"function"`. If it reports `"undefined"`, switch all Phase 2/3 manual verification to `npm run preview` (which serves the built worker output) or `wrangler dev`, and document the substitution at the top of Phases 2/3. Delete the probe route before merging.
 
 ---
 
@@ -119,6 +120,7 @@ Land the isomorphic `recognize()` utility, the `applicationParseSchema`, the `/a
 **Intent**: Authenticated, Zod-validated POST endpoint that runs `recognize()` against the trimmed source, dispatches to the matching portal parser, and returns the uniform `ParseEndpointResponse`. Mirrors `src/pages/api/applications/index.ts` for auth and JSON conventions. All upstream-fetch failures and unsupported sources resolve to HTTP 200 with the appropriate `status`; only auth, Zod, and totally-unexpected errors return non-200.
 
 **Contract**: `export const prerender = false; export const POST: APIRoute`. Behavior:
+
 - 401 if `context.locals.user` is null.
 - 400 if request body is not JSON.
 - 422 if Zod validation fails (matches the manual-add endpoint's error shape).
@@ -192,7 +194,11 @@ Replace the JJIT stub with a real implementation that fetches the `/job-offer/{s
 // Concatenated Flight payload assembly
 const chunks: string[] = [];
 for (const m of buf.matchAll(/self\.__next_f\.push\(\[1,(".*?")\]\)/gs)) {
-  try { chunks.push(JSON.parse(m[1])); } catch { /* skip malformed chunk */ }
+  try {
+    chunks.push(JSON.parse(m[1]));
+  } catch {
+    /* skip malformed chunk */
+  }
 }
 const flight = chunks.join("");
 ```
@@ -254,7 +260,9 @@ Replace the LinkedIn stub with a fetch of the unauthenticated guest endpoint plu
 let titleBuf = "";
 new HTMLRewriter()
   .on(".top-card-layout__title, .topcard__title", {
-    text(t) { titleBuf += t.text; },
+    text(t) {
+      titleBuf += t.text;
+    },
   })
   // ... other selectors
   .transform(response);
@@ -298,6 +306,7 @@ Wire the new button into `AddApplicationDialog.tsx`. The button enables only whe
 **Intent**: Add the "Pobierz dane oferty" button immediately below the source `<Input>`, with three new pieces of local state: `parsing: boolean`, `parseStatus: ParseStatus | null`, and `parseMessage: string | null`. Activation is `recognize(form.source.trim()) !== null && !parsing`. Reset all three when the dialog is closed via the existing `handleOpenChange(false)` path so a stale message doesn't carry between sessions.
 
 **Contract**:
+
 - Import `recognize` from `@/lib/parsers/recognize` and `ParseStatus`, `ParseEndpointResponse` from `@/lib/parsers/types`.
 - The button is a `<Button type="button" variant="secondary">` placed inside the source field's `<div className="flex flex-col gap-1.5">` block, after the `errors.source` paragraph. Disabled when activation predicate fails or `parsing` is true. Label: `"Pobierz dane oferty"` when idle, `"Pobieranie…"` when parsing.
 - onClick handler: set `parsing: true`, clear `parseStatus`/`parseMessage`, POST `{ source: form.source.trim() }` to `/api/applications/parse`. On 200, parse the `ParseEndpointResponse`, then for each defined key in `result` call `update(key, value)` (existing setter — also clears any per-field error). Store `parseStatus` and `parseMessage` from the response. On non-200 or thrown error, set `parseStatus: "fetch_failed"` and `parseMessage: "Nie udało się pobrać danych. Wypełnij ręcznie."`.
@@ -428,4 +437,4 @@ No schema migration in this slice. The `skills` PRD field is satisfied by prepen
 - 2b9e722 — JJIT schema drift fix + impl-review triage (F1, F2, F4). See commit body.
 - d45d704 — JJIT description HTML stripping. Phase 2 originally required the description to be preserved verbatim (see 2.6), but the field renders in a plain `<Textarea>` and tags showed through. Added a small `htmlToPlainText()` helper in `src/lib/parsers/justjoinit.ts` that converts `<br>`, `</p|li|ul|ol|div|hN>` to newlines, `<li>` to `- `, strips remaining tags, decodes common entities (`&amp;`, `&nbsp;`, `&quot;`, `&#39;`/`&apos;`, `&lt;`, `&gt;`, numeric `&#NNN;`), and collapses whitespace. The `</p></li>` pair is short-circuited to a single newline so list items aren't separated by a blank line.
 - 142dc93 — LinkedIn description formatting. Symmetric problem to the JJIT fix above, but on the LinkedIn path the structure was already lost upstream: `HTMLRewriter`'s `text()` handler strips all tags before our code sees them, so `<br>`, `<p>`, and `<li>` boundaries inside `.show-more-less-html__markup` collapsed into one unreadable blob (and the "Show more" / "Show less" button labels leaked in, because `.description__text` wraps both the markup and the toggle buttons). Fix in `src/lib/parsers/linkedin.ts`: register `element()` handlers on nested block tags (`p, div, ul, ol, h1–h6`) and on `br`/`li` to inject `\n` / `\n- ` into `descriptionBuf` at the right points, and track an `inSkippable` counter via an `element()` handler on `.show-more-less-html__button` to drop text from inside the toggles. Output is normalised at the end (collapse trailing/leading whitespace around newlines, cap blank runs at one). Required extending `src/lib/parsers/html-rewriter.d.ts` with an optional `element` handler shape (`tagName` + `onEndTag`) — the runtime already supports it, the project's local typings just hadn't declared it.
-- _next_ — LinkedIn `work_mode` detection. Reported live: a LinkedIn offer that the user could see tagged "Praca zdalna" in the UI parsed back with `work_mode` unset, leaving the form's work-mode field empty. Two compounding causes in `src/lib/parsers/linkedin.ts`'s `sniffWorkMode` path: (1) the haystack was capped at `description.slice(0, 2048)`, so for offers where the remote/hybrid/onsite signal sits in the trailing "What we offer" section (e.g. job 4416716342, where "Fully remote work environment" appears past char ~3000 of the cleaned description) the regex never saw it; (2) the `remote` check ran *before* the `hybrid` check, so a hybrid offer mentioning "remote-friendly" would have classified as `Zdalna`. Worth noting why we don't read the explicit workplace-type chip: LinkedIn's `/jobs-guest/jobs/api/jobPosting/{id}` HTML only exposes Seniority / Employment type / Job function / Industries inside `.description__job-criteria-list` — the workplace-type tag the user sees in the logged-in UI is rendered client-side from authenticated data we don't have, so keyword sniffing remains our only deterministic surface. Fix: reorder so `hybrydow|hybrid` is tested first, then `zdaln|remote`, then `stacjonarn|on[-\s]?site|onsite`, and remove the 2048-char slice so the full normalised description is searched. No behaviour change for offers where the signal was already in the first 2 KB.
+- _next_ — LinkedIn `work_mode` detection. Reported live: a LinkedIn offer that the user could see tagged "Praca zdalna" in the UI parsed back with `work_mode` unset, leaving the form's work-mode field empty. Two compounding causes in `src/lib/parsers/linkedin.ts`'s `sniffWorkMode` path: (1) the haystack was capped at `description.slice(0, 2048)`, so for offers where the remote/hybrid/onsite signal sits in the trailing "What we offer" section (e.g. job 4416716342, where "Fully remote work environment" appears past char ~3000 of the cleaned description) the regex never saw it; (2) the `remote` check ran _before_ the `hybrid` check, so a hybrid offer mentioning "remote-friendly" would have classified as `Zdalna`. Worth noting why we don't read the explicit workplace-type chip: LinkedIn's `/jobs-guest/jobs/api/jobPosting/{id}` HTML only exposes Seniority / Employment type / Job function / Industries inside `.description__job-criteria-list` — the workplace-type tag the user sees in the logged-in UI is rendered client-side from authenticated data we don't have, so keyword sniffing remains our only deterministic surface. Fix: reorder so `hybrydow|hybrid` is tested first, then `zdaln|remote`, then `stacjonarn|on[-\s]?site|onsite`, and remove the 2048-char slice so the full normalised description is searched. No behaviour change for offers where the signal was already in the first 2 KB.

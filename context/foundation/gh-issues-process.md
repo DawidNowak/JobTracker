@@ -12,30 +12,30 @@ status: active
 
 ## Source-of-truth split
 
-| Artifact | Role |
-| --- | --- |
-| `context/foundation/roadmap.md` | **Shaping artifact.** Records the decomposition and the reasoning behind each slice. Edit only when re-shaping (new slice, scope change, status change). |
-| GitHub issues on `DawidNowak/JobTracker` | **Working surface.** Day-to-day execution, PR cross-refs, dependency tracking. |
-| This file | **Convention doc.** How the two stay aligned. |
+| Artifact                                 | Role                                                                                                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context/foundation/roadmap.md`          | **Shaping artifact.** Records the decomposition and the reasoning behind each slice. Edit only when re-shaping (new slice, scope change, status change). |
+| GitHub issues on `DawidNowak/JobTracker` | **Working surface.** Day-to-day execution, PR cross-refs, dependency tracking.                                                                           |
+| This file                                | **Convention doc.** How the two stay aligned.                                                                                                            |
 
 Rule of thumb: write the roadmap entry **first**, then mirror it to a new issue using the template below. Do not edit issues to "update the roadmap" or vice versa — re-shape the roadmap, then re-mirror.
 
 ## MVP v1 mapping (created 2026-05-25)
 
-| Roadmap ID | Issue # | Title |
-| --- | --- | --- |
-| F-01 | [#1](https://github.com/DawidNowak/JobTracker/issues/1) | [F-01] Foundation: applications schema, RLS, and lastActionAt enforcement |
-| S-01 | [#2](https://github.com/DawidNowak/JobTracker/issues/2) | [S-01] Kanban shell with three columns + top nav (Tablica / Archiwum) |
-| S-02 | [#3](https://github.com/DawidNowak/JobTracker/issues/3) | [S-02] Manual add-application form (source required, free text) |
-| S-04 | [#4](https://github.com/DawidNowak/JobTracker/issues/4) | [S-04] Pobierz dane oferty — LinkedIn + JustJoinIT URL parser *(north star)* |
-| S-05 | [#5](https://github.com/DawidNowak/JobTracker/issues/5) | [S-05] Bi-directional kanban transitions with lastActionAt reset |
-| S-03 | [#6](https://github.com/DawidNowak/JobTracker/issues/6) | [S-03] Edit any field + delete card (with warning dialogs) |
-| S-06 | [#7](https://github.com/DawidNowak/JobTracker/issues/7) | [S-06] Card detail view + follow-up notes (write + history) |
-| S-07 | [#8](https://github.com/DawidNowak/JobTracker/issues/8) | [S-07] Zdecyduj — aplikujesz? decision prompt (1-day threshold) |
-| S-08 | [#9](https://github.com/DawidNowak/JobTracker/issues/9) | [S-08] Czas na follow-up z rekruterem flag (7-day threshold) |
-| S-09 | [#10](https://github.com/DawidNowak/JobTracker/issues/10) | [S-09] Czas na follow-up po rozmowie flag (4-business-day threshold) |
-| S-10 | [#11](https://github.com/DawidNowak/JobTracker/issues/11) | [S-10] Mark application as rejected; move to archive state |
-| S-11 | [#12](https://github.com/DawidNowak/JobTracker/issues/12) | [S-11] Archive list page + read-only full card view |
+| Roadmap ID | Issue #                                                   | Title                                                                        |
+| ---------- | --------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| F-01       | [#1](https://github.com/DawidNowak/JobTracker/issues/1)   | [F-01] Foundation: applications schema, RLS, and lastActionAt enforcement    |
+| S-01       | [#2](https://github.com/DawidNowak/JobTracker/issues/2)   | [S-01] Kanban shell with three columns + top nav (Tablica / Archiwum)        |
+| S-02       | [#3](https://github.com/DawidNowak/JobTracker/issues/3)   | [S-02] Manual add-application form (source required, free text)              |
+| S-04       | [#4](https://github.com/DawidNowak/JobTracker/issues/4)   | [S-04] Pobierz dane oferty — LinkedIn + JustJoinIT URL parser _(north star)_ |
+| S-05       | [#5](https://github.com/DawidNowak/JobTracker/issues/5)   | [S-05] Bi-directional kanban transitions with lastActionAt reset             |
+| S-03       | [#6](https://github.com/DawidNowak/JobTracker/issues/6)   | [S-03] Edit any field + delete card (with warning dialogs)                   |
+| S-06       | [#7](https://github.com/DawidNowak/JobTracker/issues/7)   | [S-06] Card detail view + follow-up notes (write + history)                  |
+| S-07       | [#8](https://github.com/DawidNowak/JobTracker/issues/8)   | [S-07] Zdecyduj — aplikujesz? decision prompt (1-day threshold)              |
+| S-08       | [#9](https://github.com/DawidNowak/JobTracker/issues/9)   | [S-08] Czas na follow-up z rekruterem flag (7-day threshold)                 |
+| S-09       | [#10](https://github.com/DawidNowak/JobTracker/issues/10) | [S-09] Czas na follow-up po rozmowie flag (4-business-day threshold)         |
+| S-10       | [#11](https://github.com/DawidNowak/JobTracker/issues/11) | [S-10] Mark application as rejected; move to archive state                   |
+| S-11       | [#12](https://github.com/DawidNowak/JobTracker/issues/12) | [S-11] Archive list page + read-only full card view                          |
 
 Issue numbers happen to align (F-01 = #1, etc.) because the repo had no prior issues. Future slices will not align — always use this mapping table, not arithmetic.
 
@@ -54,9 +54,9 @@ Issue numbers happen to align (F-01 = #1, etc.) because the repo had no prior is
 
 Two labels, both **maintained by the `/blocker-resolved` skill** — do not edit them manually unless you know the skill will not be re-run for the affected issue:
 
-| Label | Color | Meaning |
-| --- | --- | --- |
-| `ready` | `#1A7F37` (green) | No open blockers; pick this next |
+| Label     | Color              | Meaning                              |
+| --------- | ------------------ | ------------------------------------ |
+| `ready`   | `#1A7F37` (green)  | No open blockers; pick this next     |
 | `blocked` | `#B35900` (orange) | Waiting on one or more open blockers |
 
 Invariant: every open MVP issue has exactly one of `ready` or `blocked`. The pickup filter is `gh issue list --repo DawidNowak/JobTracker --label ready --state open`.
@@ -65,16 +65,16 @@ The labels duplicate information that's already in the Issue Dependencies graph 
 
 Still considered and rejected (2026-05-25):
 
-| Candidate | Why not |
-| --- | --- |
-| `type:foundation` / `type:slice` | Title prefix already says this. (Initially created, then removed.) |
-| Per-stream (`stream:A`…`stream:E`) | Stream membership is in the body; never queried during execution. |
-| Per-slice-ID (`F-01`, `S-04`, …) | ID is in the title; duplicating adds bookkeeping with no payoff. |
-| `north-star` | One-issue category = a tag, not a filter. Already noted in S-04's body. |
-| `area:db` / `area:ui` / `area:api` | Most slices are full-stack; would tag 10 of 12 the same way. |
-| `needs-decision` | Only S-04 has an Unknown today, and it's already in-body. |
-| `in-progress` | Assignee + linked PR already signal this. Keeping labels focused on the pickup filter. |
-| `p0` / `p1` | Everything in MVP v1 is p0 by virtue of being in MVP. |
+| Candidate                          | Why not                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------- |
+| `type:foundation` / `type:slice`   | Title prefix already says this. (Initially created, then removed.)                     |
+| Per-stream (`stream:A`…`stream:E`) | Stream membership is in the body; never queried during execution.                      |
+| Per-slice-ID (`F-01`, `S-04`, …)   | ID is in the title; duplicating adds bookkeeping with no payoff.                       |
+| `north-star`                       | One-issue category = a tag, not a filter. Already noted in S-04's body.                |
+| `area:db` / `area:ui` / `area:api` | Most slices are full-stack; would tag 10 of 12 the same way.                           |
+| `needs-decision`                   | Only S-04 has an Unknown today, and it's already in-body.                              |
+| `in-progress`                      | Assignee + linked PR already signal this. Keeping labels focused on the pickup filter. |
+| `p0` / `p1`                        | Everything in MVP v1 is p0 by virtue of being in MVP.                                  |
 
 **Reconsider when:** the backlog passes ~25 open issues, or work spans more than one owner, or post-MVP slices start accumulating open Unknowns (then `needs-decision` becomes worth a label).
 
@@ -93,25 +93,32 @@ Every issue body must have these sections, in this order:
 **Stream:** <A|B|C|D|E>
 
 ### Outcome
+
 <verbatim from roadmap>
 
 ### PRD refs
+
 <verbatim>
 
 ### Prerequisites
+
 - #<N> — [<prereq-ID>] <prereq-title>
-(or "_None — foundation slice._" if empty)
+  (or "_None — foundation slice._" if empty)
 
 ### Parallel with
+
 <verbatim, or "—">
 
 ### Unknowns
+
 <verbatim, or "—">
 
 ### Risk / context
+
 <verbatim Risk paragraph>
 
 ---
+
 Source: `context/foundation/roadmap.md` (v<N>, <date>).
 Process: `context/foundation/gh-issues-process.md`.
 ```

@@ -16,20 +16,21 @@ Signed-in users see a `+` button in Interesujące and Zaaplikowano column header
 
 ## Key Decisions Made
 
-| Decision                         | Choice                                                                          | Why (1 sentence)                                                                                                                                                | Source |
-| -------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Submit mechanism                 | JSON fetch → 201 + page reload                                                  | Field-level server errors render inline; same JSON contract S-04's parser flow will reuse.                                                                       | Plan   |
-| Form surface                     | shadcn Dialog modal (install `dialog`, `input`, `textarea`, `select`, `label`)   | Keeps board context visible; primitives reused by S-03 (edit) and S-04 (parser); `components.json` already configured for new-york style.                       | Plan   |
-| Card face content                | Company (bold) / Position / "Link do oferty" if URL / work-mode badge / created | User-specified composition; expanded slightly beyond minimal to include FR-018 ("Link do oferty") here even though the roadmap parked it for S-04.              | Plan   |
-| FR-018 scope                     | Bundled into S-02 (was S-04 in the roadmap)                                     | Implementation is trivial (`URL` constructor + conditional anchor); the user explicitly added it to the card-face spec during planning.                          | Plan   |
-| Validation error UX              | JSON 422 with `{ errors: Record<field, string> }`; inline messages under fields | Names the project's first error-envelope shape — S-03 and S-04 will reuse it; precise field signal beats a single generic banner.                                | Plan   |
-| Description field shape          | Single textarea "Opis i wymagane umiejętności" with helper text                 | Matches F-01's deliberate no-skills-column decision; zero-friction paste-from-portal; identical to what S-04's parser will pre-fill.                              | Plan   |
-| `+` trigger placement            | Icon button in column header, right-aligned                                     | Always visible without scrolling; doesn't compete with cards for vertical space; standard kanban convention.                                                     | Plan   |
-| Submit-failure UX                | Modal stays open, fields preserved, red banner at top                            | Honors PRD NFR ("no silent data loss" on save failure); user can fix-and-retry without retyping.                                                                | Plan   |
+| Decision                | Choice                                                                          | Why (1 sentence)                                                                                                                                   | Source |
+| ----------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Submit mechanism        | JSON fetch → 201 + page reload                                                  | Field-level server errors render inline; same JSON contract S-04's parser flow will reuse.                                                         | Plan   |
+| Form surface            | shadcn Dialog modal (install `dialog`, `input`, `textarea`, `select`, `label`)  | Keeps board context visible; primitives reused by S-03 (edit) and S-04 (parser); `components.json` already configured for new-york style.          | Plan   |
+| Card face content       | Company (bold) / Position / "Link do oferty" if URL / work-mode badge / created | User-specified composition; expanded slightly beyond minimal to include FR-018 ("Link do oferty") here even though the roadmap parked it for S-04. | Plan   |
+| FR-018 scope            | Bundled into S-02 (was S-04 in the roadmap)                                     | Implementation is trivial (`URL` constructor + conditional anchor); the user explicitly added it to the card-face spec during planning.            | Plan   |
+| Validation error UX     | JSON 422 with `{ errors: Record<field, string> }`; inline messages under fields | Names the project's first error-envelope shape — S-03 and S-04 will reuse it; precise field signal beats a single generic banner.                  | Plan   |
+| Description field shape | Single textarea "Opis i wymagane umiejętności" with helper text                 | Matches F-01's deliberate no-skills-column decision; zero-friction paste-from-portal; identical to what S-04's parser will pre-fill.               | Plan   |
+| `+` trigger placement   | Icon button in column header, right-aligned                                     | Always visible without scrolling; doesn't compete with cards for vertical space; standard kanban convention.                                       | Plan   |
+| Submit-failure UX       | Modal stays open, fields preserved, red banner at top                           | Honors PRD NFR ("no silent data loss" on save failure); user can fix-and-retry without retyping.                                                   | Plan   |
 
 ## Scope
 
 **In scope:**
+
 - Server-side query in `dashboard.astro` reading active applications grouped by status (RLS-scoped).
 - `KanbanCard.astro` rendering the user-specified card face (company / position / "Link do oferty" / work-mode badge / Polish relative timestamp).
 - `KanbanColumn.astro` refactor: card slot with empty-state guard + optional header-action slot.
@@ -39,6 +40,7 @@ Signed-in users see a `+` button in Interesujące and Zaaplikowano column header
 - FR-018 "Link do oferty" anchor on the card face (bundled here per user direction).
 
 **Out of scope:**
+
 - Edit / delete flow (S-03), drag-and-drop, status transitions (S-05).
 - Card detail view, notes UI, note history (S-06).
 - "Pobierz dane oferty" parser button and URL auto-fill (S-04).
@@ -54,11 +56,11 @@ Server insert runs through the per-request Supabase client (`src/lib/supabase.ts
 
 ## Phases at a Glance
 
-| Phase                                                  | What it delivers                                                                                                | Key risk                                                                                                                                  |
-| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Card rendering + column slot refactor                | `dashboard.astro` reads applications grouped by status; `KanbanCard.astro`; `KanbanColumn.astro` slot + guard.   | Empty-state guard + slot must be correct so placeholder and cards never co-render. RLS isolation must hold from the very first read.       |
-| 2. POST /api/applications endpoint                      | First JSON API route in the repo + the project's JSON error envelope (201 / 400 / 401 / 422 / 500).             | Setting the envelope shape here — S-03/S-04 will reuse it. Cookie/session flushing on JSON responses needs to match the auth-route pattern. |
-| 3. Add modal UI + `+` trigger                           | shadcn primitives installed; `AddApplicationDialog.tsx`; `+` in Interesujące + Zaaplikowano headers.            | First Radix Portal under Astro hydration; first React island on the app surface; preserved-on-error form state across 422 vs 5xx paths.    |
+| Phase                                    | What it delivers                                                                                               | Key risk                                                                                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Card rendering + column slot refactor | `dashboard.astro` reads applications grouped by status; `KanbanCard.astro`; `KanbanColumn.astro` slot + guard. | Empty-state guard + slot must be correct so placeholder and cards never co-render. RLS isolation must hold from the very first read.        |
+| 2. POST /api/applications endpoint       | First JSON API route in the repo + the project's JSON error envelope (201 / 400 / 401 / 422 / 500).            | Setting the envelope shape here — S-03/S-04 will reuse it. Cookie/session flushing on JSON responses needs to match the auth-route pattern. |
+| 3. Add modal UI + `+` trigger            | shadcn primitives installed; `AddApplicationDialog.tsx`; `+` in Interesujące + Zaaplikowano headers.           | First Radix Portal under Astro hydration; first React island on the app surface; preserved-on-error form state across 422 vs 5xx paths.     |
 
 **Prerequisites:** F-01 (live), S-01 (live). No new env vars, no new infra.
 **Estimated effort:** ~2–3 after-hours sessions across the three phases; Phase 3 is the largest.

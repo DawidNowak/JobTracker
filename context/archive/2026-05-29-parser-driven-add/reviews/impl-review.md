@@ -1,4 +1,5 @@
 <!-- IMPL-REVIEW-REPORT -->
+
 # Implementation Review: Parser-driven add (full re-review)
 
 - **Plan**: context/changes/parser-driven-add/plan.md
@@ -11,14 +12,14 @@
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| Plan Adherence | PASS |
-| Scope Discipline | PASS |
-| Safety & Quality | WARNING |
-| Architecture | PASS |
-| Pattern Consistency | PASS |
-| Success Criteria | FAIL |
+| Dimension           | Verdict |
+| ------------------- | ------- |
+| Plan Adherence      | PASS    |
+| Scope Discipline    | PASS    |
+| Safety & Quality    | WARNING |
+| Architecture        | PASS    |
+| Pattern Consistency | PASS    |
+| Success Criteria    | FAIL    |
 
 `npm run build` passes (37 s). `npm run lint` **fails** — 3 errors in `src/lib/parsers/justjoinit.ts`. See F1.
 
@@ -36,6 +37,7 @@
   - **214:1** `prettier/prettier` — trailing blank line between `extractOfferObject` and `parseJustJoinIT`.
 
   Plan progress marks `2.1 Lint passes — b441a6b` as `[x]`, so lint was green when phase 2 landed. Triage commit `2b9e722` (schema-drift rewrite of `extractOfferObject`) and the type-narrowing tweak in `mapWorkplaceType` regressed it. `npm run build` still passes.
+
 - **Fix**: Run `npm run lint -- --fix` (handles 81 + 214 automatically) and replace `while (true)` on line 191 with a bounded `while (searchStart < flight.length)` (or equivalent) so the exit condition is explicit.
 - **Decision**: FIXED — ran `npm run lint -- --fix` (auto-removed the `as { value: unknown }` assertion at line 81 and the trailing blank line at 214), then manually changed `while (true)` to `while (searchStart < flight.length)` at line 191. Lint and build both pass.
 
@@ -49,7 +51,7 @@
 - **Fix**: Change to `source: z.string().min(1).max(2048)`.
 - **Decision**: SKIPPED — accepted as deferred; auth-gated endpoint, no observed abuse, Q8 "timeout only" stance still applies.
 
-### F3 — SSRF allowlist accepts any *.linkedin.com subdomain
+### F3 — SSRF allowlist accepts any \*.linkedin.com subdomain
 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
