@@ -313,10 +313,10 @@ None — purely additive. No schema, data, or runtime changes to the app. `.dev.
 
 #### Automated
 
-- [x] 3.1 `npm run format` leaves the edited `.md` files clean
-- [x] 3.2 No broken relative links in the edited docs
+- [x] 3.1 `npm run format` leaves the edited `.md` files clean — 799553f
+- [x] 3.2 No broken relative links in the edited docs — 799553f
 
 #### Manual
 
-- [ ] 3.3 `tests/README.md` E2E section is accurate against the shipped scripts/config
-- [ ] 3.4 `test-plan.md` note is factual and does not contradict the §7 dropped-R2 decision
+- [x] 3.3 `tests/README.md` E2E section is accurate against the shipped scripts/config — 799553f
+- [x] 3.4 `test-plan.md` note is factual and does not contradict the §7 dropped-R2 decision — 799553f
