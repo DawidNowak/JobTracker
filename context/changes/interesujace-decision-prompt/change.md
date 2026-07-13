@@ -1,7 +1,7 @@
 ---
 change_id: interesujace-decision-prompt
 title: Interesujace decision prompt
-status: implemented
+status: impl_reviewed
 created: 2026-07-13
 updated: 2026-07-13
 archived_at: null

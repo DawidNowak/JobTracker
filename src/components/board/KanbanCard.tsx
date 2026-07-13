@@ -61,6 +61,7 @@ function KanbanCardDraggable({
       <KanbanCardBody
         application={application}
         showActions
+        isMutating={isMutating}
         menuOpen={menuOpen}
         onMenuOpenChange={setMenuOpen}
         editOpen={editOpen}
@@ -78,6 +79,7 @@ function KanbanCardDraggable({
 interface CardBodyProps {
   application: ApplicationRow;
   showActions?: boolean;
+  isMutating?: boolean;
   menuOpen?: boolean;
   onMenuOpenChange?: (open: boolean) => void;
   editOpen?: boolean;
@@ -92,6 +94,7 @@ interface CardBodyProps {
 function KanbanCardBody({
   application,
   showActions = false,
+  isMutating = false,
   menuOpen,
   onMenuOpenChange,
   editOpen,
@@ -175,6 +178,7 @@ function KanbanCardBody({
             <div className="flex gap-1">
               <Button
                 size="sm"
+                disabled={isMutating}
                 onPointerDown={(e) => {
                   e.stopPropagation();
                 }}
@@ -187,6 +191,7 @@ function KanbanCardBody({
               <Button
                 size="sm"
                 variant="outline"
+                disabled={isMutating}
                 onPointerDown={(e) => {
                   e.stopPropagation();
                 }}

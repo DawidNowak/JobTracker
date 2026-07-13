@@ -53,6 +53,7 @@ export default function KanbanBoard({ applications: initial }: Props) {
 
   const onDragEnd = (event: DragEndEvent) => {
     setActiveDragId(null);
+    if (isMutating) return;
 
     const from = event.active.data.current?.from as ApplicationStatus | undefined;
     const to = event.over?.id as ApplicationStatus | undefined;
@@ -92,6 +93,7 @@ export default function KanbanBoard({ applications: initial }: Props) {
   };
 
   const onApply = (cardId: string) => {
+    if (isMutating) return;
     const card = applications["Interesujące"].find((c) => c.id === cardId);
     if (!card) return;
 
