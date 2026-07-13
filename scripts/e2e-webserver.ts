@@ -76,6 +76,13 @@ process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 
 function main(): void {
+  // Recover from a backup orphaned by a previous hard-killed run BEFORE reading .dev.vars —
+  // otherwise we'd capture that run's test creds as the "original" and lose the real content.
+  if (existsSync(DEV_VARS_BACKUP)) {
+    restoreDevVars();
+    restored = false;
+  }
+
   // Back up .dev.vars (or record its absence) before swapping, so restoreDevVars() and
   // globalTeardown can put things back exactly as found — even across a hard kill.
   const original = existsSync(DEV_VARS_PATH) ? readFileSync(DEV_VARS_PATH, "utf-8") : "__ABSENT__";

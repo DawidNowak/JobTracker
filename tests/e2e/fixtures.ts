@@ -32,11 +32,15 @@ interface TestFixtures {
 
 // Tolerant of chunked auth cookies (e.g. sb-127-auth-token.0 / .1) — splits only on the first "=".
 function parseCookieString(cookieString: string): { name: string; value: string; url: string }[] {
-  return cookieString.split(";").map((pair) => {
-    const trimmed = pair.trim();
-    const eqIndex = trimmed.indexOf("=");
-    return { name: trimmed.slice(0, eqIndex), value: trimmed.slice(eqIndex + 1), url: E2E_BASE_URL };
-  });
+  return cookieString
+    .split(";")
+    .map((pair) => {
+      const trimmed = pair.trim();
+      const eqIndex = trimmed.indexOf("=");
+      if (eqIndex === -1) return null; // skip malformed/valueless pairs rather than mangle name/value
+      return { name: trimmed.slice(0, eqIndex), value: trimmed.slice(eqIndex + 1), url: E2E_BASE_URL };
+    })
+    .filter((cookie): cookie is { name: string; value: string; url: string } => cookie !== null);
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
