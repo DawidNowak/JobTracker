@@ -27,6 +27,17 @@ const UNITS: { unit: Intl.RelativeTimeFormatUnit; seconds: number }[] = [
   { unit: "minute", seconds: 60 },
 ];
 
+function startOfLocalDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function isStale(iso: string, days: number, now: Date = new Date()): boolean {
+  const then = startOfLocalDay(new Date(iso));
+  const today = startOfLocalDay(now);
+  const dayDelta = Math.round((today.getTime() - then.getTime()) / (1000 * 60 * 60 * 24));
+  return dayDelta >= days;
+}
+
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const diffSeconds = Math.round((then.getTime() - now.getTime()) / 1000);

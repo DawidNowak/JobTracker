@@ -1,0 +1,12 @@
+---
+change_id: interesujace-decision-prompt
+title: Interesujace decision prompt
+status: implementing
+created: 2026-07-13
+updated: 2026-07-13
+archived_at: null
+---
+
+## Notes
+
+<!-- Free-form notes for this change: links, ad-hoc context, decisions that don't belong in research/frame/plan. -->
