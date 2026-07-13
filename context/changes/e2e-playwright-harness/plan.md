@@ -300,14 +300,14 @@ None — purely additive. No schema, data, or runtime changes to the app. `.dev.
 
 #### Automated
 
-- [ ] 2.1 `npm run test:e2e` passes both specs (chromium) green
-- [ ] 2.2 `npm run typecheck` passes
-- [ ] 2.3 `npm run lint` passes on the new spec
+- [x] 2.1 `npm run test:e2e` passes both specs (chromium) green
+- [x] 2.2 `npm run typecheck` passes
+- [x] 2.3 `npm run lint` passes on the new spec
 
 #### Manual
 
-- [ ] 2.4 Deliberate-break check reds the test at the DB-row assertion, then reverts to green (break never committed)
-- [ ] 2.5 No orphaned rows/users after the run
+- [x] 2.4 Deliberate-break check reds the test at the DB-row assertion, then reverts to green (break never committed)
+- [x] 2.5 No orphaned rows/users after the run
 
 ### Phase 3: Docs
 
