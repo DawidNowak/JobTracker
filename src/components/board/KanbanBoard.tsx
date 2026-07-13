@@ -91,6 +91,39 @@ export default function KanbanBoard({ applications: initial }: Props) {
       });
   };
 
+  const onApply = (cardId: string) => {
+    const card = applications["Interesujące"].find((c) => c.id === cardId);
+    if (!card) return;
+
+    const snapshot = applications;
+    const movedAt = new Date().toISOString();
+    setApplications({
+      ...applications,
+      Interesujące: applications["Interesujące"].filter((c) => c.id !== cardId),
+      Zaaplikowano: [{ ...card, status: "Zaaplikowano", last_action_at: movedAt }, ...applications.Zaaplikowano],
+    });
+
+    setIsMutating(true);
+    fetch(`/api/applications/${cardId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "Zaaplikowano" }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          setApplications(snapshot);
+          setError(await readError(res));
+        }
+      })
+      .catch(() => {
+        setApplications(snapshot);
+        setError("Brak połączenia. Spróbuj ponownie.");
+      })
+      .finally(() => {
+        setIsMutating(false);
+      });
+  };
+
   const activeCard = activeDragId ? findCard(applications, activeDragId) : undefined;
 
   return (
@@ -123,6 +156,7 @@ export default function KanbanBoard({ applications: initial }: Props) {
             title={status}
             applications={applications[status]}
             isMutating={isMutating}
+            onApply={onApply}
             headerAction={
               status === "Interesujące" || status === "Zaaplikowano" ? (
                 <AddApplicationDialog targetStatus={status} />

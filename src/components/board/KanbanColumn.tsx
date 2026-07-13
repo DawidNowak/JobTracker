@@ -10,9 +10,10 @@ interface Props {
   applications: ApplicationRow[];
   headerAction?: ReactNode;
   isMutating?: boolean;
+  onApply?: (id: string) => void;
 }
 
-export default function KanbanColumn({ title, applications, headerAction, isMutating = false }: Props) {
+export default function KanbanColumn({ title, applications, headerAction, isMutating = false, onApply }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: title });
   const isEmpty = applications.length === 0;
 
@@ -35,7 +36,7 @@ export default function KanbanColumn({ title, applications, headerAction, isMuta
       ) : (
         <div className="flex flex-col gap-2 p-3">
           {applications.map((application) => (
-            <KanbanCard key={application.id} application={application} isMutating={isMutating} />
+            <KanbanCard key={application.id} application={application} isMutating={isMutating} onApply={onApply} />
           ))}
         </div>
       )}

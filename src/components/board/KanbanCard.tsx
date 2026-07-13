@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelative, parseSourceHref } from "@/lib/format";
+import { formatRelative, isStale, parseSourceHref } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,16 +19,25 @@ interface Props {
   application: ApplicationRow;
   isOverlay?: boolean;
   isMutating?: boolean;
+  onApply?: (id: string) => void;
 }
 
-export default function KanbanCard({ application, isOverlay = false, isMutating = false }: Props) {
+export default function KanbanCard({ application, isOverlay = false, isMutating = false, onApply }: Props) {
   if (isOverlay) {
     return <KanbanCardBody application={application} />;
   }
-  return <KanbanCardDraggable application={application} isMutating={isMutating} />;
+  return <KanbanCardDraggable application={application} isMutating={isMutating} onApply={onApply} />;
 }
 
-function KanbanCardDraggable({ application, isMutating }: { application: ApplicationRow; isMutating: boolean }) {
+function KanbanCardDraggable({
+  application,
+  isMutating,
+  onApply,
+}: {
+  application: ApplicationRow;
+  isMutating: boolean;
+  onApply?: (id: string) => void;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -60,6 +69,7 @@ function KanbanCardDraggable({ application, isMutating }: { application: Applica
         onDeleteOpenChange={setDeleteOpen}
         detailOpen={detailOpen}
         onDetailOpenChange={setDetailOpen}
+        onApply={onApply}
       />
     </div>
   );
@@ -76,6 +86,7 @@ interface CardBodyProps {
   onDeleteOpenChange?: (open: boolean) => void;
   detailOpen?: boolean;
   onDetailOpenChange?: (open: boolean) => void;
+  onApply?: (id: string) => void;
 }
 
 function KanbanCardBody({
@@ -89,9 +100,11 @@ function KanbanCardBody({
   onDeleteOpenChange,
   detailOpen,
   onDetailOpenChange,
+  onApply,
 }: CardBodyProps) {
   const sourceHref = parseSourceHref(application.source);
   const relative = formatRelative(application.last_action_at);
+  const showPrompt = application.status === "Interesujące" && isStale(application.last_action_at, 1);
 
   return (
     <article className={cn("rounded-md border border-neutral-200 bg-white p-3 shadow-sm")}>
@@ -156,7 +169,38 @@ function KanbanCardBody({
             {application.work_mode}
           </span>
         )}
-        <p className="text-xs text-neutral-500">{relative}</p>
+        {showPrompt ? (
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-neutral-500">Zdecyduj — aplikujesz?</p>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={() => {
+                  onApply?.(application.id);
+                }}
+              >
+                Aplikuj
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={() => {
+                  onDeleteOpenChange?.(true);
+                }}
+              >
+                Pomiń
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-neutral-500">{relative}</p>
+        )}
       </div>
       {showActions && detailOpen !== undefined && onDetailOpenChange && (
         <CardDetailDialog application={application} open={detailOpen} onOpenChange={onDetailOpenChange} />

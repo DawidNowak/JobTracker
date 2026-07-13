@@ -226,21 +226,21 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit tests pass: `npm run test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 82f3586
+- [x] 1.2 Linting passes: `npm run lint` — 82f3586
+- [x] 1.3 Unit tests pass: `npm run test` — 82f3586
 
 #### Manual
 
-- [ ] 1.4 Spot-check `isStale` boundary reasoning against business-logic-notes thresholds
+- [x] 1.4 Spot-check `isStale` boundary reasoning against business-logic-notes thresholds
 
 ### Phase 2: On-card decision prompt + action wiring
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Existing tests still pass: `npm run test`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Existing tests still pass: `npm run test`
 
 #### Manual
 
