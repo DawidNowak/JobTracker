@@ -253,9 +253,9 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 E2E spec passes: `npm run test:e2e`
-- [x] 3.2 Type checking passes: `npm run typecheck`
-- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 E2E spec passes: `npm run test:e2e` — 2ff288e
+- [x] 3.2 Type checking passes: `npm run typecheck` — 2ff288e
+- [x] 3.3 Linting passes: `npm run lint` — 2ff288e
 
 #### Manual
 
