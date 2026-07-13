@@ -168,26 +168,26 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit tests pass: `npm run test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 4a17f8d
+- [x] 1.2 Linting passes: `npm run lint` — 4a17f8d
+- [x] 1.3 Unit tests pass: `npm run test` — 4a17f8d
 
 #### Manual
 
-- [ ] 1.4 Stale (≥ 7d) Zaaplikowano card shows amber flag + "Napisz follow-up" button instead of timestamp
-- [ ] 1.5 Fresh (< 7d) Zaaplikowano card shows normal timestamp, no flag/button
-- [ ] 1.6 No regression: Interesujące prompt (S-07) and Rozmowa cards render correctly
-- [ ] 1.7 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag
-- [ ] 1.8 Button does not initiate a drag; card body drag still works
+- [x] 1.4 Stale (≥ 7d) Zaaplikowano card shows amber flag + "Napisz follow-up" button instead of timestamp — 4a17f8d
+- [x] 1.5 Fresh (< 7d) Zaaplikowano card shows normal timestamp, no flag/button — 4a17f8d
+- [x] 1.6 No regression: Interesujące prompt (S-07) and Rozmowa cards render correctly — 4a17f8d
+- [x] 1.7 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag — 4a17f8d
+- [x] 1.8 Button does not initiate a drag; card body drag still works — 4a17f8d
 
 ### Phase 2: E2E Coverage
 
 #### Automated
 
-- [ ] 2.1 E2E spec passes (Playwright command per `@tests/README.md`)
-- [ ] 2.2 Type checking passes: `npm run typecheck`
-- [ ] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 E2E spec passes (Playwright command per `@tests/README.md`)
+- [x] 2.2 Type checking passes: `npm run typecheck`
+- [x] 2.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.4 New spec is stable across two consecutive runs
+- [x] 2.4 New spec is stable across two consecutive runs
