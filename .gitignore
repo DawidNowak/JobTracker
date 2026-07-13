@@ -49,3 +49,9 @@ reports/
 # playwright cli artifacts
 .playwright-cli/
 auth.json
+
+# playwright e2e harness
+test-results/
+playwright-report/
+playwright/.cache/
+.dev.vars.e2e-backup

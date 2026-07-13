@@ -59,6 +59,16 @@ const reactConfig = tseslint.config({
   },
 });
 
+const e2eConfig = tseslint.config({
+  // Playwright fixtures name their callback parameter `use`, which eslint-plugin-react-hooks
+  // otherwise misidentifies as a React hook call. These files contain no React components.
+  files: ["tests/e2e/**/*.ts"],
+  rules: {
+    "react-hooks/rules-of-hooks": "off",
+    "react-compiler/react-compiler": "off",
+  },
+});
+
 const astroConfig = tseslint.config({
   files: ["**/*.astro"],
   rules: {
@@ -75,6 +85,7 @@ export default tseslint.config(
   { ignores: ["src/lib/database.types.ts"] },
   baseConfig,
   reactConfig,
+  e2eConfig,
   eslintPluginAstro.configs["flat/recommended"],
   ...eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
   astroConfig,
