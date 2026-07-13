@@ -232,7 +232,7 @@ None — no schema or data changes.
 
 #### Manual
 
-- [x] 1.4 Spot-check `isStale` boundary reasoning against business-logic-notes thresholds
+- [x] 1.4 Spot-check `isStale` boundary reasoning against business-logic-notes thresholds — 82f3586
 
 ### Phase 2: On-card decision prompt + action wiring
 
@@ -244,10 +244,10 @@ None — no schema or data changes.
 
 #### Manual
 
-- [x] 2.4 Prompt shows on stale Interesujące card, hidden on fresh card
-- [x] 2.5 Aplikuj moves card optimistically; rolls back + banner on server error
-- [x] 2.6 Pomiń opens dialog with correct copy; confirm removes the card
-- [x] 2.7 Buttons don't start a drag; drag suppressed while action in flight / dialog open
+- [x] 2.4 Prompt shows on stale Interesujące card, hidden on fresh card — 14e2bca
+- [x] 2.5 Aplikuj moves card optimistically; rolls back + banner on server error — 14e2bca
+- [x] 2.6 Pomiń opens dialog with correct copy; confirm removes the card — 14e2bca
+- [x] 2.7 Buttons don't start a drag; drag suppressed while action in flight / dialog open — 14e2bca
 
 ### Phase 3: E2E coverage
 
@@ -259,4 +259,4 @@ None — no schema or data changes.
 
 #### Manual
 
-- [x] 3.4 Spec runs against a fresh dev server without client:load flakiness
+- [x] 3.4 Spec runs against a fresh dev server without client:load flakiness — 2ff288e
