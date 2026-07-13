@@ -87,6 +87,27 @@ See the full test rollout plan at `context/foundation/test-plan.md`.
 
 For interactive UI verification (not a test gate — e2e was deliberately dropped for MVP, see `context/foundation/test-plan.md` §7), an agent or human can drive an authenticated browser session against the local app via `playwright-cli`: `npm run e2e:session [-- --seed <n>]` provisions an ephemeral user and prints credentials + a `Cookie:` header, then the `.claude/skills/e2e-browser/SKILL.md` playbook covers sign-in, routes/selectors, the `wrangler dev` variant, and teardown (see also `scripts/e2e-session.ts`). Auth is persisted via `playwright-cli state-save auth.json` after a one-time form sign-in and restored in later shells with `state-load auth.json`. Caveat: an `internal error; reference = …` on the sign-in form under `astro dev` means a stale/wedged dev-server process — kill it and restart the server; it is not an auth bug.
 
+## E2E (Playwright)
+
+A **local-only** Playwright suite lives under `tests/e2e/` for genuinely browser-level risks — state that only exists in the rendered UI (dialogs, real navigation, DOM-only assertions). It is **not a CI gate**; the `test-plan.md` §7 "e2e not a gate" decision stands.
+
+**Prerequisites**: local Supabase up (`npx supabase start`) and `.env.test` populated (same as the Vitest prerequisites above).
+
+**Run**:
+
+```bash
+npm run test:e2e     # headless run
+npm run test:e2e:ui  # Playwright's interactive UI mode
+```
+
+**How it works**: `playwright.config.ts`'s `webServer` invokes `scripts/e2e-webserver.ts`, which backs up `.dev.vars`, swaps it to the local-stack credentials, and spawns `astro dev` on a fixed port (`tests/e2e/config.ts`'s `E2E_PORT`) bound to `127.0.0.1`. `.dev.vars` is restored on graceful shutdown, and `tests/e2e/global-teardown.ts` authoritatively restores it from the backup file afterward in case the wrapper was hard-killed.
+
+**Isolation**: `tests/e2e/fixtures.ts` extends Playwright's `test` with `account` (a fresh `u-<uuid>@test.local` user provisioned per test and cleaned up after), an authenticated `context` (cookies injected via `signInAndCaptureCookies`, no UI sign-in), and `seedApp` (rows scoped to that user) — the same ephemeral-user model as the Vitest integration suite.
+
+**Conventions**: one test per file, role-based locators, and the other authoring rules are documented in `tests/e2e/AGENTS.md`; `tests/e2e/board-load.spec.ts` is the reference exemplar.
+
+**Caveat**: `test:e2e` boots its own `astro dev` on a dedicated port and is not meant to run concurrently with `npm test` (which spawns its own dev server via `tests/global-setup.ts`) — run them sequentially.
+
 ## CI
 
 The `test` job in `.github/workflows/ci.yml` runs `npm test` on every push to `master` and every PR targeting `master`. It is a **required status check** — a red suite blocks merge.
