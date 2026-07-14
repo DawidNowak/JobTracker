@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { waitForBoardHydration } from "../helpers/hydration";
 
 // Risk test: irreversible delete must remove the card from the board AND the row from the DB.
 test("deletes a Zaaplikowano card from board and database", async ({ page, seedApp, admin }) => {
@@ -8,18 +9,14 @@ test("deletes a Zaaplikowano card from board and database", async ({ page, seedA
   const application = await seedApp({ status: "Zaaplikowano", company });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   const card = page.locator("article").filter({ has: page.getByText(company) });
   const menuTrigger = card.getByRole("button", { name: "Opcje aplikacji" });
   const deleteMenuItem = page.getByRole("menuitem", { name: "Usuń" });
 
-  // The board is a client:load island; on a cold dev server the trigger can be visible
-  // before React attaches its click handler. Retry the click until the menu actually opens
-  // (a web-first retry, not a fixed sleep) rather than assuming the first click lands.
-  await expect(async () => {
-    await menuTrigger.click();
-    await expect(deleteMenuItem).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 10_000 });
+  await menuTrigger.click();
+  await expect(deleteMenuItem).toBeVisible();
 
   await deleteMenuItem.click();
 

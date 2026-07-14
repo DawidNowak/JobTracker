@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { waitForBoardHydration } from "../helpers/hydration";
 
 // KanbanColumn renders a plain <div> with no region/landmark role — only its <h2> is named.
 // Scope assertions to the column containing the matching heading (pattern from board-load.spec.ts).
@@ -27,6 +28,7 @@ test("Rozmowa card stale 4+ business days shows the follow-up flag; saving a not
   await seedApp({ status: "Rozmowa", company: freshCompany });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   const staleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
   const freshCard = page.locator("article").filter({ has: page.getByText(freshCompany) });
@@ -39,12 +41,8 @@ test("Rozmowa card stale 4+ business days shows the follow-up flag; saving a not
 
   const dialog = page.getByRole("dialog");
 
-  // The board is a client:load island; on a cold dev server the button can be visible before
-  // React attaches its click handler (same pattern as decision-prompt.spec.ts's Aplikuj click).
-  await expect(async () => {
-    await staleCard.getByRole("button", { name: "Napisz follow-up" }).click();
-    await expect(dialog).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 10_000 });
+  await staleCard.getByRole("button", { name: "Napisz follow-up" }).click();
+  await expect(dialog).toBeVisible();
 
   const noteBody = `E2E follow-up note ${runId}`;
   await dialog.getByPlaceholder("Dodaj notatkę…").fill(noteBody);
