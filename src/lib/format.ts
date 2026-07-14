@@ -38,6 +38,21 @@ export function isStale(iso: string, days: number, now: Date = new Date()): bool
   return dayDelta >= days;
 }
 
+export function isStaleBusinessDays(iso: string, businessDays: number, now: Date = new Date()): boolean {
+  const then = startOfLocalDay(new Date(iso));
+  const today = startOfLocalDay(now);
+  const cursor = new Date(then);
+  let count = 0;
+  while (cursor.getTime() < today.getTime()) {
+    cursor.setDate(cursor.getDate() + 1);
+    const weekday = cursor.getDay();
+    if (weekday !== 0 && weekday !== 6) {
+      count++;
+    }
+  }
+  return count >= businessDays;
+}
+
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const diffSeconds = Math.round((then.getTime() - now.getTime()) / 1000);
