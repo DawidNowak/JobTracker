@@ -12,7 +12,7 @@ function column(page: import("@playwright/test").Page, name: string) {
 
 const eightDaysAgo = () => new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
 
-test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note clears it without changing status", async ({
+test("Rozmowa card stale 4+ business days shows the follow-up flag; saving a note clears it without changing status", async ({
   page,
   seedApp,
 }) => {
@@ -21,11 +21,11 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
   const freshCompany = `E2E FollowUp Fresh Co ${runId}`;
 
   const staleApp = await seedApp({
-    status: "Zaaplikowano",
+    status: "Rozmowa",
     company: staleCompany,
     last_action_at: eightDaysAgo(),
   });
-  await seedApp({ status: "Zaaplikowano", company: freshCompany });
+  await seedApp({ status: "Rozmowa", company: freshCompany });
 
   await page.goto("/dashboard");
   await waitForBoardHydration(page);
@@ -33,10 +33,10 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
   const staleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
   const freshCard = page.locator("article").filter({ has: page.getByText(freshCompany) });
 
-  await expect(staleCard.getByText("Czas na follow-up z rekruterem")).toBeVisible();
+  await expect(staleCard.getByText("Czas na follow-up po rozmowie")).toBeVisible();
   await expect(staleCard.getByRole("button", { name: "Napisz follow-up" })).toBeVisible();
 
-  await expect(freshCard.getByText("Czas na follow-up z rekruterem")).toHaveCount(0);
+  await expect(freshCard.getByText("Czas na follow-up po rozmowie")).toHaveCount(0);
   await expect(freshCard.getByRole("button", { name: "Napisz follow-up" })).toHaveCount(0);
 
   const dialog = page.getByRole("dialog");
@@ -61,7 +61,7 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
   await Promise.all([page.waitForEvent("load"), dialog.getByRole("button", { name: "Close" }).click()]);
 
   const reloadedStaleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
-  await expect(reloadedStaleCard.getByText("Czas na follow-up z rekruterem")).toHaveCount(0);
+  await expect(reloadedStaleCard.getByText("Czas na follow-up po rozmowie")).toHaveCount(0);
   await expect(reloadedStaleCard.getByRole("button", { name: "Napisz follow-up" })).toHaveCount(0);
-  await expect(column(page, "Zaaplikowano").getByText(staleCompany)).toBeVisible();
+  await expect(column(page, "Rozmowa").getByText(staleCompany)).toBeVisible();
 });

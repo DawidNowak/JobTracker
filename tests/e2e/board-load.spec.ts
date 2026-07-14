@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { waitForBoardHydration } from "../helpers/hydration";
 
 // Reference exemplar: authenticated board render with seeded cards in the correct columns.
 // Copy this shape (fixtures import, column-scoping locator) for new specs.
@@ -11,6 +12,7 @@ test("renders seeded applications under their status column", async ({ page, see
   await seedApp({ status: "Zaaplikowano", company: companyApplied });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   await expect(page.getByRole("heading", { name: "Interesujące" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Zaaplikowano" })).toBeVisible();

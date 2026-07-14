@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { waitForBoardHydration } from "../helpers/hydration";
 
 // KanbanColumn renders a plain <div> with no region/landmark role — only its <h2> is named.
 // Scope assertions to the column containing the matching heading (pattern from board-load.spec.ts).
@@ -23,6 +24,7 @@ test("Interesujące card past the 1-day threshold shows the decision prompt with
   await seedApp({ status: "Interesujące", company: freshCompany });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   const staleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
   const freshCard = page.locator("article").filter({ has: page.getByText(freshCompany) });
@@ -41,23 +43,24 @@ test("Aplikuj moves a stale card to Zaaplikowano", async ({ page, seedApp, admin
   const application = await seedApp({ status: "Interesujące", company, last_action_at: twoDaysAgo() });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   const card = page.locator("article").filter({ has: page.getByText(company) });
 
-  // The board is a client:load island; on a cold dev server the button can be visible
-  // before React attaches its click handler. Retry until the app actually reacts.
-  // Aplikuj is optimistic (no page reload like delete) — wait for the PATCH response itself
-  // so the later DB assertion doesn't race the in-flight request.
-  await expect(async () => {
-    const [response] = await Promise.all([
-      page.waitForResponse(
-        (res) => res.url().includes(`/api/applications/${application.id}`) && res.request().method() === "PATCH",
-        { timeout: 1000 },
-      ),
-      card.getByRole("button", { name: "Aplikuj" }).click(),
-    ]);
-    expect(response.ok()).toBe(true);
-  }).toPass({ timeout: 10_000 });
+  // Aplikuj is optimistic — the card moves (and this button disappears) synchronously on
+  // click, before the PATCH resolves (KanbanBoard.tsx's onApply). So the click must not be
+  // retried: a second click here would target a button that no longer exists. Register the
+  // response wait before the single click, with a timeout generous enough for the shared
+  // dev server under parallel e2e workers (see waitForBoardHydration for the hydration gate
+  // that makes a single click safe in the first place).
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().includes(`/api/applications/${application.id}`) && res.request().method() === "PATCH",
+      { timeout: 10_000 },
+    ),
+    card.getByRole("button", { name: "Aplikuj" }).click(),
+  ]);
+  expect(response.ok()).toBe(true);
 
   await expect(column(page, "Zaaplikowano").getByText(company)).toBeVisible();
   await expect(column(page, "Interesujące").getByText(company)).toHaveCount(0);
@@ -74,13 +77,12 @@ test("Pomiń opens the delete dialog and permanently removes the card", async ({
   const application = await seedApp({ status: "Interesujące", company, last_action_at: twoDaysAgo() });
 
   await page.goto("/dashboard");
+  await waitForBoardHydration(page);
 
   const card = page.locator("article").filter({ has: page.getByText(company) });
 
-  await expect(async () => {
-    await card.getByRole("button", { name: "Pomiń" }).click();
-    await expect(page.getByRole("alertdialog")).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 10_000 });
+  await card.getByRole("button", { name: "Pomiń" }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
 
   // Menu-trigger vs dialog-confirm both read "Usuń" — scope the confirm to the alertdialog.
   const dialog = page.getByRole("alertdialog");

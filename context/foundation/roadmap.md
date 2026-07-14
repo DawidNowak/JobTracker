@@ -40,7 +40,7 @@ The product wedge — the one trait that, if removed, makes the product indistin
 | S-06 | notes-and-card-detail        | write follow-up notes and read note history on a card           | S-02          | FR-013, FR-014                        | done     |
 | S-07 | interesujace-decision-prompt | act on the 1-day decision prompt in Interesujące                | S-05, S-03    | US-03, FR-015                         | done     |
 | S-08 | zaaplikowano-followup-flag   | see the 7-day follow-up flag in Zaaplikowano                    | S-06          | US-02, FR-011                         | done     |
-| S-09 | rozmowa-followup-flag        | see the 4-business-day follow-up flag in Rozmowa                | S-06          | US-04, FR-012                         | proposed |
+| S-09 | rozmowa-followup-flag        | see the 4-business-day follow-up flag in Rozmowa                | S-06          | US-04, FR-012                         | done     |
 | S-10 | reject-to-archive            | mark a card as rejected; it moves to the archive                | S-05          | FR-009                                | proposed |
 | S-11 | archive-view                 | open the archive list and read full archived cards              | S-10, S-06    | FR-010 (page), FR-017                 | proposed |
 
@@ -191,7 +191,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Business-day arithmetic is the one computation deviation from S-07 / S-08. PRD locks the rule (Mon–Fri, no holidays in MVP) so there is no design ambiguity; the risk is purely implementation correctness around weekend boundaries.
-- **Status:** proposed
+- **Status:** done
 
 ### S-10: Reject to archive
 
@@ -262,3 +262,4 @@ None at roadmap level. The PRD declared zero open questions in shaping (`quality
 - **S-06: write follow-up notes and read note history on a card** — Archived 2026-07-09 → `context/archive/2026-06-30-notes-and-card-detail/`. Lesson: —.
 - **S-07: act on the 1-day decision prompt in Interesujące** — Archived 2026-07-13 → `context/archive/2026-07-13-interesujace-decision-prompt/`. Lesson: —.
 - **S-08: see the 7-day follow-up flag in Zaaplikowano** — Archived 2026-07-14 → `context/archive/2026-07-13-zaaplikowano-followup-flag/`. Lesson: —.
+- **S-09: Cards in "Rozmowa" with no action for ≥ 4 business days (Mon–Fri, weekends excluded; public holidays NOT excluded in MVP per PRD) display "Czas na follow-up po rozmowie" on the board face. The user acts by writing a note (via S-06) or changing status (via S-05).** — Archived 2026-07-14 → `context/archive/2026-07-14-rozmowa-followup-flag/`. Lesson: —.

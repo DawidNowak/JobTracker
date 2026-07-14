@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -44,6 +44,11 @@ export default function KanbanBoard({ applications: initial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    boardRef.current?.setAttribute("data-board-hydrated", "true");
+  }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -130,42 +135,44 @@ export default function KanbanBoard({ applications: initial }: Props) {
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-      {error && (
-        <div
-          role="alert"
-          className={cn(
-            "mb-3 flex items-start justify-between rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700",
-          )}
-        >
-          <span>{error}</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-mt-1 h-6 px-2 text-red-700 hover:bg-red-100 hover:text-red-800"
-            onClick={() => {
-              setError(null);
-            }}
-            aria-label="Zamknij komunikat"
+      <div ref={boardRef} data-board-hydrated="false">
+        {error && (
+          <div
+            role="alert"
+            className={cn(
+              "mb-3 flex items-start justify-between rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700",
+            )}
           >
-            ×
-          </Button>
+            <span>{error}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-mt-1 h-6 px-2 text-red-700 hover:bg-red-100 hover:text-red-800"
+              onClick={() => {
+                setError(null);
+              }}
+              aria-label="Zamknij komunikat"
+            >
+              ×
+            </Button>
+          </div>
+        )}
+        <div className="flex gap-4">
+          {applicationStatusValues.map((status) => (
+            <KanbanColumn
+              key={status}
+              title={status}
+              applications={applications[status]}
+              isMutating={isMutating}
+              onApply={onApply}
+              headerAction={
+                status === "Interesujące" || status === "Zaaplikowano" ? (
+                  <AddApplicationDialog targetStatus={status} />
+                ) : undefined
+              }
+            />
+          ))}
         </div>
-      )}
-      <div className="flex gap-4">
-        {applicationStatusValues.map((status) => (
-          <KanbanColumn
-            key={status}
-            title={status}
-            applications={applications[status]}
-            isMutating={isMutating}
-            onApply={onApply}
-            headerAction={
-              status === "Interesujące" || status === "Zaaplikowano" ? (
-                <AddApplicationDialog targetStatus={status} />
-              ) : undefined
-            }
-          />
-        ))}
       </div>
       <DragOverlay>{activeCard ? <KanbanCard application={activeCard} isOverlay /> : null}</DragOverlay>
     </DndContext>

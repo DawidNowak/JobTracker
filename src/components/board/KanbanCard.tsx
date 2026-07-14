@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRelative, isStale, parseSourceHref } from "@/lib/format";
+import { formatRelative, isStale, isStaleBusinessDays, parseSourceHref } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,27 @@ import {
 import EditApplicationDialog from "@/components/board/EditApplicationDialog";
 import DeleteApplicationDialog from "@/components/board/DeleteApplicationDialog";
 import CardDetailDialog from "@/components/board/CardDetailDialog";
+import type { ApplicationStatus } from "@/lib/validation/applications";
 import type { ApplicationRow } from "@/types";
+
+interface FollowUpFlag {
+  status: ApplicationStatus;
+  isStale: (iso: string, now?: Date) => boolean;
+  label: string;
+}
+
+const FOLLOWUP_FLAGS: FollowUpFlag[] = [
+  {
+    status: "Zaaplikowano",
+    isStale: (iso, now) => isStale(iso, 7, now),
+    label: "Czas na follow-up z rekruterem",
+  },
+  {
+    status: "Rozmowa",
+    isStale: (iso, now) => isStaleBusinessDays(iso, 4, now),
+    label: "Czas na follow-up po rozmowie",
+  },
+];
 
 interface Props {
   application: ApplicationRow;
@@ -108,7 +128,7 @@ function KanbanCardBody({
   const sourceHref = parseSourceHref(application.source);
   const relative = formatRelative(application.last_action_at);
   const showPrompt = application.status === "Interesujące" && isStale(application.last_action_at, 1);
-  const showFollowUp = application.status === "Zaaplikowano" && isStale(application.last_action_at, 7);
+  const followUp = FOLLOWUP_FLAGS.find((f) => f.status === application.status && f.isStale(application.last_action_at));
 
   return (
     <article className={cn("rounded-md border border-neutral-200 bg-white p-3 shadow-sm")}>
@@ -173,10 +193,10 @@ function KanbanCardBody({
             {application.work_mode}
           </span>
         )}
-        {showFollowUp ? (
+        {followUp ? (
           <div className="flex items-center justify-between gap-2">
             <p className={cn("rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700")}>
-              Czas na follow-up z rekruterem
+              {followUp.label}
             </p>
             <Button
               size="sm"
