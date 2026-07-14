@@ -222,31 +222,31 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit tests pass (including new `isStaleBusinessDays` block): `npm run test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — b4e4500
+- [x] 1.2 Linting passes: `npm run lint` — b4e4500
+- [x] 1.3 Unit tests pass (including new `isStaleBusinessDays` block): `npm run test` — b4e4500
 
 #### Manual
 
-- [x] 1.4 Friday-interview scenario spot-checked against a calendar (not flagged Mon/Tue, flagged by Thursday)
+- [x] 1.4 Friday-interview scenario spot-checked against a calendar (not flagged Mon/Tue, flagged by Thursday) — b4e4500
 
 ### Phase 2: Config-driven Follow-up Flag (Zaaplikowano + Rozmowa)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Unit tests pass: `npm run test`
-- [ ] 2.4 E2E suite passes, incl. S-08 follow-up spec as refactor regression guard: `npm run test:e2e`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Unit tests pass: `npm run test`
+- [x] 2.4 E2E suite passes, incl. S-08 follow-up spec as refactor regression guard: `npm run test:e2e`
 
 #### Manual
 
-- [ ] 2.5 Stale (≥ 4 business days) Rozmowa card shows amber "Czas na follow-up po rozmowie" flag + "Napisz follow-up" button
-- [ ] 2.6 Fresh (< 4 business days) Rozmowa card shows normal timestamp, no flag/button
-- [ ] 2.7 No regression: Zaaplikowano (S-08) flag and Interesujące (S-07) prompt render correctly
-- [ ] 2.8 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag; status stays Rozmowa
-- [ ] 2.9 Dragging a flagged Rozmowa card to another column clears the flag
-- [ ] 2.10 Button does not initiate a drag; card body drag still works
+- [x] 2.5 Stale (≥ 4 business days) Rozmowa card shows amber "Czas na follow-up po rozmowie" flag + "Napisz follow-up" button
+- [x] 2.6 Fresh (< 4 business days) Rozmowa card shows normal timestamp, no flag/button
+- [x] 2.7 No regression: Zaaplikowano (S-08) flag and Interesujące (S-07) prompt render correctly
+- [x] 2.8 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag; status stays Rozmowa
+- [x] 2.9 Dragging a flagged Rozmowa card to another column clears the flag
+- [x] 2.10 Button does not initiate a drag; card body drag still works
 
 ### Phase 3: E2E Coverage
 
