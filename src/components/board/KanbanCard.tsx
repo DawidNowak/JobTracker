@@ -13,11 +13,11 @@ import {
 import EditApplicationDialog from "@/components/board/EditApplicationDialog";
 import DeleteApplicationDialog from "@/components/board/DeleteApplicationDialog";
 import CardDetailDialog from "@/components/board/CardDetailDialog";
-import { applicationStatusValues } from "@/lib/validation/applications";
+import type { ApplicationStatus } from "@/lib/validation/applications";
 import type { ApplicationRow } from "@/types";
 
 interface FollowUpFlag {
-  status: (typeof applicationStatusValues)[number];
+  status: ApplicationStatus;
   isStale: (iso: string, now?: Date) => boolean;
   label: string;
 }
