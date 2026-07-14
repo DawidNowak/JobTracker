@@ -234,28 +234,28 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Unit tests pass: `npm run test`
-- [x] 2.4 E2E suite passes, incl. S-08 follow-up spec as refactor regression guard: `npm run test:e2e`
+- [x] 2.1 Type checking passes: `npm run typecheck` — d3fc001
+- [x] 2.2 Linting passes: `npm run lint` — d3fc001
+- [x] 2.3 Unit tests pass: `npm run test` — d3fc001
+- [x] 2.4 E2E suite passes, incl. S-08 follow-up spec as refactor regression guard: `npm run test:e2e` — d3fc001
 
 #### Manual
 
-- [x] 2.5 Stale (≥ 4 business days) Rozmowa card shows amber "Czas na follow-up po rozmowie" flag + "Napisz follow-up" button
-- [x] 2.6 Fresh (< 4 business days) Rozmowa card shows normal timestamp, no flag/button
-- [x] 2.7 No regression: Zaaplikowano (S-08) flag and Interesujące (S-07) prompt render correctly
-- [x] 2.8 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag; status stays Rozmowa
-- [x] 2.9 Dragging a flagged Rozmowa card to another column clears the flag
-- [x] 2.10 Button does not initiate a drag; card body drag still works
+- [x] 2.5 Stale (≥ 4 business days) Rozmowa card shows amber "Czas na follow-up po rozmowie" flag + "Napisz follow-up" button — d3fc001
+- [x] 2.6 Fresh (< 4 business days) Rozmowa card shows normal timestamp, no flag/button — d3fc001
+- [x] 2.7 No regression: Zaaplikowano (S-08) flag and Interesujące (S-07) prompt render correctly — d3fc001
+- [x] 2.8 "Napisz follow-up" opens detail dialog; saving a note then closing reloads and clears the flag; status stays Rozmowa — d3fc001
+- [x] 2.9 Dragging a flagged Rozmowa card to another column clears the flag — d3fc001
+- [x] 2.10 Button does not initiate a drag; card body drag still works — d3fc001
 
 ### Phase 3: E2E Coverage
 
 #### Automated
 
-- [ ] 3.1 E2E spec passes: `npm run test:e2e`
-- [ ] 3.2 Type checking passes: `npm run typecheck`
-- [ ] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 E2E spec passes: `npm run test:e2e`
+- [x] 3.2 Type checking passes: `npm run typecheck`
+- [x] 3.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 New spec is stable across two consecutive runs
+- [x] 3.4 New spec is stable across two consecutive runs

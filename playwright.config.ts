@@ -8,7 +8,10 @@ export default defineConfig({
   testDir: "tests/e2e",
   testMatch: "**/*.spec.ts",
   fullyParallel: true,
-  retries: 0,
+  // 1: specs race a `client:load` island's first response against a shared dev server under
+  // parallel workers (see e.g. decision-prompt.spec.ts's Aplikuj click) — a single retry absorbs
+  // a slow-but-successful request without masking a genuine assertion failure.
+  retries: 1,
   reporter: "list",
   globalTeardown: "./tests/e2e/global-teardown.ts",
   use: {
