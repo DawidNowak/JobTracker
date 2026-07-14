@@ -252,10 +252,10 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 E2E spec passes: `npm run test:e2e`
-- [x] 3.2 Type checking passes: `npm run typecheck`
-- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.1 E2E spec passes: `npm run test:e2e` — c88f002
+- [x] 3.2 Type checking passes: `npm run typecheck` — c88f002
+- [x] 3.3 Linting passes: `npm run lint` — c88f002
 
 #### Manual
 
-- [x] 3.4 New spec is stable across two consecutive runs
+- [x] 3.4 New spec is stable across two consecutive runs — c88f002

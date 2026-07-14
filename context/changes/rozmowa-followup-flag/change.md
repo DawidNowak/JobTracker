@@ -1,7 +1,7 @@
 ---
 change_id: rozmowa-followup-flag
 title: Rozmowa followup flag
-status: implementing
+status: implemented
 created: 2026-07-14
 updated: 2026-07-14
 archived_at: null
