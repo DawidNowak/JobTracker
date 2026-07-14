@@ -49,12 +49,13 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
   const noteBody = `E2E follow-up note ${runId}`;
   await dialog.getByPlaceholder("Dodaj notatkę…").fill(noteBody);
 
-  await Promise.all([
+  const [notePostResponse] = await Promise.all([
     page.waitForResponse(
       (res) => res.url().includes(`/api/applications/${staleApp.id}/notes`) && res.request().method() === "POST",
     ),
     dialog.getByRole("button", { name: "Dodaj notatkę" }).click(),
   ]);
+  expect(notePostResponse.ok()).toBe(true);
 
   // CardDetailDialog.handleOpenChange fires window.location.reload() on close, so wait for the
   // reload's load event alongside the close click rather than asserting synchronously after it
