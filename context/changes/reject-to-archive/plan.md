@@ -255,8 +255,8 @@ No migration. Column, indexes, and RLS policies already shipped in F-01.
 
 #### Automated
 
-- [x] 3.1 Reject spec passes: `npm run test:e2e -- reject-application`
+- [x] 3.1 Reject spec passes: `npm run test:e2e -- reject-application` — 82fa6f2
 
 #### Manual
 
-- [x] 3.2 Spec green against a fresh local stack + dev server with no cross-test bleed
+- [x] 3.2 Spec green against a fresh local stack + dev server with no cross-test bleed — 82fa6f2
