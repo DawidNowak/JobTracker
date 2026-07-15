@@ -23,8 +23,8 @@ if (parsedId && user) {
     try {
       const row = await getOwnedApplication(supabase, parsedId, user.id);
       if (row?.archived_at) {
-        application = row;
         notes = await listNotes(supabase, parsedId, user.id);
+        application = row;
       }
     } catch (err) {
       // eslint-disable-next-line no-console
