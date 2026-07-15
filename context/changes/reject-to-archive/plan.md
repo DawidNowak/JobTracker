@@ -226,16 +226,16 @@ No migration. Column, indexes, and RLS policies already shipped in F-01.
 
 #### Automated
 
-- [x] 1.1 Typecheck passes: `npm run typecheck`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Full suite passes: `npm test`
-- [x] 1.4 New HTTP smoke suite passes: `npm test -- archive-applications`
-- [x] 1.5 RLS archive assertions pass: `npm test -- rls-applications`
+- [x] 1.1 Typecheck passes: `npm run typecheck` — cccf496
+- [x] 1.2 Lint passes: `npm run lint` — cccf496
+- [x] 1.3 Full suite passes: `npm test` — cccf496
+- [x] 1.4 New HTTP smoke suite passes: `npm test -- archive-applications` — cccf496
+- [x] 1.5 RLS archive assertions pass: `npm test -- rls-applications` — cccf496
 
 #### Manual
 
-- [x] 1.6 POST archive on owned Zaaplikowano card returns 200 and sets `archived_at`
-- [x] 1.7 POST archive on Interesujące card returns 422 and leaves `archived_at` null
+- [x] 1.6 POST archive on owned Zaaplikowano card returns 200 and sets `archived_at` — cccf496
+- [x] 1.7 POST archive on Interesujące card returns 422 and leaves `archived_at` null — cccf496
 
 ### Phase 2: Frontend — reject action UI
 
