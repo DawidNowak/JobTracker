@@ -208,10 +208,10 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Full test suite passes: `npm test`
-- [x] 1.4 Integration test: owner sees own archived rows, not others'; active rows excluded (PostgREST-level)
+- [x] 1.1 Type checking passes: `npm run typecheck` — 3c6c23d
+- [x] 1.2 Linting passes: `npm run lint` — 3c6c23d
+- [x] 1.3 Full test suite passes: `npm test` — 3c6c23d
+- [x] 1.4 Integration test: owner sees own archived rows, not others'; active rows excluded (PostgREST-level) — 3c6c23d
 
 #### Manual
 
@@ -221,15 +221,15 @@ None — no schema or data changes.
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Full test suite passes: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Full test suite passes: `npm test`
 
 #### Manual
 
-- [ ] 2.4 `/archive` lists archived apps newest-first, each row links to `/archive/{id}`, no edit controls
-- [ ] 2.5 Empty state `"Brak zarchiwizowanych aplikacji."` renders when none
-- [ ] 2.6 "Archiwum" nav active; board still shows only active applications (no regression)
+- [x] 2.4 `/archive` lists archived apps newest-first, each row links to `/archive/{id}`, no edit controls
+- [x] 2.5 Empty state `"Brak zarchiwizowanych aplikacji."` renders when none
+- [x] 2.6 "Archiwum" nav active; board still shows only active applications (no regression)
 
 ### Phase 3: Archive Detail Page + Read-Only Notes
 
