@@ -57,6 +57,41 @@ export async function updateApplication(
   return data;
 }
 
+export async function archiveApplication(supabase: Client, id: string, userId: string): Promise<ApplicationRow | null> {
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .is("archived_at", null)
+    .in("status", ["Zaaplikowano", "Rozmowa"])
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export async function getOwnedApplicationState(
+  supabase: Client,
+  id: string,
+  userId: string,
+): Promise<Pick<ApplicationRow, "status" | "archived_at"> | null> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("status, archived_at")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
 export async function deleteApplication(supabase: Client, id: string, userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("applications")

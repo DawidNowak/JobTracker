@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import EditApplicationDialog from "@/components/board/EditApplicationDialog";
 import DeleteApplicationDialog from "@/components/board/DeleteApplicationDialog";
+import RejectApplicationDialog from "@/components/board/RejectApplicationDialog";
 import CardDetailDialog from "@/components/board/CardDetailDialog";
 import type { ApplicationStatus } from "@/lib/validation/applications";
 import type { ApplicationRow } from "@/types";
@@ -61,9 +62,10 @@ function KanbanCardDraggable({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const anyOpen = menuOpen || editOpen || deleteOpen || detailOpen;
+  const anyOpen = menuOpen || editOpen || deleteOpen || rejectOpen || detailOpen;
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: application.id,
@@ -88,6 +90,8 @@ function KanbanCardDraggable({
         onEditOpenChange={setEditOpen}
         deleteOpen={deleteOpen}
         onDeleteOpenChange={setDeleteOpen}
+        rejectOpen={rejectOpen}
+        onRejectOpenChange={setRejectOpen}
         detailOpen={detailOpen}
         onDetailOpenChange={setDetailOpen}
         onApply={onApply}
@@ -106,6 +110,8 @@ interface CardBodyProps {
   onEditOpenChange?: (open: boolean) => void;
   deleteOpen?: boolean;
   onDeleteOpenChange?: (open: boolean) => void;
+  rejectOpen?: boolean;
+  onRejectOpenChange?: (open: boolean) => void;
   detailOpen?: boolean;
   onDetailOpenChange?: (open: boolean) => void;
   onApply?: (id: string) => void;
@@ -121,6 +127,8 @@ function KanbanCardBody({
   onEditOpenChange,
   deleteOpen,
   onDeleteOpenChange,
+  rejectOpen,
+  onRejectOpenChange,
   detailOpen,
   onDetailOpenChange,
   onApply,
@@ -165,6 +173,15 @@ function KanbanCardBody({
                 >
                   Edytuj
                 </DropdownMenuItem>
+                {(application.status === "Zaaplikowano" || application.status === "Rozmowa") && (
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      onRejectOpenChange?.(true);
+                    }}
+                  >
+                    Odrzuć
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onSelect={() => {
                     onDeleteOpenChange?.(true);
@@ -254,6 +271,9 @@ function KanbanCardBody({
       )}
       {showActions && deleteOpen !== undefined && onDeleteOpenChange && (
         <DeleteApplicationDialog application={application} open={deleteOpen} onOpenChange={onDeleteOpenChange} />
+      )}
+      {showActions && rejectOpen !== undefined && onRejectOpenChange && (
+        <RejectApplicationDialog application={application} open={rejectOpen} onOpenChange={onRejectOpenChange} />
       )}
     </article>
   );

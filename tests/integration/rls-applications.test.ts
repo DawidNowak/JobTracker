@@ -50,4 +50,40 @@ describe("applications RLS — cross-user isolation", () => {
     expect(error).toBeNull();
     expect(data).toEqual([]);
   });
+
+  it("owner can set archived_at, and the archived row drops out of the active-board filter", async () => {
+    const { data, error } = await userA.client
+      .from("applications")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", rowAId)
+      .select();
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    expect(data?.[0].archived_at).not.toBeNull();
+
+    const { data: active, error: activeError } = await userA.client
+      .from("applications")
+      .select("id")
+      .is("archived_at", null);
+    expect(activeError).toBeNull();
+    expect(active).toEqual([]);
+  });
+
+  it("userB cannot UPDATE archived_at on userA's application", async () => {
+    const { data, error } = await userB.client
+      .from("applications")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", rowAId)
+      .select();
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+
+    const { data: row, error: fetchError } = await admin
+      .from("applications")
+      .select("archived_at")
+      .eq("id", rowAId)
+      .single();
+    if (fetchError) throw fetchError;
+    expect(row.archived_at).toBeNull();
+  });
 });

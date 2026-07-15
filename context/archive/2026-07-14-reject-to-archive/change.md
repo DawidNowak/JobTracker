@@ -1,0 +1,12 @@
+---
+change_id: reject-to-archive
+title: Reject to archive
+status: archived
+created: 2026-07-14
+updated: 2026-07-15
+archived_at: 2026-07-15T09:11:03Z
+---
+
+## Notes
+
+<!-- Free-form notes for this change: links, ad-hoc context, decisions that don't belong in research/frame/plan. -->
