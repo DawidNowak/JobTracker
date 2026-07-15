@@ -235,13 +235,13 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run typecheck`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Full test suite passes: `npm test`
+- [x] 3.1 Type checking passes: `npm run typecheck` — b7f9e4c
+- [x] 3.2 Linting passes: `npm run lint` — b7f9e4c
+- [x] 3.3 Full test suite passes: `npm test` — b7f9e4c
 
 #### Manual
 
-- [x] 3.4 Owned archived detail renders full fields + Status + Zarchiwizowano date + read-only note history
-- [x] 3.5 Non-owned id, active-application id, random uuid, and malformed id all return 404
-- [x] 3.6 Notes match board ordering/formatting; newlines preserved (pre-wrap)
-- [x] 3.7 Back navigation to `/archive` works; "Archiwum" active state persists on detail page
+- [x] 3.4 Owned archived detail renders full fields + Status + Zarchiwizowano date + read-only note history — b7f9e4c
+- [x] 3.5 Non-owned id, active-application id, random uuid, and malformed id all return 404 — b7f9e4c
+- [x] 3.6 Notes match board ordering/formatting; newlines preserved (pre-wrap) — b7f9e4c
+- [x] 3.7 Back navigation to `/archive` works; "Archiwum" active state persists on detail page — b7f9e4c
