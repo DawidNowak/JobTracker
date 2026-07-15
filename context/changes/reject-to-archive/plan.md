@@ -241,15 +241,15 @@ No migration. Column, indexes, and RLS policies already shipped in F-01.
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes: `npm run typecheck`
-- [ ] 2.2 Lint passes: `npm run lint`
-- [ ] 2.3 Full suite passes: `npm test`
+- [x] 2.1 Typecheck passes: `npm run typecheck`
+- [x] 2.2 Lint passes: `npm run lint`
+- [x] 2.3 Full suite passes: `npm test`
 
 #### Manual
 
-- [ ] 2.4 "Odrzuć" appears on Zaaplikowano/Rozmowa cards and is absent on Interesujące
-- [ ] 2.5 Confirming removes the card; cancelling leaves it
-- [ ] 2.6 After reload the card is gone from the board but its DB row survives with `archived_at` set
+- [x] 2.4 "Odrzuć" appears on Zaaplikowano/Rozmowa cards and is absent on Interesujące
+- [x] 2.5 Confirming removes the card; cancelling leaves it
+- [x] 2.6 After reload the card is gone from the board but its DB row survives with `archived_at` set
 
 ### Phase 3: E2E — reject flow (local-only)
 
