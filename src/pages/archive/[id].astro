@@ -1,0 +1,114 @@
+---
+import { z } from "zod";
+import AppShell from "@/layouts/AppShell.astro";
+import ReadOnlyNotesList from "@/components/board/ReadOnlyNotesList.astro";
+import { createClient } from "@/lib/supabase";
+import { getOwnedApplication } from "@/lib/services/applications";
+import { listNotes } from "@/lib/services/notes";
+import { parseSourceHref, formatDateTime } from "@/lib/format";
+import type { ApplicationRow, ApplicationNoteRow } from "@/types";
+
+const uuidSchema = z.uuid();
+
+const idParam = Astro.params.id;
+const parsedId = idParam && uuidSchema.safeParse(idParam).success ? idParam : null;
+const user = Astro.locals.user;
+
+let application: ApplicationRow | null = null;
+let notes: ApplicationNoteRow[] = [];
+
+if (parsedId && user) {
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+  if (supabase) {
+    try {
+      const row = await getOwnedApplication(supabase, parsedId, user.id);
+      if (row?.archived_at) {
+        application = row;
+        notes = await listNotes(supabase, parsedId, user.id);
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Archive detail load failed", err);
+    }
+  }
+}
+
+if (!application) {
+  Astro.response.status = 404;
+}
+
+const sourceHref = application ? parseSourceHref(application.source) : null;
+---
+
+<AppShell title="Archiwum" activeNav="archiwum">
+  <a href="/archive" class="text-sm text-neutral-500 hover:text-neutral-800 hover:underline">← Wróć do archiwum</a>
+
+  {
+    !application ? (
+      <p class="mt-6 text-sm text-neutral-500">Nie znaleziono aplikacji.</p>
+    ) : (
+      <>
+        <h1 class="mt-2 text-2xl font-semibold text-neutral-900">
+          {application.company ?? "—"}
+          {application.position ? ` — ${application.position}` : ""}
+        </h1>
+
+        <div class="mt-6 flex flex-col gap-4">
+          <section class="flex flex-col gap-2">
+            {sourceHref && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Link do oferty</span>
+                <a
+                  href={sourceHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  {sourceHref}
+                </a>
+              </div>
+            )}
+            {application.work_mode && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Tryb pracy</span>
+                <span class="text-sm text-neutral-800">{application.work_mode}</span>
+              </div>
+            )}
+            {application.salary && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Wynagrodzenie</span>
+                <span class="text-sm text-neutral-800">{application.salary}</span>
+              </div>
+            )}
+            {application.description && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Opis</span>
+                <p class="text-sm whitespace-pre-wrap text-neutral-800">{application.description}</p>
+              </div>
+            )}
+            {application.recruiter_contact && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Kontakt do rekrutera</span>
+                <span class="text-sm text-neutral-800">{application.recruiter_contact}</span>
+              </div>
+            )}
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs font-medium text-neutral-500">Status</span>
+              <span class="text-sm text-neutral-800">{application.status}</span>
+            </div>
+            {application.archived_at && (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-neutral-500">Zarchiwizowano</span>
+                <span class="text-sm text-neutral-800">{formatDateTime(application.archived_at)}</span>
+              </div>
+            )}
+          </section>
+
+          <div class="border-t pt-4">
+            <ReadOnlyNotesList notes={notes} />
+          </div>
+        </div>
+      </>
+    )
+  }
+</AppShell>

@@ -221,27 +221,27 @@ None — no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Full test suite passes: `npm test`
+- [x] 2.1 Type checking passes: `npm run typecheck` — a8416d2
+- [x] 2.2 Linting passes: `npm run lint` — a8416d2
+- [x] 2.3 Full test suite passes: `npm test` — a8416d2
 
 #### Manual
 
-- [x] 2.4 `/archive` lists archived apps newest-first, each row links to `/archive/{id}`, no edit controls
-- [x] 2.5 Empty state `"Brak zarchiwizowanych aplikacji."` renders when none
-- [x] 2.6 "Archiwum" nav active; board still shows only active applications (no regression)
+- [x] 2.4 `/archive` lists archived apps newest-first, each row links to `/archive/{id}`, no edit controls — a8416d2
+- [x] 2.5 Empty state `"Brak zarchiwizowanych aplikacji."` renders when none — a8416d2
+- [x] 2.6 "Archiwum" nav active; board still shows only active applications (no regression) — a8416d2
 
 ### Phase 3: Archive Detail Page + Read-Only Notes
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Full test suite passes: `npm test`
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Full test suite passes: `npm test`
 
 #### Manual
 
-- [ ] 3.4 Owned archived detail renders full fields + Status + Zarchiwizowano date + read-only note history
-- [ ] 3.5 Non-owned id, active-application id, random uuid, and malformed id all return 404
-- [ ] 3.6 Notes match board ordering/formatting; newlines preserved (pre-wrap)
-- [ ] 3.7 Back navigation to `/archive` works; "Archiwum" active state persists on detail page
+- [x] 3.4 Owned archived detail renders full fields + Status + Zarchiwizowano date + read-only note history
+- [x] 3.5 Non-owned id, active-application id, random uuid, and malformed id all return 404
+- [x] 3.6 Notes match board ordering/formatting; newlines preserved (pre-wrap)
+- [x] 3.7 Back navigation to `/archive` works; "Archiwum" active state persists on detail page
