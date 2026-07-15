@@ -17,6 +17,19 @@ export async function listActiveApplications(supabase: Client): Promise<Applicat
   return data;
 }
 
+export async function listArchivedApplications(supabase: Client): Promise<ApplicationRow[]> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .not("archived_at", "is", null)
+    .order("archived_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
 export async function updateApplicationStatus(
   supabase: Client,
   id: string,
@@ -82,6 +95,24 @@ export async function getOwnedApplicationState(
   const { data, error } = await supabase
     .from("applications")
     .select("status, archived_at")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export async function getOwnedApplication(
+  supabase: Client,
+  id: string,
+  userId: string,
+): Promise<ApplicationRow | null> {
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
     .eq("id", id)
     .eq("user_id", userId)
     .maybeSingle();
