@@ -1,16 +1,6 @@
 import { test, expect } from "./fixtures";
 import { waitForBoardHydration } from "../helpers/hydration";
-
-// KanbanColumn renders a plain <div> with no region/landmark role — only its <h2> is named.
-// Scope assertions to the column containing the matching heading (pattern from board-load.spec.ts).
-function column(page: import("@playwright/test").Page, name: string) {
-  return page
-    .locator("div")
-    .filter({ has: page.getByRole("heading", { name }) })
-    .last();
-}
-
-const eightDaysAgo = () => new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+import { column, daysAgo } from "../helpers/board-locators";
 
 test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note clears it without changing status", async ({
   page,
@@ -23,7 +13,7 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
   const staleApp = await seedApp({
     status: "Zaaplikowano",
     company: staleCompany,
-    last_action_at: eightDaysAgo(),
+    last_action_at: daysAgo(8),
   });
   await seedApp({ status: "Zaaplikowano", company: freshCompany });
 
@@ -57,7 +47,7 @@ test("Zaaplikowano card stale 7+ days shows the follow-up flag; saving a note cl
 
   // CardDetailDialog.handleOpenChange fires window.location.reload() on close, so wait for the
   // reload's load event alongside the close click rather than asserting synchronously after it
-  // (mirrors tests/e2e/decision-prompt.spec.ts:92).
+  // (mirrors tests/e2e/decision-prompt-pomin.spec.ts).
   await Promise.all([page.waitForEvent("load"), dialog.getByRole("button", { name: "Close" }).click()]);
 
   const reloadedStaleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
