@@ -1,10 +1,10 @@
 ---
 change_id: readme-adjustments
 title: Readme adjustments
-status: implemented
+status: archived
 created: 2026-07-20
 updated: 2026-07-20
-archived_at: null
+archived_at: 2026-07-20T14:29:26Z
 ---
 
 ## Notes
