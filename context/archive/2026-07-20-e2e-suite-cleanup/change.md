@@ -1,10 +1,10 @@
 ---
 change_id: e2e-suite-cleanup
 title: Clean up drift in the E2E suite found during a /10x-e2e skill audit
-status: implemented
+status: archived
 created: 2026-07-20
 updated: 2026-07-20
-archived_at: null
+archived_at: 2026-07-20T15:51:28Z
 ---
 
 ## Notes
