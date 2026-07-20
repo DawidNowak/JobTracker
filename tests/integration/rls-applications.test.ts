@@ -86,4 +86,41 @@ describe("applications RLS — cross-user isolation", () => {
     if (fetchError) throw fetchError;
     expect(row.archived_at).toBeNull();
   });
+
+  it("owner sees own archived rows via the archived-list query; other users' rows and active rows are excluded", async () => {
+    const { error: archiveError } = await userA.client
+      .from("applications")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", rowAId);
+    if (archiveError) throw archiveError;
+
+    const { data: activeRow, error: insertError } = await userA.client
+      .from("applications")
+      .insert({ source: "test-active", status: "Zaaplikowano", user_id: userA.userId })
+      .select()
+      .single();
+    if (insertError) throw insertError;
+
+    const { data: userBArchived, error: userBInsertError } = await userB.client
+      .from("applications")
+      .insert({ source: "test-b", status: "Zaaplikowano", user_id: userB.userId })
+      .select()
+      .single();
+    if (userBInsertError) throw userBInsertError;
+    const { error: userBArchiveError } = await userB.client
+      .from("applications")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", userBArchived.id);
+    if (userBArchiveError) throw userBArchiveError;
+
+    const { data: archivedForA, error: archivedError } = await userA.client
+      .from("applications")
+      .select("*")
+      .not("archived_at", "is", null)
+      .order("archived_at", { ascending: false });
+    expect(archivedError).toBeNull();
+    expect(archivedForA?.map((row) => row.id)).toEqual([rowAId]);
+    expect(archivedForA?.some((row) => row.id === activeRow.id)).toBe(false);
+    expect(archivedForA?.some((row) => row.id === userBArchived.id)).toBe(false);
+  });
 });

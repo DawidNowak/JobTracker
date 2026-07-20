@@ -1,12 +1,52 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
+import { createClient } from "@/lib/supabase";
+import { listArchivedApplications } from "@/lib/services/applications";
+import { formatDateTime } from "@/lib/format";
+import type { ApplicationRow } from "@/types";
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let rows: ApplicationRow[] = [];
+
+if (supabase) {
+  try {
+    rows = await listArchivedApplications(supabase);
+  } catch (err) {
+    // RLS or transient error — render an empty archive.
+    // eslint-disable-next-line no-console
+    console.error("Archive load failed", err);
+  }
+}
 ---
 
 <AppShell title="Archiwum" activeNav="archiwum">
-  <section class="mx-auto max-w-2xl py-12 text-center">
-    <h1 class="text-2xl font-semibold text-neutral-900">Archiwum</h1>
-    <p class="mt-3 text-sm text-neutral-500">
-      Wkrótce. Pełna lista archiwalnych aplikacji pojawi się tutaj po wdrożeniu funkcji archiwizacji.
-    </p>
-  </section>
+  <h1 class="text-2xl font-semibold text-neutral-900">Archiwum</h1>
+
+  {
+    rows.length === 0 ? (
+      <p class="mt-6 text-sm text-neutral-500">Brak zarchiwizowanych aplikacji.</p>
+    ) : (
+      <ul class="mt-6 flex flex-col gap-2">
+        {rows.map((row) => (
+          <li>
+            <a
+              href={`/archive/${row.id}`}
+              class="block rounded-md border border-neutral-200 bg-white px-4 py-3 hover:bg-neutral-50"
+            >
+              <span class="block text-sm font-medium text-neutral-900">
+                {row.company ?? "—"}
+                {row.position ? ` — ${row.position}` : ""}
+              </span>
+              {row.archived_at && (
+                <span class="mt-0.5 block text-xs text-neutral-500">
+                  Zarchiwizowano {formatDateTime(row.archived_at)}
+                </span>
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 </AppShell>
