@@ -1,7 +1,7 @@
 ---
 change_id: readme-adjustments
 title: Readme adjustments
-status: implementing
+status: implemented
 created: 2026-07-20
 updated: 2026-07-20
 archived_at: null

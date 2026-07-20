@@ -219,14 +219,14 @@ None — documentation-only. `public/template.png` remains in the repo (only its
 
 #### Automated
 
-- [x] 1.1 Prettier clean: `npm run format` / `npx prettier --check README.md` passes
-- [x] 1.2 No `template.png` reference remains in README
-- [x] 1.3 No stale identity (`10x-astro-starter` / `10x Astro Starter` / `przeprogramowani`) remains in README
-- [x] 1.4 Every npm script named in README exists in `package.json`
+- [x] 1.1 Prettier clean: `npm run format` / `npx prettier --check README.md` passes — 821a551
+- [x] 1.2 No `template.png` reference remains in README — 821a551
+- [x] 1.3 No stale identity (`10x-astro-starter` / `10x Astro Starter` / `przeprogramowani`) remains in README — 821a551
+- [x] 1.4 Every npm script named in README exists in `package.json` — 821a551
 
 #### Manual
 
-- [x] 1.5 Read-through vs research "Code References" — no drifted claim survives
-- [x] 1.6 Features section lists only shipped features
-- [x] 1.7 README is English with an explicit "UI is in Polish" note
-- [x] 1.8 Project Structure tree matches the repo and omits a `hooks/` folder
+- [x] 1.5 Read-through vs research "Code References" — no drifted claim survives — 821a551
+- [x] 1.6 Features section lists only shipped features — 821a551
+- [x] 1.7 README is English with an explicit "UI is in Polish" note — 821a551
+- [x] 1.8 Project Structure tree matches the repo and omits a `hooks/` folder — 821a551
