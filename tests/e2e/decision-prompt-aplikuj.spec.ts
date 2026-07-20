@@ -1,22 +1,12 @@
 import { test, expect } from "./fixtures";
 import { waitForBoardHydration } from "../helpers/hydration";
-
-// KanbanColumn renders a plain <div> with no region/landmark role — only its <h2> is named.
-// Scope assertions to the column containing the matching heading (pattern from board-load.spec.ts).
-function column(page: import("@playwright/test").Page, name: string) {
-  return page
-    .locator("div")
-    .filter({ has: page.getByRole("heading", { name }) })
-    .last();
-}
-
-const twoDaysAgo = () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+import { column, daysAgo } from "../helpers/board-locators";
 
 test("Aplikuj moves a stale card to Zaaplikowano", async ({ page, seedApp, admin }) => {
   const runId = crypto.randomUUID().slice(0, 8);
   const company = `E2E Aplikuj Co ${runId}`;
 
-  const application = await seedApp({ status: "Interesujące", company, last_action_at: twoDaysAgo() });
+  const application = await seedApp({ status: "Interesujące", company, last_action_at: daysAgo(2) });
 
   await page.goto("/dashboard");
   await waitForBoardHydration(page);

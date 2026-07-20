@@ -1,13 +1,12 @@
 import { test, expect } from "./fixtures";
 import { waitForBoardHydration } from "../helpers/hydration";
-
-const twoDaysAgo = () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+import { daysAgo } from "../helpers/board-locators";
 
 test("Pomiń opens the delete dialog and permanently removes the card", async ({ page, seedApp, admin }) => {
   const runId = crypto.randomUUID().slice(0, 8);
   const company = `E2E Pomin Co ${runId}`;
 
-  const application = await seedApp({ status: "Interesujące", company, last_action_at: twoDaysAgo() });
+  const application = await seedApp({ status: "Interesujące", company, last_action_at: daysAgo(2) });
 
   await page.goto("/dashboard");
   await waitForBoardHydration(page);

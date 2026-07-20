@@ -1,7 +1,6 @@
 import { test, expect } from "./fixtures";
 import { waitForBoardHydration } from "../helpers/hydration";
-
-const twoDaysAgo = () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+import { daysAgo } from "../helpers/board-locators";
 
 test("Interesujące card past the 1-day threshold shows the decision prompt with no prompt on a fresh card", async ({
   page,
@@ -11,7 +10,7 @@ test("Interesujące card past the 1-day threshold shows the decision prompt with
   const staleCompany = `E2E Stale Co ${runId}`;
   const freshCompany = `E2E Fresh Co ${runId}`;
 
-  await seedApp({ status: "Interesujące", company: staleCompany, last_action_at: twoDaysAgo() });
+  await seedApp({ status: "Interesujące", company: staleCompany, last_action_at: daysAgo(2) });
   await seedApp({ status: "Interesujące", company: freshCompany });
 
   await page.goto("/dashboard");

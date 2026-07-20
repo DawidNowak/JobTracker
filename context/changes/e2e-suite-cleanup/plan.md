@@ -293,24 +293,24 @@ Re-check the full, now-9-file `tests/e2e/` directory against the `/10x-e2e` skil
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Every file in `tests/e2e/` has exactly one `test(` call
-- [x] 2.4 Split specs pass via `npm run test:e2e`
+- [x] 2.1 Type checking passes: `npm run typecheck` — 2a414c9
+- [x] 2.2 Linting passes: `npm run lint` — 2a414c9
+- [x] 2.3 Every file in `tests/e2e/` has exactly one `test(` call — 2a414c9
+- [x] 2.4 Split specs pass via `npm run test:e2e` — 2a414c9
 
 #### Manual
 
-- [x] 2.5 No test behavior changed — split files' assertions are byte-identical to their source tests
+- [x] 2.5 No test behavior changed — split files' assertions are byte-identical to their source tests — 2a414c9
 
 ### Phase 3: Extract Shared E2E Helpers
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 No duplicate helper definitions remain
-- [ ] 3.4 Full e2e suite passes: `npm run test:e2e`
-- [ ] 3.5 Full test suite passes: `npm test`
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 No duplicate helper definitions remain
+- [x] 3.4 Full e2e suite passes: `npm run test:e2e`
+- [x] 3.5 Full test suite passes: `npm test`
 
 ### Phase 4: Document the Cascade-Cleanup Mechanism
 
