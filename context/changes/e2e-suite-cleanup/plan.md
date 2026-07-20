@@ -280,27 +280,27 @@ Re-check the full, now-9-file `tests/e2e/` directory against the `/10x-e2e` skil
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 New test passes in isolation: `npx vitest run tests/http/archive-pages.test.ts`
-- [x] 1.4 Full test suite passes: `npm test`
+- [x] 1.1 Type checking passes: `npm run typecheck` — 5110426
+- [x] 1.2 Linting passes: `npm run lint` — 5110426
+- [x] 1.3 New test passes in isolation: `npx vitest run tests/http/archive-pages.test.ts` — 5110426
+- [x] 1.4 Full test suite passes: `npm test` — 5110426
 
 #### Manual
 
-- [x] 1.5 Confirm in a browser that `/archive/{a real archived id}` still renders correctly for its owner
+- [x] 1.5 Confirm in a browser that `/archive/{a real archived id}` still renders correctly for its owner — 5110426
 
 ### Phase 2: Split Multi-Test E2E Specs
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Every file in `tests/e2e/` has exactly one `test(` call
-- [ ] 2.4 Split specs pass via `npm run test:e2e`
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Every file in `tests/e2e/` has exactly one `test(` call
+- [x] 2.4 Split specs pass via `npm run test:e2e`
 
 #### Manual
 
-- [ ] 2.5 No test behavior changed — split files' assertions are byte-identical to their source tests
+- [x] 2.5 No test behavior changed — split files' assertions are byte-identical to their source tests
 
 ### Phase 3: Extract Shared E2E Helpers
 

@@ -57,7 +57,7 @@ test("Rozmowa card stale 4+ business days shows the follow-up flag; saving a not
 
   // CardDetailDialog.handleOpenChange fires window.location.reload() on close, so wait for the
   // reload's load event alongside the close click rather than asserting synchronously after it
-  // (mirrors tests/e2e/decision-prompt.spec.ts:92).
+  // (mirrors tests/e2e/decision-prompt-pomin.spec.ts).
   await Promise.all([page.waitForEvent("load"), dialog.getByRole("button", { name: "Close" }).click()]);
 
   const reloadedStaleCard = page.locator("article").filter({ has: page.getByText(staleCompany) });
