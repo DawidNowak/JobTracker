@@ -316,21 +316,21 @@ Re-check the full, now-9-file `tests/e2e/` directory against the `/10x-e2e` skil
 
 #### Automated
 
-- [x] 4.1 Linting passes: `npm run lint`
-- [x] 4.2 Full test suite passes: `npm test`
+- [x] 4.1 Linting passes: `npm run lint` — 2b923b2
+- [x] 4.2 Full test suite passes: `npm test` — 2b923b2
 
 #### Manual
 
-- [x] 4.3 `fixtures.ts` and `AGENTS.md` both read clearly without cross-referencing `test-plan.md`
+- [x] 4.3 `fixtures.ts` and `AGENTS.md` both read clearly without cross-referencing `test-plan.md` — 2b923b2
 
 ### Phase 5: Final Re-Verification Gate
 
 #### Automated
 
-- [ ] 5.1 Full e2e suite passes: `npm run test:e2e`
-- [ ] 5.2 Full test suite passes: `npm test`
-- [ ] 5.3 One test per file confirmed across all 9 files
+- [x] 5.1 Full e2e suite passes: `npm run test:e2e`
+- [x] 5.2 Full test suite passes: `npm test`
+- [x] 5.3 One test per file confirmed across all 9 files
 
 #### Manual
 
-- [ ] 5.4 Each of the 9 spec files reviewed against the 5 anti-patterns; findings fixed or explicitly accepted
+- [x] 5.4 Each of the 9 spec files reviewed against the 5 anti-patterns; findings fixed or explicitly accepted — no anti-pattern instances found; one pre-existing item explicitly accepted: `followup-flag.spec.ts` and `rozmowa-followup-flag.spec.ts` target a button named "Close" (English), which is `src/components/ui/dialog.tsx:62`'s unmodified shadcn upstream `sr-only` label, correctly matched as rendered — left untouched per the `src/components/ui/` boundary rule
