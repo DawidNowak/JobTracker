@@ -306,22 +306,22 @@ Re-check the full, now-9-file `tests/e2e/` directory against the `/10x-e2e` skil
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run typecheck`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 No duplicate helper definitions remain
-- [x] 3.4 Full e2e suite passes: `npm run test:e2e`
-- [x] 3.5 Full test suite passes: `npm test`
+- [x] 3.1 Type checking passes: `npm run typecheck` — e2ef754
+- [x] 3.2 Linting passes: `npm run lint` — e2ef754
+- [x] 3.3 No duplicate helper definitions remain — e2ef754
+- [x] 3.4 Full e2e suite passes: `npm run test:e2e` — e2ef754
+- [x] 3.5 Full test suite passes: `npm test` — e2ef754
 
 ### Phase 4: Document the Cascade-Cleanup Mechanism
 
 #### Automated
 
-- [ ] 4.1 Linting passes: `npm run lint`
-- [ ] 4.2 Full test suite passes: `npm test`
+- [x] 4.1 Linting passes: `npm run lint`
+- [x] 4.2 Full test suite passes: `npm test`
 
 #### Manual
 
-- [ ] 4.3 `fixtures.ts` and `AGENTS.md` both read clearly without cross-referencing `test-plan.md`
+- [x] 4.3 `fixtures.ts` and `AGENTS.md` both read clearly without cross-referencing `test-plan.md`
 
 ### Phase 5: Final Re-Verification Gate
 

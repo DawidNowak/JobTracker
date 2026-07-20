@@ -55,6 +55,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   account: async ({ admin }, use) => {
     const { userId, email, password } = await provisionUser(admin);
     await use({ userId, email, password });
+    // Deleting the auth user cascades (ON DELETE CASCADE) to every `applications` row it
+    // owns, so rows seeded via `seedApp` never need explicit teardown of their own.
     await cleanupUser(admin, userId);
   },
 
