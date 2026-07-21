@@ -4,9 +4,15 @@
 
 Job tracking application: capture job postings (including scraping/parsing from LinkedIn and JustJoin.it), organize them on a Kanban board, and move them through an application lifecycle. UI copy is in **Polish** — match existing wording in user-facing strings and error messages.
 
+## Boundaries
+
+- ✅ **Always**: export `const prerender = false` from every API route · validate inputs with zod · use `cn()` for class merging · use the `@/*` alias · reach for React **only** when browser events, state, or hooks are required (strict island architecture — no React for static content) · give every new Supabase table RLS with **separate** SELECT/INSERT/UPDATE/DELETE policies per role (`anon`, `authenticated`) using `auth.uid()` or an explicit role clause, defined in the table's migration.
+- ⚠️ **Ask first**: database schema / migration changes · adding dependencies · changing CI config (`.github/workflows/`) or `wrangler.jsonc` · touching `src/components/ui/` (keep shadcn files as upstream ships them so future installs diff-merge cleanly).
+- 🚫 **Never**: commit secrets — `SUPABASE_URL`, `SUPABASE_KEY` are **server-only** (never in client code or responses), and `SUPABASE_SERVICE_ROLE_KEY` must never land in a tracked file · use `USING (true)` in an RLS policy · mock the Supabase client in tests (RLS is the SUT) · assert through `src/lib/services/` in RLS tests (assert at the PostgREST row level) · use Next.js directives (`"use client"` / `"use server"`) in authored code · use `.env` for Cloudflare dev secrets (use `.dev.vars`).
+
 ## Tech Stack
 
-- **Astro 6** (SSR, `output: "server"`) — server-first rendering; pages are SSR by default
+- **Astro 6** (SSR, `output: "server"`)
 - **React 19** — interactive islands only (see island rule under Boundaries)
 - **TypeScript 5.9** — `astro/tsconfigs/strict`, `@/*` path alias → `src/*`
 - **Tailwind CSS 4** (`@tailwindcss/vite`) + **shadcn/ui** (new-york variant) + Radix UI + lucide-react
@@ -67,45 +73,7 @@ Where things live and how they run:
 
 - Internal imports **always** use the `@/*` alias — never relative deep paths.
 - Merge Tailwind classes **only** via `cn()` from `@/lib/utils` — never concatenate class strings, and never use Astro's `class:list` (no `tailwind-merge` conflict resolution). Applies inside `.astro` too.
-- API routes: `export const prerender = false`, uppercase handler names, zod-validated input, JSON via `@/lib/http` helpers, Polish error copy. Representative route (`src/pages/api/applications/index.ts`):
-
-```ts
-import type { APIRoute } from "astro";
-import { createClient } from "@/lib/supabase";
-import { applicationCreateSchema } from "@/lib/validation/applications";
-import { createApplication } from "@/lib/services/applications";
-import { jsonResponse, formatApplicationErrors } from "@/lib/http";
-
-export const prerender = false;
-
-export const POST: APIRoute = async (context) => {
-  const user = context.locals.user;
-  if (!user) {
-    return jsonResponse(401, { error: "Brak autoryzacji." });
-  }
-
-  let body: unknown;
-  try {
-    body = await context.request.json();
-  } catch {
-    return jsonResponse(400, { error: "Nieprawidłowe żądanie" });
-  }
-
-  const parsed = applicationCreateSchema.safeParse(body);
-  if (!parsed.success) {
-    return jsonResponse(422, { errors: formatApplicationErrors(parsed.error) });
-  }
-
-  const supabase = createClient(context.request.headers, context.cookies);
-  if (!supabase) {
-    return jsonResponse(500, { error: "Supabase nie jest skonfigurowany." });
-  }
-
-  const row = await createApplication(supabase, parsed.data, user.id);
-  return jsonResponse(201, { application: row });
-};
-```
-
+- API routes: `export const prerender = false`, uppercase handler names, zod-validated input, JSON via `@/lib/http` helpers, Polish error copy. Representative route: `@src/pages/api/applications/index.ts`.
 - Formatting is enforced by Prettier (with `prettier-plugin-astro` + `prettier-plugin-tailwindcss`); don't hand-format.
 
 ## Git Workflow
@@ -114,9 +82,3 @@ export const POST: APIRoute = async (context) => {
 - **Conventional Commits**, scoped by change-id: `type(change-id): summary` — e.g. `feat(zaaplikowano-followup-flag): Follow-up Flag + Button`. Common types in history: `feat`, `fix`, `test`, `docs`, `chore`.
 - Pre-commit hooks (husky + lint-staged) auto-run on staged files: `eslint --fix` on `*.{ts,tsx,astro}`, `vitest related --run` on `*.{ts,tsx}`, `prettier --write` on `*.{json,css,md}`.
 - CI runs lint + build + `npm test` on every push/PR to `master`; `npm test` is a **required status check** — a red suite blocks merge.
-
-## Boundaries
-
-- ✅ **Always**: export `const prerender = false` from every API route · validate inputs with zod · use `cn()` for class merging · use the `@/*` alias · reach for React **only** when browser events, state, or hooks are required (strict island architecture — no React for static content) · give every new Supabase table RLS with **separate** SELECT/INSERT/UPDATE/DELETE policies per role (`anon`, `authenticated`) using `auth.uid()` or an explicit role clause, defined in the table's migration.
-- ⚠️ **Ask first**: database schema / migration changes · adding dependencies · changing CI config (`.github/workflows/`) or `wrangler.jsonc` · touching `src/components/ui/` (keep shadcn files as upstream ships them so future installs diff-merge cleanly).
-- 🚫 **Never**: commit secrets — `SUPABASE_URL`, `SUPABASE_KEY` are **server-only** (never in client code or responses), and `SUPABASE_SERVICE_ROLE_KEY` must never land in a tracked file · use `USING (true)` in an RLS policy · mock the Supabase client in tests (RLS is the SUT) · assert through `src/lib/services/` in RLS tests (assert at the PostgREST row level) · use Next.js directives (`"use client"` / `"use server"`) in authored code · use `.env` for Cloudflare dev secrets (use `.dev.vars`).
