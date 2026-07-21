@@ -77,6 +77,10 @@ const astroConfig = tseslint.config({
     // Project standardizes on cn() from @/lib/utils in .astro and .tsx alike
     // for tailwind-merge conflict resolution; class:list lacks it. See AGENTS.md.
     "astro/prefer-class-list-directive": "off",
+    // astro-eslint-parser gives frontmatter a Program-level context with no enclosing
+    // function; no-misused-promises null-derefs (crashes, not a normal lint error) when
+    // it walks up from any top-level return statement, e.g. `return Astro.redirect(...)`.
+    "@typescript-eslint/no-misused-promises": "off",
   },
 });
 
