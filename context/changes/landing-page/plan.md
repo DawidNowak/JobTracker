@@ -141,16 +141,16 @@ None — no data or schema involved. Deleting `Topbar.astro` is safe once its so
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Tests pass: `npm test`
-- [x] 1.4 No dangling `Topbar` references in `src/`
-- [x] 1.5 No `bg-cosmic` / `10x Astro Starter` remnants in `Welcome.astro`
-- [x] 1.6 Logged-out `/` serves the landing over HTTP: `tests/http/landing.test.ts` asserts unauthenticated `GET /` returns 200 (not a redirect) and the body contains the Polish landing
+- [x] 1.1 Type checking passes: `npm run typecheck` — ee058af
+- [x] 1.2 Linting passes: `npm run lint` — ee058af
+- [x] 1.3 Tests pass: `npm test` — ee058af
+- [x] 1.4 No dangling `Topbar` references in `src/` — ee058af
+- [x] 1.5 No `bg-cosmic` / `10x Astro Starter` remnants in `Welcome.astro` — ee058af
+- [x] 1.6 Logged-out `/` serves the landing over HTTP: `tests/http/landing.test.ts` asserts unauthenticated `GET /` returns 200 (not a redirect) and the body contains the Polish landing — ee058af
 
 #### Manual
 
-- [x] 1.7 Logged-out `/` shows the light Polish landing (header, hero, 3 cards); no cosmic styling / English copy
-- [x] 1.8 CTAs navigate to `/auth/signup` and `/auth/signin`
-- [x] 1.9 Logged-in `/` redirects to `/dashboard`
-- [x] 1.10 Responsive: cards stack on mobile, three-up on `sm+`, no horizontal scroll
+- [x] 1.7 Logged-out `/` shows the light Polish landing (header, hero, 3 cards); no cosmic styling / English copy — ee058af
+- [x] 1.8 CTAs navigate to `/auth/signup` and `/auth/signin` — ee058af
+- [x] 1.9 Logged-in `/` redirects to `/dashboard` — ee058af
+- [x] 1.10 Responsive: cards stack on mobile, three-up on `sm+`, no horizontal scroll — ee058af
