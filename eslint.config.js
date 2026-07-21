@@ -77,9 +77,17 @@ const astroConfig = tseslint.config({
     // Project standardizes on cn() from @/lib/utils in .astro and .tsx alike
     // for tailwind-merge conflict resolution; class:list lacks it. See AGENTS.md.
     "astro/prefer-class-list-directive": "off",
-    // astro-eslint-parser gives frontmatter a Program-level context with no enclosing
-    // function; no-misused-promises null-derefs (crashes, not a normal lint error) when
-    // it walks up from any top-level return statement, e.g. `return Astro.redirect(...)`.
+  },
+});
+
+// Page frontmatter can `return` at the top level (e.g. `return Astro.redirect(...)`).
+// astro-eslint-parser gives that frontmatter a Program-level context with no enclosing
+// function, so no-misused-promises null-derefs (crashes, not a normal lint error) when it
+// walks up from the return. Scope the opt-out to pages, where those top-level returns live,
+// so feature components under src/components/**/*.astro keep the rule.
+const astroPagesConfig = tseslint.config({
+  files: ["src/pages/**/*.astro"],
+  rules: {
     "@typescript-eslint/no-misused-promises": "off",
   },
 });
@@ -93,6 +101,7 @@ export default tseslint.config(
   eslintPluginAstro.configs["flat/recommended"],
   ...eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
   astroConfig,
+  astroPagesConfig,
   // astro-eslint-parser does not support projectService; fall back to project: true for .astro files
   {
     files: ["**/*.astro"],

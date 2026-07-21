@@ -9,5 +9,7 @@ describe("GET /", () => {
     expect(res.status).toBe(200);
     const body = await res.text();
     expect(body).toContain("JobTracker");
+    // Hero-unique copy — proves the landing rendered, not just any page carrying the brand.
+    expect(body).toContain("Śledź swoje aplikacje o pracę");
   });
 });
