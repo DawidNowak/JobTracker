@@ -85,11 +85,11 @@ See the full test rollout plan at `context/foundation/test-plan.md`.
 
 ## Browser verification (agent-driven)
 
-For interactive UI verification (not a test gate — e2e was deliberately dropped for MVP, see `context/foundation/test-plan.md` §7), an agent or human can drive an authenticated browser session against the local app via `playwright-cli`: `npm run e2e:session [-- --seed <n>]` provisions an ephemeral user and prints credentials + a `Cookie:` header, then the `.claude/skills/e2e-browser/SKILL.md` playbook covers sign-in, routes/selectors, the `wrangler dev` variant, and teardown (see also `scripts/e2e-session.ts`). Auth is persisted via `playwright-cli state-save auth.json` after a one-time form sign-in and restored in later shells with `state-load auth.json`. Caveat: an `internal error; reference = …` on the sign-in form under `astro dev` means a stale/wedged dev-server process — kill it and restart the server; it is not an auth bug.
+For interactive, ad-hoc UI verification (distinct from the automated Playwright suite below, which **is** a required CI gate), an agent or human can drive an authenticated browser session against the local app via `playwright-cli`: `npm run e2e:session [-- --seed <n>]` provisions an ephemeral user and prints credentials + a `Cookie:` header, then the `.claude/skills/e2e-browser/SKILL.md` playbook covers sign-in, routes/selectors, the `wrangler dev` variant, and teardown (see also `scripts/e2e-session.ts`). Auth is persisted via `playwright-cli state-save auth.json` after a one-time form sign-in and restored in later shells with `state-load auth.json`. Caveat: an `internal error; reference = …` on the sign-in form under `astro dev` means a stale/wedged dev-server process — kill it and restart the server; it is not an auth bug.
 
 ## E2E (Playwright)
 
-A **local-only** Playwright suite lives under `tests/e2e/` for genuinely browser-level risks — state that only exists in the rendered UI (dialogs, real navigation, DOM-only assertions). It is **not a CI gate**; the `test-plan.md` §7 "e2e not a gate" decision stands.
+A Playwright suite lives under `tests/e2e/` for genuinely browser-level risks — state that only exists in the rendered UI (dialogs, real navigation, DOM-only assertions). It runs locally via `npm run test:e2e` and is also wired into CI as the `e2e` job (see "## CI" below), where it is a **required status check** — see `test-plan.md` §8 for the reversed dropped-R2 decision this supersedes.
 
 **Prerequisites**: local Supabase up (`npx supabase start`) and `.env.test` populated (same as the Vitest prerequisites above).
 
@@ -130,3 +130,15 @@ No GitHub secrets are needed for the test stack. The job:
 4. Stops the stack in a cleanup step (`npx supabase stop --no-backup`, `if: always()`).
 
 If the `test` check is red on your PR, inspect the job log: look for the `supabase start` step (boots in ~1–3 min) and the `npm test` output to identify the failing test.
+
+### `e2e` job
+
+The `e2e` job in `.github/workflows/ci.yml` runs the Playwright suite (`npm run test:e2e`) on every push to `master` and every PR targeting `master`, in parallel with `ci` and `test`. It is a **required status check** — a red browser suite blocks merge, same as `test`.
+
+1. Provisions the same local Supabase stack as `test` (`npx supabase start` + `.env.test` derived from `npx supabase status`) — no GitHub secrets needed.
+2. Restores a cached Chromium binary (`actions/cache@v4`, keyed on `runner.os` + the resolved `package-lock.json` hash under `~/.cache/ms-playwright`) and runs `npx playwright install --with-deps chromium`; a cache hit makes this near-instant.
+3. Runs `npm run test:e2e`, which spawns its own `astro dev` via `scripts/e2e-webserver.ts` — independent of the `test` job's dev server, so the two jobs run safely in parallel without port or process contention.
+4. On failure, uploads `test-results/` and `playwright-report/` as a build artifact (`actions/upload-artifact@v4`, `if: failure()`, 7-day retention) so an ubuntu-only failure is diagnosable via the Playwright trace viewer without local reproduction.
+5. Stops the stack in a cleanup step (`npx supabase stop`, `if: always()`).
+
+**Rollback**: if the `e2e` gate proves flaky in production use, the immediate mitigation is to remove `e2e` from `master`'s required status checks in branch protection (the job keeps running, just non-blocking) while the flake is root-caused — not to add `retries` to `playwright.config.ts` or delete the job.

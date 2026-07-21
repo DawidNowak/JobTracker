@@ -8,11 +8,12 @@ export default defineConfig({
   testDir: "tests/e2e",
   testMatch: "**/*.spec.ts",
   fullyParallel: true,
-  // 0, deliberately: hydration is gated deterministically (see tests/helpers/hydration.ts's
-  // waitForBoardHydration, called after every page.goto("/dashboard")) rather than papered over
-  // with a retry, and no spec retries a click behind a mutating/optimistic UI update anymore
-  // (see decision-prompt-aplikuj.spec.ts). A real flake should fail loudly, not be
-  // silently absorbed — do not re-add retries here to "fix" flakiness without root-causing it.
+  // 0, deliberately, in both CI and local runs: hydration is gated deterministically (see
+  // tests/helpers/hydration.ts's waitForBoardHydration, called after every
+  // page.goto("/dashboard")) rather than papered over with a retry, and no spec retries a click
+  // behind a mutating/optimistic UI update anymore (see decision-prompt-aplikuj.spec.ts). A real
+  // flake should fail loudly and block the `e2e` CI gate, not be silently absorbed — do not
+  // re-add retries here to "fix" flakiness without root-causing it.
   retries: 0,
   reporter: "list",
   globalTeardown: "./tests/e2e/global-teardown.ts",
