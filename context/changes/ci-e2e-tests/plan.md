@@ -288,11 +288,11 @@ Prove the suite is stable on ubuntu, then add `e2e` to `master` branch-protectio
 
 #### Automated
 
-- [x] 3.1 `gh pr checks` shows `e2e` as a required check once configured
+- [x] 3.1 `gh pr checks` shows `e2e` as a required check once configured — 82ddae0
 
 #### Manual
 
-- [x] 3.2 Several consecutive green `e2e` runs observed; outcomes recorded in change.md
-- [x] 3.3 Branch-protection settings for `master` list `e2e` among required checks
-- [x] 3.4 A PR with a failing E2E test is blocked from merging
-- [x] 3.5 Rollback note present and unambiguous
+- [x] 3.2 Several consecutive green `e2e` runs observed; outcomes recorded in change.md — 82ddae0
+- [x] 3.3 Branch-protection settings for `master` list `e2e` among required checks — 82ddae0
+- [x] 3.4 A PR with a failing E2E test is blocked from merging — 82ddae0
+- [x] 3.5 Rollback note present and unambiguous — 82ddae0
