@@ -275,24 +275,24 @@ Prove the suite is stable on ubuntu, then add `e2e` to `master` branch-protectio
 
 #### Automated
 
-- [x] 2.1 No surviving "not a gate" / "dropped R2 stands" assertion (git grep clean except the superseding ledger note)
-- [x] 2.2 `npm run format` leaves edited files normalized
-- [x] 2.3 `npm run typecheck` and `npm run lint` still pass
+- [x] 2.1 No surviving "not a gate" / "dropped R2 stands" assertion (git grep clean except the superseding ledger note) — 4a88eae
+- [x] 2.2 `npm run format` leaves edited files normalized — 4a88eae
+- [x] 2.3 `npm run typecheck` and `npm run lint` still pass — 4a88eae
 
 #### Manual
 
-- [x] 2.4 test-plan.md §4/§5/§7/§8 read coherently as "E2E is a required gate" with reversal rationale
-- [x] 2.5 tests/README.md "## CI" documents both `test` and `e2e` jobs
+- [x] 2.4 test-plan.md §4/§5/§7/§8 read coherently as "E2E is a required gate" with reversal rationale — 4a88eae
+- [x] 2.5 tests/README.md "## CI" documents both `test` and `e2e` jobs — 4a88eae
 
 ### Phase 3: Stability Verification & Promotion to Required Check
 
 #### Automated
 
-- [ ] 3.1 `gh pr checks` shows `e2e` as a required check once configured
+- [x] 3.1 `gh pr checks` shows `e2e` as a required check once configured
 
 #### Manual
 
-- [ ] 3.2 Several consecutive green `e2e` runs observed; outcomes recorded in change.md
-- [ ] 3.3 Branch-protection settings for `master` list `e2e` among required checks
-- [ ] 3.4 A PR with a failing E2E test is blocked from merging
-- [ ] 3.5 Rollback note present and unambiguous
+- [x] 3.2 Several consecutive green `e2e` runs observed; outcomes recorded in change.md
+- [x] 3.3 Branch-protection settings for `master` list `e2e` among required checks
+- [x] 3.4 A PR with a failing E2E test is blocked from merging
+- [x] 3.5 Rollback note present and unambiguous
