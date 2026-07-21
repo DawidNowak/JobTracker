@@ -261,15 +261,15 @@ Prove the suite is stable on ubuntu, then add `e2e` to `master` branch-protectio
 #### Automated
 
 - [x] 1.1 Workflow file is valid YAML and parses
-- [ ] 1.2 The `e2e` job runs on the PR and completes green on ubuntu
-- [ ] 1.3 Deliberately-broken spec reds the `e2e` check and uploads the failure artifact, then is reverted
-- [ ] 1.4 Existing `ci` and `test` jobs still run and pass unchanged
+- [x] 1.2 The `e2e` job runs on the PR and completes green on ubuntu
+- [x] 1.3 Deliberately-broken spec reds the `e2e` check and uploads the failure artifact, then is reverted
+- [x] 1.4 Existing `ci` and `test` jobs still run and pass unchanged
 
 #### Manual
 
-- [ ] 1.5 Chromium cache shows a hit on the second run
-- [ ] 1.6 Failure artifact opens in the Playwright trace viewer and shows the failure
-- [ ] 1.7 `e2e` job wall-clock is acceptable and runs in parallel with `test`
+- [x] 1.5 Chromium cache shows a hit on the second run
+- [x] 1.6 Failure artifact opens in the Playwright trace viewer and shows the failure
+- [x] 1.7 `e2e` job wall-clock is acceptable and runs in parallel with `test`
 
 ### Phase 2: Documentation Reconciliation
 
