@@ -15,7 +15,7 @@ test("renders seeded applications under their status column", async ({ page, see
   await page.goto("/dashboard");
   await waitForBoardHydration(page);
 
-  await expect(page.getByRole("heading", { name: "TEMP-DELIBERATE-BREAK-CI-VERIFICATION" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Interesujące" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Zaaplikowano" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Rozmowa" })).toBeVisible();
 
