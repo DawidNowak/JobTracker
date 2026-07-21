@@ -260,29 +260,29 @@ Prove the suite is stable on ubuntu, then add `e2e` to `master` branch-protectio
 
 #### Automated
 
-- [x] 1.1 Workflow file is valid YAML and parses
-- [x] 1.2 The `e2e` job runs on the PR and completes green on ubuntu
-- [x] 1.3 Deliberately-broken spec reds the `e2e` check and uploads the failure artifact, then is reverted
-- [x] 1.4 Existing `ci` and `test` jobs still run and pass unchanged
+- [x] 1.1 Workflow file is valid YAML and parses — b1a88ca
+- [x] 1.2 The `e2e` job runs on the PR and completes green on ubuntu — b1a88ca
+- [x] 1.3 Deliberately-broken spec reds the `e2e` check and uploads the failure artifact, then is reverted — b1a88ca
+- [x] 1.4 Existing `ci` and `test` jobs still run and pass unchanged — b1a88ca
 
 #### Manual
 
-- [x] 1.5 Chromium cache shows a hit on the second run
-- [x] 1.6 Failure artifact opens in the Playwright trace viewer and shows the failure
-- [x] 1.7 `e2e` job wall-clock is acceptable and runs in parallel with `test`
+- [x] 1.5 Chromium cache shows a hit on the second run — b1a88ca
+- [x] 1.6 Failure artifact opens in the Playwright trace viewer and shows the failure — b1a88ca
+- [x] 1.7 `e2e` job wall-clock is acceptable and runs in parallel with `test` — b1a88ca
 
 ### Phase 2: Documentation Reconciliation
 
 #### Automated
 
-- [ ] 2.1 No surviving "not a gate" / "dropped R2 stands" assertion (git grep clean except the superseding ledger note)
-- [ ] 2.2 `npm run format` leaves edited files normalized
-- [ ] 2.3 `npm run typecheck` and `npm run lint` still pass
+- [x] 2.1 No surviving "not a gate" / "dropped R2 stands" assertion (git grep clean except the superseding ledger note)
+- [x] 2.2 `npm run format` leaves edited files normalized
+- [x] 2.3 `npm run typecheck` and `npm run lint` still pass
 
 #### Manual
 
-- [ ] 2.4 test-plan.md §4/§5/§7/§8 read coherently as "E2E is a required gate" with reversal rationale
-- [ ] 2.5 tests/README.md "## CI" documents both `test` and `e2e` jobs
+- [x] 2.4 test-plan.md §4/§5/§7/§8 read coherently as "E2E is a required gate" with reversal rationale
+- [x] 2.5 tests/README.md "## CI" documents both `test` and `e2e` jobs
 
 ### Phase 3: Stability Verification & Promotion to Required Check
 

@@ -1,6 +1,6 @@
 # E2E authoring rules
 
-Playwright specs under `tests/e2e/` are a **local-only** suite (`npm run test:e2e`), not a CI gate — see `context/foundation/test-plan.md` §4/§7. They exist to cover genuinely browser-level risks: state that only exists in the rendered UI (drag/drop, dialogs, real navigation).
+Playwright specs under `tests/e2e/` (`npm run test:e2e`) run as a **required CI gate** — the `e2e` job in `.github/workflows/ci.yml`, see `context/foundation/test-plan.md` §4/§5/§8 and `context/changes/ci-e2e-tests/`. They exist to cover genuinely browser-level risks: state that only exists in the rendered UI (drag/drop, dialogs, real navigation).
 
 `board-load.spec.ts` is the reference exemplar — copy its shape for new specs.
 
