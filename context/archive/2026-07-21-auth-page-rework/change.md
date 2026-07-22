@@ -1,10 +1,10 @@
 ---
 change_id: auth-page-rework
 title: Auth page rework
-status: impl_reviewed
+status: archived
 created: 2026-07-21
 updated: 2026-07-22
-archived_at: null
+archived_at: 2026-07-22T07:47:59Z
 ---
 
 ## Notes
