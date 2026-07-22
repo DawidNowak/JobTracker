@@ -347,31 +347,31 @@ None — no data or persisted state involved. Pure presentation + copy change.
 
 #### Automated
 
-- [x] 1.1 Typecheck passes: `npm run typecheck`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Tests pass: `npm test`
-- [x] 1.4 Zero cosmic remnants in `src/pages/auth`
-- [x] 1.5 `bg-cosmic` fully gone from `src/`
+- [x] 1.1 Typecheck passes: `npm run typecheck` — 9457fcb
+- [x] 1.2 Lint passes: `npm run lint` — 9457fcb
+- [x] 1.3 Tests pass: `npm test` — 9457fcb
+- [x] 1.4 Zero cosmic remnants in `src/pages/auth` — 9457fcb
+- [x] 1.5 `bg-cosmic` fully gone from `src/` — 9457fcb
 
 #### Manual
 
-- [x] 1.6 Three auth pages render light with header, white card, Polish copy
-- [x] 1.7 JobTracker wordmark links back to `/`
-- [x] 1.8 Confirm-email shows correct Polish copy for the current env
+- [x] 1.6 Three auth pages render light with header, white card, Polish copy — 9457fcb
+- [x] 1.7 JobTracker wordmark links back to `/` — 9457fcb
+- [x] 1.8 Confirm-email shows correct Polish copy for the current env — 9457fcb
 
 ### Phase 2: Restyle + translate form components
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes: `npm run typecheck`
-- [ ] 2.2 Lint passes: `npm run lint`
-- [ ] 2.3 Tests pass: `npm test`
-- [ ] 2.4 Zero dark/purple remnants in `src/components/auth` (except the dark-button spinner)
-- [ ] 2.5 No English UI strings remain in `src/components/auth`
+- [x] 2.1 Typecheck passes: `npm run typecheck`
+- [x] 2.2 Lint passes: `npm run lint`
+- [x] 2.3 Tests pass: `npm test`
+- [x] 2.4 Zero dark/purple remnants in `src/components/auth` (except the dark-button spinner)
+- [x] 2.5 No English UI strings remain in `src/components/auth`
 
 #### Manual
 
-- [ ] 2.6 Forms render light with neutral icons, neutral-900 button, Polish copy
-- [ ] 2.7 Empty-submit shows Polish validation; sign-up length hint pluralizes in Polish
-- [ ] 2.8 Server error renders in the light red alert
-- [ ] 2.9 Password visibility toggle works with Polish aria-label
+- [x] 2.6 Forms render light with neutral icons, neutral-900 button, Polish copy
+- [x] 2.7 Empty-submit shows Polish validation; sign-up length hint pluralizes in Polish
+- [x] 2.8 Server error renders in the light red alert
+- [x] 2.9 Password visibility toggle works with Polish aria-label
