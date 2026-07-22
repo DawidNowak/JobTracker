@@ -363,15 +363,15 @@ None — no data or persisted state involved. Pure presentation + copy change.
 
 #### Automated
 
-- [x] 2.1 Typecheck passes: `npm run typecheck`
-- [x] 2.2 Lint passes: `npm run lint`
-- [x] 2.3 Tests pass: `npm test`
-- [x] 2.4 Zero dark/purple remnants in `src/components/auth` (except the dark-button spinner)
-- [x] 2.5 No English UI strings remain in `src/components/auth`
+- [x] 2.1 Typecheck passes: `npm run typecheck` — 48d4004
+- [x] 2.2 Lint passes: `npm run lint` — 48d4004
+- [x] 2.3 Tests pass: `npm test` — 48d4004
+- [x] 2.4 Zero dark/purple remnants in `src/components/auth` (except the dark-button spinner) — 48d4004
+- [x] 2.5 No English UI strings remain in `src/components/auth` — 48d4004
 
 #### Manual
 
-- [x] 2.6 Forms render light with neutral icons, neutral-900 button, Polish copy
-- [x] 2.7 Empty-submit shows Polish validation; sign-up length hint pluralizes in Polish
-- [x] 2.8 Server error renders in the light red alert
-- [x] 2.9 Password visibility toggle works with Polish aria-label
+- [x] 2.6 Forms render light with neutral icons, neutral-900 button, Polish copy — 48d4004
+- [x] 2.7 Empty-submit shows Polish validation; sign-up length hint pluralizes in Polish — 48d4004
+- [x] 2.8 Server error renders in the light red alert — 48d4004
+- [x] 2.9 Password visibility toggle works with Polish aria-label — 48d4004
