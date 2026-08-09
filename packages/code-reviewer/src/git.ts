@@ -6,6 +6,15 @@ function git(args: string[], cwd?: string): string {
   return execFileSync("git", args, { encoding: "utf8", cwd, maxBuffer: 64 * 1024 * 1024 }).trim();
 }
 
+function refExists(ref: string, cwd?: string): boolean {
+  try {
+    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { cwd, stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function getRepoRoot(): string {
   return git(["rev-parse", "--show-toplevel"]);
 }
@@ -18,9 +27,15 @@ export function getCurrentBranch(cwd: string): string {
  * Fork point between the current branch and master. Diffing against this rather than
  * against `master` itself keeps commits that landed on master after we branched out of
  * the review.
+ *
+ * A CI checkout of a PR (e.g. actions/checkout on `pull_request`) lands in detached HEAD
+ * with no local `master` branch — only the remote-tracking `origin/master` exists. Prefer
+ * that when present; it's also the more correct target on a dev machine, since it reflects
+ * the real upstream branch rather than a local `master` that may be stale.
  */
 export function getMergeBase(cwd: string): string {
-  return git(["merge-base", BASE_BRANCH, "HEAD"], cwd);
+  const base = refExists(`origin/${BASE_BRANCH}`, cwd) ? `origin/${BASE_BRANCH}` : BASE_BRANCH;
+  return git(["merge-base", base, "HEAD"], cwd);
 }
 
 /**
