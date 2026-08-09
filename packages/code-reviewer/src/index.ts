@@ -1,13 +1,12 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { config } from "dotenv";
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getChangedFiles, getCurrentBranch, getDiffStat, getFullDiff, getMergeBase, getRepoRoot } from "./git.ts";
+import { deliverReport } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const REPORTS_DIR = path.join(PACKAGE_ROOT, "reports");
 
 // The SDK reads credentials from the process environment and does not load .env itself.
 // Anchor to the package rather than cwd, so running this from the repo root does not
@@ -59,25 +58,6 @@ function reportCredentialSource(): void {
   } else {
     console.log("Auth: falling back to the local Claude Code login (billed to your Claude subscription)");
   }
-}
-
-async function writeReport(body: string, meta: { branch: string; base: string; fileCount: number }): Promise<string> {
-  await mkdir(REPORTS_DIR, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const reportPath = path.join(REPORTS_DIR, `review-${stamp}.md`);
-  const header = [
-    `# Code review — \`${meta.branch}\``,
-    "",
-    `- Branch: \`${meta.branch}\``,
-    `- Merge-base: \`${meta.base}\``,
-    `- Changed files: ${meta.fileCount}`,
-    `- Generated: ${new Date().toISOString()}`,
-    "",
-    "---",
-    "",
-  ].join("\n");
-  await writeFile(reportPath, header + body + "\n", "utf8");
-  return reportPath;
 }
 
 async function main(): Promise<void> {
@@ -142,8 +122,7 @@ async function main(): Promise<void> {
   }
 
   if (finalReport !== null) {
-    const reportPath = await writeReport(finalReport, { branch, base, fileCount: changedFiles.length });
-    console.log(`Report written to ${reportPath}`);
+    await deliverReport(finalReport, { branch, base, fileCount: changedFiles.length });
   }
 
   if (failed) process.exit(1);

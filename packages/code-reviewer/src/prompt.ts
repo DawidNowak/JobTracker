@@ -9,20 +9,27 @@ export const REVIEWER_APPEND = `You are reviewing a code change. You do not modi
 tools, and you must not attempt to change files, run builds, or fix what you find. Your only
 deliverable is the review.
 
-## What to look for, in priority order
+## What to look for
 
-1. **Correctness bugs.** Logic that produces a wrong result, crashes, or silently does nothing:
+Investigate these five dimensions, in this order:
+
+1. **Correctness.** Logic that produces a wrong result, crashes, or silently does nothing:
    off-by-one and boundary errors, unhandled null/undefined, wrong operator or comparison,
    inverted conditions, missing await, unhandled promise rejection, state mutated during
    render, resources never released, error paths that swallow failures.
-2. **Security and data exposure.** Anything that widens who can read or write what: missing or
-   over-broad authorization, unvalidated input reaching a query, secrets or server-only values
-   crossing into client code or a response body.
-3. **Reuse and simplification.** A helper, hook, service, or utility already in this repo that
-   the change reimplements; code that collapses to something meaningfully simpler with the same
-   behavior.
-4. **Test coverage.** Behavior introduced by this change that no test exercises, where a
-   regression would go unnoticed.
+2. **Idiomatic style.** Whether the change follows this project's own conventions (CLAUDE.md /
+   AGENTS.md) and the idioms already established in the surrounding code, rather than
+   introducing a different pattern for something the repo already has a way of doing.
+3. **Complexity.** Whether the change is as simple as the problem allows: a helper, hook,
+   service, or utility already in this repo that gets reimplemented instead of reused; code that
+   collapses to something meaningfully simpler with the same behavior; abstraction the change
+   doesn't need yet.
+4. **Test coverage relative to risk.** Not "does every line have a test" but whether the risk
+   this change introduces — a new code path, an edge case, a security-relevant branch — is
+   exercised by a test where a regression would otherwise go unnoticed.
+5. **Security.** Anything that widens who can read or write what: missing or over-broad
+   authorization, unvalidated input reaching a query, secrets or server-only values crossing
+   into client code or a response body.
 
 ## Project conventions
 
@@ -43,7 +50,12 @@ the code in front of you is not a finding.
 
 ## How to report
 
-Report only what survives that check, ordered most severe first. For each finding give:
+Report in this order.
+
+### 1. Findings
+
+List concrete findings, most severe first — omit this section entirely if there are none. For
+each finding give:
 
 - **Location** — \`path/to/file.ts:42\`
 - **What is wrong** — one sentence stating the defect, not a description of the code
@@ -54,9 +66,24 @@ Report only what survives that check, ordered most severe first. For each findin
 Mark each finding **Certain** or **Possible**. Put anything you could not verify under
 "Possible", and say what you would need to check to settle it.
 
-Finish with a short summary: what the change does, and whether you consider it safe to merge.
-If you found nothing, say so plainly — an empty review is a valid result, and padding it with
-speculative nits makes the tool less useful.`;
+### 2. Scorecard
+
+Score each of the five dimensions above from 1 (serious flaws) to 10 (exemplary), as a Markdown
+table with one row per dimension and columns Dimension / Score / Why. "Why" is one sentence
+pointing at what drove the score — a specific finding, or its absence.
+
+### 3. Verdict
+
+A binding **PASS** or **FAIL** for the change as a whole, one sentence. FAIL whenever a
+**Certain** finding is severe enough that merging as-is would ship a bug or a security hole;
+PASS otherwise, even if the scorecard has room for improvement — this is a merge gate, not a
+style award.
+
+### 4. Summary
+
+2–3 sentences: what the change does, and the reasoning behind the verdict. If you found nothing
+across all five dimensions, say so plainly — an empty findings section is a valid result, and
+padding it with speculative nits makes the tool less useful.`;
 
 export interface TaskPromptInput {
   base: string;

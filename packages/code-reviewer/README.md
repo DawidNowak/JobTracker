@@ -45,9 +45,14 @@ cd packages/code-reviewer
 npm run review
 ```
 
-The agent streams its reasoning and tool calls to the terminal, then writes the final review to
-`packages/code-reviewer/reports/review-<timestamp>.md` (git-ignored). On a branch with no changes
-against `master` it exits early without calling the API.
+The agent streams its reasoning and tool calls to the terminal, then delivers the final review:
+
+- **Locally**: prints the formatted review to the console.
+- **In CI, on a `pull_request` run** (see `.github/workflows/ai-code-review.yml`): posts it as a
+  comment on the PR instead, using `GITHUB_TOKEN`. A later run on the same PR updates that comment
+  in place rather than adding a new one each time.
+
+On a branch with no changes against `master` it exits early without calling the API.
 
 ```bash
 npm run typecheck   # tsc --noEmit

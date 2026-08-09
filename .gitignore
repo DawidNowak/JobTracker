@@ -7,9 +7,6 @@ dist/
 # dependencies
 node_modules/
 
-# code-reviewer agent output
-packages/code-reviewer/reports/
-
 # logs
 npm-debug.log*
 yarn-debug.log*
