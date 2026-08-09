@@ -94,7 +94,10 @@ const astroPagesConfig = tseslint.config({
 
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
-  { ignores: ["src/lib/database.types.ts"] },
+  // packages/* are self-contained Node tools with their own package.json, tsconfig and
+  // node_modules. The root `npm ci` does not install their dependencies, so type-aware
+  // linting them from here cannot resolve their imports.
+  { ignores: ["src/lib/database.types.ts", "packages/**"] },
   baseConfig,
   reactConfig,
   e2eConfig,
