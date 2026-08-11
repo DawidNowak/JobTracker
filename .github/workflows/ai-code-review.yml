@@ -35,7 +35,9 @@ jobs:
         name: Run AI code review
         uses: ./.github/actions/ai-code-review
         with:
-          claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Intentionally blanked to exercise the composite action's token guard
+          # for Phase 4 manual verification item 4.9 (forced-error path).
+          claude-code-oauth-token: ""
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pr-title: ${{ github.event.pull_request.title }}
           pr-body: ${{ github.event.pull_request.body }}
