@@ -69,6 +69,9 @@ export function getDiffStat(base: string, cwd: string): string {
  */
 const GENERATED_FILE_EXCLUDES = ["**/package-lock.json", "**/database.types.ts"];
 
+/** Diff text is capped at this many lines before being embedded in the task prompt. */
+const MAX_DIFF_LINES = 3000;
+
 /**
  * Full diff text for the changeset, generated-file exclusions folded in directly. Embedded
  * straight into the task prompt rather than left for the agent to fetch itself.
@@ -85,12 +88,15 @@ export interface TruncatedDiff {
   truncated: boolean;
 }
 
+/** Placeholder used when the diff itself could not be fetched (see `getDiff`'s call site). */
+export const EMPTY_DIFF: TruncatedDiff = { text: "", totalLines: 0, includedLines: 0, truncated: false };
+
 /**
  * Caps diff text at `maxLines`, cutting wherever that falls rather than aligning to file
  * boundaries — a bounded review should always run rather than being blocked or silently
  * skipped.
  */
-export function truncateDiff(text: string, maxLines = 3000): TruncatedDiff {
+export function truncateDiff(text: string, maxLines = MAX_DIFF_LINES): TruncatedDiff {
   const lines = text.split("\n");
   const totalLines = lines.length;
   const truncated = totalLines > maxLines;

@@ -6,6 +6,7 @@ export interface ReportMeta {
   branch: string;
   base: string;
   fileCount: number;
+  diffUnavailable: boolean;
   diffTruncated: boolean;
   diffTotalLines: number;
   diffIncludedLines: number;
@@ -46,9 +47,11 @@ function formatFindings(reportMarkdown: string): string {
  * reformat or duplicate.
  */
 export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
-  const truncationNote = meta.diffTruncated
-    ? [`> **Truncated to the first ${meta.diffIncludedLines} of ${meta.diffTotalLines} diff lines — review is partial.**`, ""]
-    : [];
+  const truncationNote = meta.diffUnavailable
+    ? [`> **Diff could not be fetched (likely exceeds the size limit) — review is based on the file list only.**`, ""]
+    : meta.diffTruncated
+      ? [`> **Truncated to the first ${meta.diffIncludedLines} of ${meta.diffTotalLines} diff lines — review is partial.**`, ""]
+      : [];
 
   const header = [
     `# Code review — \`${meta.branch}\``,

@@ -3,6 +3,7 @@ import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  EMPTY_DIFF,
   getChangedFiles,
   getCurrentBranch,
   getDiff,
@@ -46,6 +47,13 @@ const DISALLOWED_TOOLS = [
   "Read(/auth.json)",
 ];
 
+// Strips control characters (newlines, ANSI escapes, etc.) so a value drawn from model tool
+// calls — themselves influenced by the diff text — cannot inject fake log lines or terminal
+// escape sequences into CI console output.
+function sanitizeForLog(value: string): string {
+  return value.replace(/[\x00-\x1f\x7f]/g, "");
+}
+
 /**
  * Console tool-call logging should show what was actually read or searched, not just the bare
  * tool name — `Read` gets its `file_path`, `Grep`/`Glob` get their `pattern` (plus `path` when
@@ -56,13 +64,13 @@ function describeToolUse(name: string, input: unknown): string {
   const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
 
   if (name === "Read") {
-    return typeof record.file_path === "string" ? record.file_path : "";
+    return typeof record.file_path === "string" ? sanitizeForLog(record.file_path) : "";
   }
 
   if (name === "Grep" || name === "Glob") {
     const parts: string[] = [];
-    if (typeof record.pattern === "string") parts.push(record.pattern);
-    if (typeof record.path === "string") parts.push(record.path);
+    if (typeof record.pattern === "string") parts.push(sanitizeForLog(record.pattern));
+    if (typeof record.path === "string") parts.push(sanitizeForLog(record.path));
     return parts.join(" ");
   }
 
@@ -103,7 +111,17 @@ async function main(): Promise<void> {
   }
 
   const diffStat = getDiffStat(base, repoRoot);
-  const diff = truncateDiff(getDiff(base, repoRoot));
+  // A diff that overflows execFileSync's buffer throws before truncateDiff ever sees it —
+  // catch that here so an oversized diff degrades to "diff unavailable" instead of crashing
+  // the whole run, matching truncateDiff's own "always bounded" intent for the normal case.
+  let diff = EMPTY_DIFF;
+  let diffUnavailable = false;
+  try {
+    diff = truncateDiff(getDiff(base, repoRoot));
+  } catch (err) {
+    diffUnavailable = true;
+    console.error(`Failed to fetch diff (likely exceeds the size limit): ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
@@ -117,6 +135,7 @@ async function main(): Promise<void> {
       changedFiles,
       diffStat,
       diff: diff.text,
+      diffUnavailable,
       diffTruncated: diff.truncated,
       diffTotalLines: diff.totalLines,
       diffIncludedLines: diff.includedLines,
@@ -176,6 +195,7 @@ async function main(): Promise<void> {
       branch,
       base,
       fileCount: changedFiles.length,
+      diffUnavailable,
       diffTruncated: diff.truncated,
       diffTotalLines: diff.totalLines,
       diffIncludedLines: diff.includedLines,

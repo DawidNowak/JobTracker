@@ -94,6 +94,7 @@ export interface TaskPromptInput {
   changedFiles: string[];
   diffStat: string;
   diff: string;
+  diffUnavailable: boolean;
   diffTruncated: boolean;
   diffTotalLines: number;
   diffIncludedLines: number;
@@ -118,6 +119,7 @@ export function buildTaskPrompt({
   changedFiles,
   diffStat,
   diff,
+  diffUnavailable,
   diffTruncated,
   diffTotalLines,
   diffIncludedLines,
@@ -128,6 +130,9 @@ export function buildTaskPrompt({
     ? `\n\n**Truncated to the first ${diffIncludedLines} of ${diffTotalLines} lines — review is partial.**`
     : "";
   const fence = fenceFor(diff);
+  const diffSection = diffUnavailable
+    ? `## Diff\n\n**The diff could not be fetched — it likely exceeds the size limit. Base your review on the file list, diffstat, and any files you open directly.**`
+    : `## Diff${truncationWarning}\n\n${fence}diff\n${diff}\n${fence}`;
 
   return `Review the changes on branch \`${branch}\` against \`${base}\` (the merge-base with master).
 
@@ -148,11 +153,7 @@ ${changedFiles.join("\n")}
 
 ${diffStat}
 
-## Diff${truncationWarning}
-
-${fence}diff
-${diff}
-${fence}
+${diffSection}
 
 Before scoring, open whatever the diff depends on but does not show: the definition of every
 symbol it calls but does not define, and any caller, type, schema, or policy the change touches.
