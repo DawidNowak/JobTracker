@@ -70,11 +70,12 @@ export function getDiffStat(base: string, cwd: string): string {
 const GENERATED_FILE_EXCLUDES = ["**/package-lock.json", "**/database.types.ts"];
 
 /**
- * Full unified diff for all tracked changes against `base` in one shot, so the review
- * prompt can embed it directly instead of the model spending a turn per file on
- * `git diff <base> -- <path>`. Untracked files are not covered — `git diff` never shows
- * them — the model reads those directly via the Read tool.
+ * The literal `git diff` invocation the agent should run itself, generated-file exclusions
+ * baked in so it doesn't spend a turn reading `package-lock.json` churn. `pathspec` replaces
+ * the leading `.` for a per-file diff; omit it for the full changeset.
  */
-export function getFullDiff(base: string, cwd: string): string {
-  return git(["diff", base, "--", ".", ...GENERATED_FILE_EXCLUDES.map((p) => `:(exclude)${p}`)], cwd);
+export function buildDiffCommand(base: string, pathspec?: string): string {
+  const target = pathspec ?? ".";
+  const excludes = GENERATED_FILE_EXCLUDES.map((p) => `':(exclude)${p}'`).join(" ");
+  return `git diff ${base} -- '${target}' ${excludes}`;
 }

@@ -662,29 +662,29 @@ run's label step fails with a 404 and turns the job red.
 
 #### Automated
 
-- [x] 1.1 Package typechecks: `cd packages/code-reviewer && npm run typecheck`
-- [x] 1.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
-- [x] 1.3 A local review produces a verdict and exits 0: `npm run review`
+- [x] 1.1 Package typechecks: `cd packages/code-reviewer && npm run typecheck` — ef3d06b
+- [x] 1.2 Root gates stay green: `npm run typecheck && npm run lint && npm test` — ef3d06b
+- [x] 1.3 A local review produces a verdict and exits 0: `npm run review` — ef3d06b
 
 #### Manual
 
-- [x] 1.4 Console report shows verdict, summary, five-row scorecard, findings — no duplicated table
-- [x] 1.5 Deliberately broken run (`maxTurns: 1`) exits 1, posts no comment, prints raw `result`
+- [x] 1.4 Console report shows verdict, summary, five-row scorecard, findings — no duplicated table — ef3d06b
+- [x] 1.5 Deliberately broken run (`maxTurns: 1`) exits 1, posts no comment, prints raw `result` — ef3d06b
 
 ### Phase 2: Reviewer — Investigation-First Prompt
 
 #### Automated
 
-- [ ] 2.1 Package typechecks: `cd packages/code-reviewer && npm run typecheck`
-- [ ] 2.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
-- [ ] 2.3 A local review still produces a verdict and exits 0: `npm run review`
+- [x] 2.1 Package typechecks: `cd packages/code-reviewer && npm run typecheck`
+- [x] 2.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
+- [x] 2.3 A local review still produces a verdict and exits 0: `npm run review`
 
 #### Manual
 
-- [ ] 2.4 Run log shows `[tool]` lines for `Bash`, `Read` and/or `Grep`
-- [ ] 2.5 Turn count is above 1 and below 40; cost within Sonnet expectations
-- [ ] 2.6 At least one finding cites a `file:line` outside the diff, or the report says the diff sufficed
-- [ ] 2.7 `PR_TITLE` / `PR_BODY` / `PR_HEAD_REF` overrides are reflected in the report
+- [x] 2.4 Run log shows `[tool]` lines for `Bash`, `Read` and/or `Grep`
+- [x] 2.5 Turn count is above 1 and below 40; cost within Sonnet expectations
+- [x] 2.6 At least one finding cites a `file:line` outside the diff, or the report says the diff sufficed
+- [x] 2.7 `PR_TITLE` / `PR_BODY` / `PR_HEAD_REF` overrides are reflected in the report
 
 ### Phase 3: Composite Action
 

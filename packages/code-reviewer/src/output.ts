@@ -24,6 +24,20 @@ function formatScoresTable(scores: ReviewOutput["scores"]): string {
 }
 
 /**
+ * The model is told `report_markdown` is the findings section alone and that the "## Findings"
+ * heading below is added for it, but it sometimes writes one anyway. Strip a leading one rather
+ * than trust prompt compliance, so the comment never renders the heading twice.
+ */
+function stripLeadingFindingsHeading(markdown: string): string {
+  return markdown.replace(/^#{1,6}\s*findings\s*\n+/i, "");
+}
+
+function formatFindings(reportMarkdown: string): string {
+  const trimmed = stripLeadingFindingsHeading(reportMarkdown.trim());
+  return trimmed === "" ? "No findings." : trimmed;
+}
+
+/**
  * Assembles the comment from the structured fields rather than pasting one blob of model
  * markdown, so the verdict, summary and scorecard have a fixed shape the model cannot
  * reformat or duplicate.
@@ -41,7 +55,7 @@ export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
     "",
   ].join("\n");
 
-  const findings = output.report_markdown.trim() === "" ? "No findings." : output.report_markdown;
+  const findings = formatFindings(output.report_markdown);
 
   const body = [
     `**Verdict: ${output.verdict}**`,
