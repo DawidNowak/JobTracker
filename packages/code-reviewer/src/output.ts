@@ -6,6 +6,9 @@ export interface ReportMeta {
   branch: string;
   base: string;
   fileCount: number;
+  diffTruncated: boolean;
+  diffTotalLines: number;
+  diffIncludedLines: number;
 }
 
 const DIMENSION_LABELS: Record<keyof ReviewOutput["scores"], string> = {
@@ -43,9 +46,14 @@ function formatFindings(reportMarkdown: string): string {
  * reformat or duplicate.
  */
 export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
+  const truncationNote = meta.diffTruncated
+    ? [`> **Truncated to the first ${meta.diffIncludedLines} of ${meta.diffTotalLines} diff lines — review is partial.**`, ""]
+    : [];
+
   const header = [
     `# Code review — \`${meta.branch}\``,
     "",
+    ...truncationNote,
     `- Branch: \`${meta.branch}\``,
     `- Merge-base: \`${meta.base}\``,
     `- Changed files: ${meta.fileCount}`,

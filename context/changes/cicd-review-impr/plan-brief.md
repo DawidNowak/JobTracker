@@ -132,14 +132,14 @@ file's existing pattern for `Edit`/`Write`/`NotebookEdit`: structural removal, n
 
 ### Phase 2: prompt.ts + index.ts — embed diff, drop fetch tools, cut turns
 
-- [x] 2.1 `npm run typecheck` passes
-- [x] 2.2 Manual: `npm run review` locally on a real branch diff — no `Bash(git diff)` call in the log, review still produces findings
+- [x] 2.1 `npm run typecheck` passes — fff5142
+- [x] 2.2 Manual: `npm run review` locally on a real branch diff — no `Bash(git diff)` call in the log, review still produces findings — fff5142
 
 ### Phase 3: output.ts + index.ts — truncation note + tool-call logging
 
-- [ ] 3.1 `npm run typecheck` passes
-- [ ] 3.2 Manual: force a >3000-line diff locally (or temporarily lower the cap) and confirm the truncation note appears in the report; confirm normal-size diffs show no note
-- [ ] 3.3 Manual: confirm tool-call log lines show `file_path`/`pattern` instead of bare tool names
+- [x] 3.1 `npm run typecheck` passes
+- [x] 3.2 Manual: force a >3000-line diff locally (or temporarily lower the cap) and confirm the truncation note appears in the report; confirm normal-size diffs show no note
+- [x] 3.3 Manual: confirm tool-call log lines show `file_path`/`pattern` instead of bare tool names
 
 ### Phase 4: README.md — docs
 

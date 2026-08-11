@@ -47,6 +47,29 @@ const DISALLOWED_TOOLS = [
 ];
 
 /**
+ * Console tool-call logging should show what was actually read or searched, not just the bare
+ * tool name — `Read` gets its `file_path`, `Grep`/`Glob` get their `pattern` (plus `path` when
+ * scoped to a subdirectory). `input` is `unknown` on the SDK's `ToolUseBlock`, so every field
+ * access is guarded rather than cast.
+ */
+function describeToolUse(name: string, input: unknown): string {
+  const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
+
+  if (name === "Read") {
+    return typeof record.file_path === "string" ? record.file_path : "";
+  }
+
+  if (name === "Grep" || name === "Glob") {
+    const parts: string[] = [];
+    if (typeof record.pattern === "string") parts.push(record.pattern);
+    if (typeof record.path === "string") parts.push(record.path);
+    return parts.join(" ");
+  }
+
+  return "";
+}
+
+/**
  * The SDK resolves credentials itself, in this order: ANTHROPIC_API_KEY, then
  * CLAUDE_CODE_OAUTH_TOKEN, then whatever the local Claude Code install is logged in as.
  * We only report which one is in play — failing here on an empty environment would reject
@@ -127,7 +150,8 @@ async function main(): Promise<void> {
         if (block.type === "text") {
           console.log(block.text);
         } else if (block.type === "tool_use") {
-          console.log(`  [tool] ${block.name}`);
+          const detail = describeToolUse(block.name, block.input);
+          console.log(detail ? `  [tool] ${block.name} ${detail}` : `  [tool] ${block.name}`);
         }
       }
     } else if (message.type === "result") {
@@ -148,7 +172,14 @@ async function main(): Promise<void> {
 
   if (reviewOutput !== null) {
     emitVerdict(reviewOutput.verdict);
-    await deliverReport(reviewOutput, { branch, base, fileCount: changedFiles.length });
+    await deliverReport(reviewOutput, {
+      branch,
+      base,
+      fileCount: changedFiles.length,
+      diffTruncated: diff.truncated,
+      diffTotalLines: diff.totalLines,
+      diffIncludedLines: diff.includedLines,
+    });
   }
 
   if (failed) process.exit(1);
