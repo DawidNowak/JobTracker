@@ -3,8 +3,9 @@ import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getChangedFiles, getCurrentBranch, getDiffStat, getFullDiff, getMergeBase, getRepoRoot } from "./git.ts";
-import { deliverReport } from "./output.ts";
+import { deliverReport, emitVerdict } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
+import { parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,7 +14,7 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 // silently pick up the app's .env instead.
 config({ path: path.join(PACKAGE_ROOT, ".env") });
 
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-sonnet-5";
 
 /**
  * Tools auto-approved without prompting. Paired with permissionMode "dontAsk", anything
@@ -78,7 +79,7 @@ async function main(): Promise<void> {
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
-  let finalReport: string | null = null;
+  let reviewOutput: ReviewOutput | null = null;
   let failed = false;
 
   for await (const message of query({
@@ -100,6 +101,9 @@ async function main(): Promise<void> {
       permissionMode: "dontAsk",
       maxTurns: 15,
       effort: "high",
+      outputFormat: { type: "json_schema", schema: REVIEW_SCHEMA },
+      // Roughly 20-30x the current per-run cost — only fires on a runaway.
+      maxBudgetUsd: 2.0,
     },
   })) {
     if (message.type === "assistant") {
@@ -112,7 +116,12 @@ async function main(): Promise<void> {
       }
     } else if (message.type === "result") {
       if (message.subtype === "success") {
-        finalReport = message.result;
+        reviewOutput = parseReviewOutput(message.structured_output);
+        if (reviewOutput === null) {
+          failed = true;
+          console.error("\nRun succeeded but returned no valid structured output. Raw result:\n");
+          console.error(message.result);
+        }
       } else {
         failed = true;
         console.error(`\nRun ended without a review: ${message.subtype}`);
@@ -121,8 +130,9 @@ async function main(): Promise<void> {
     }
   }
 
-  if (finalReport !== null) {
-    await deliverReport(finalReport, { branch, base, fileCount: changedFiles.length });
+  if (reviewOutput !== null) {
+    emitVerdict(reviewOutput.verdict);
+    await deliverReport(reviewOutput, { branch, base, fileCount: changedFiles.length });
   }
 
   if (failed) process.exit(1);

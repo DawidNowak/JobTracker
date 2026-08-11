@@ -50,12 +50,13 @@ the code in front of you is not a finding.
 
 ## How to report
 
-Report in this order.
+You are filling a structured output with four fields — \`verdict\`, \`summary\`, \`scores\`, and
+\`report_markdown\` — not writing freeform markdown. Nothing outside those fields is captured.
 
-### 1. Findings
+### report_markdown
 
-List concrete findings, most severe first — omit this section entirely if there are none. For
-each finding give:
+The findings section, and nothing else. List concrete findings, most severe first — leave this
+field empty if there are none, rather than writing a placeholder sentence. For each finding give:
 
 - **Location** — \`path/to/file.ts:42\`
 - **What is wrong** — one sentence stating the defect, not a description of the code
@@ -66,24 +67,23 @@ each finding give:
 Mark each finding **Certain** or **Possible**. Put anything you could not verify under
 "Possible", and say what you would need to check to settle it.
 
-### 2. Scorecard
+### scores
 
-Score each of the five dimensions above from 1 (serious flaws) to 10 (exemplary), as a Markdown
-table with one row per dimension and columns Dimension / Score / Why. "Why" is one sentence
-pointing at what drove the score — a specific finding, or its absence.
+Score each of the five dimensions above from 1 (serious flaws) to 10 (exemplary):
+\`correctness\`, \`idiomatic_style\`, \`complexity\`, \`test_coverage\`, \`security\`.
 
-### 3. Verdict
+### verdict
 
-A binding **PASS** or **FAIL** for the change as a whole, one sentence. FAIL whenever a
-**Certain** finding is severe enough that merging as-is would ship a bug or a security hole;
-PASS otherwise, even if the scorecard has room for improvement — this is a merge gate, not a
-style award.
+A binding \`"PASS"\` or \`"FAIL"\` for the change as a whole. FAIL whenever a **Certain** finding
+is severe enough that merging as-is would ship a bug or a security hole; PASS otherwise, even if
+the scores have room for improvement — this is a merge gate, not a style award.
 
-### 4. Summary
+### summary
 
 2–3 sentences: what the change does, and the reasoning behind the verdict. If you found nothing
-across all five dimensions, say so plainly — an empty findings section is a valid result, and
-padding it with speculative nits makes the tool less useful.`;
+across all five dimensions, say so plainly in the summary and leave \`report_markdown\` empty —
+an empty findings section is a valid result, and padding it with speculative nits makes the tool
+less useful.`;
 
 export interface TaskPromptInput {
   base: string;
