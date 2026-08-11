@@ -35,7 +35,14 @@ const ALLOWED_TOOLS = ["Read", "Grep", "Glob"];
  * allowedTools only *approves*; it does not remove anything. Bare-name deny rules do remove
  * the tool from the model's context, so the read-only property is structural here rather
  * than resting solely on permissionMode. The path-scoped Read rules anchor at the session
- * cwd (the repo root) and keep the reviewer out of local secret files.
+ * cwd (the repo root) and keep the reviewer out of local secret files. Claude Code only
+ * consults `Read(path)` rules for filesystem access — a `Grep(path)` or `Glob(path)` rule is
+ * accepted but never checked (and warns at startup) — so the node_modules rule below is a
+ * single `Read` entry, applied best-effort to all three read-only tools by the SDK itself. It
+ * keeps the reviewer out of dependency source and type declarations entirely: nothing in this
+ * repo's own conventions turns on verifying a third-party package's internals, and a model that
+ * starts second-guessing SDK typings against its `.d.ts` files burns turns (and cost) with no
+ * bearing on the diff being reviewed.
  */
 const DISALLOWED_TOOLS = [
   "Bash",
@@ -45,6 +52,7 @@ const DISALLOWED_TOOLS = [
   "Read(/.env*)",
   "Read(/.dev.vars*)",
   "Read(/auth.json)",
+  "Read(**/node_modules/**)",
 ];
 
 // Strips control characters (newlines, ANSI escapes, etc.) so a value drawn from model tool

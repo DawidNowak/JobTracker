@@ -39,14 +39,27 @@ export function getMergeBase(cwd: string): string {
 }
 
 /**
+ * Files dropped from the changed-files list, the diffstat, and the diff body alike — not
+ * degraded to "signal only" the way `GENERATED_FILE_EXCLUDES` below treats lockfiles, but
+ * invisible to this reviewer entirely. `context/**` planning artifacts (active plans and
+ * archived ones both) are owned by a dedicated skill (`/10x-impl-review`) that compares
+ * implementation against plan; none of this reviewer's five criteria can act on "a plan
+ * changed", so surfacing that fact only invites a wasted turn investigating it — exactly what
+ * happened when `context/archive/**` alone was excluded from the diff body but still showed up
+ * in the changed-files list, and the model went and read it directly.
+ */
+const OUT_OF_SCOPE_EXCLUDES = ["context/**"];
+
+/**
  * `git diff <base>` with no second ref compares the working tree against <base>, covering
  * committed, staged and unstaged changes to *tracked* files. Untracked files produce no
  * diff line at all, so they are collected separately — a branch whose entire contribution
  * is new files would otherwise be reported as "nothing to review".
  */
 export function getChangedFiles(base: string, cwd: string): string[] {
-  const tracked = git(["diff", "--name-status", base], cwd);
-  const untracked = git(["ls-files", "--others", "--exclude-standard"], cwd);
+  const excludes = OUT_OF_SCOPE_EXCLUDES.map((p) => `:(exclude)${p}`);
+  const tracked = git(["diff", "--name-status", base, "--", ".", ...excludes], cwd);
+  const untracked = git(["ls-files", "--others", "--exclude-standard", "--", ".", ...excludes], cwd);
 
   const lines = tracked ? tracked.split("\n") : [];
   if (untracked) {
@@ -57,15 +70,25 @@ export function getChangedFiles(base: string, cwd: string): string[] {
   return lines;
 }
 
+/**
+ * Applies the same `OUT_OF_SCOPE_EXCLUDES` as `getChangedFiles` — otherwise the diffstat
+ * block would leak file names and line counts for `context/**` right next to a changed-files
+ * list that deliberately omits them, inviting exactly the confusion (and the wasted turn
+ * investigating it) the exclusion exists to avoid.
+ */
 export function getDiffStat(base: string, cwd: string): string {
-  return git(["diff", "--stat", base], cwd);
+  const excludes = OUT_OF_SCOPE_EXCLUDES.map((p) => `:(exclude)${p}`);
+  return git(["diff", "--stat", base, "--", ".", ...excludes], cwd);
 }
 
 /**
- * Files whose diff body is noise for a review: npm-managed lockfiles and the Supabase-
- * generated types file. A change to one of these still shows up in `getChangedFiles` and
- * `getDiffStat` — the model sees *that* it changed — but the mechanical body is excluded
- * here so it isn't spent reading hash churn or generated type declarations.
+ * Files whose diff *body* is noise for a review even though the files themselves stay visible
+ * in the changed-files list and diffstat: npm-managed lockfiles and the Supabase-generated
+ * types file. A change to one of these still shows up there — the model sees *that* it
+ * changed — but the mechanical body is excluded here so it isn't spent reading hash churn or
+ * generated type declarations. `context/**` is handled separately, and more strictly, by
+ * `OUT_OF_SCOPE_EXCLUDES` above — folded into this function's excludes too, since a file
+ * hidden from the changed-files list should never have its body embedded either.
  */
 const GENERATED_FILE_EXCLUDES = ["**/package-lock.json", "**/database.types.ts"];
 
@@ -73,11 +96,12 @@ const GENERATED_FILE_EXCLUDES = ["**/package-lock.json", "**/database.types.ts"]
 const MAX_DIFF_LINES = 3000;
 
 /**
- * Full diff text for the changeset, generated-file exclusions folded in directly. Embedded
- * straight into the task prompt rather than left for the agent to fetch itself.
+ * Full diff text for the changeset, generated-file and out-of-scope exclusions folded in
+ * directly. Embedded straight into the task prompt rather than left for the agent to fetch
+ * itself.
  */
 export function getDiff(base: string, cwd: string): string {
-  const excludes = GENERATED_FILE_EXCLUDES.map((p) => `:(exclude)${p}`);
+  const excludes = [...GENERATED_FILE_EXCLUDES, ...OUT_OF_SCOPE_EXCLUDES].map((p) => `:(exclude)${p}`);
   return git(["diff", base, "--", ".", ...excludes], cwd);
 }
 
