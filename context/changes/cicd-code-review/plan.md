@@ -690,23 +690,23 @@ run's label step fails with a 404 and turns the job red.
 
 #### Automated
 
-- [x] 3.1 `action.yml` parses as YAML
-- [x] 3.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
-- [x] 3.3 No `${{` appears inside any `run:` block
+- [x] 3.1 `action.yml` parses as YAML — 66ec5c9
+- [x] 3.2 Root gates stay green: `npm run typecheck && npm run lint && npm test` — 66ec5c9
+- [x] 3.3 No `${{` appears inside any `run:` block — 66ec5c9
 
 #### Manual
 
-- [x] 3.4 Every `run` step has explicit `shell:` and, where needed, `working-directory:`
-- [x] 3.5 Guard step message names the missing token
-- [x] 3.6 `action.yml` reads top-to-bottom as the whole review procedure
+- [x] 3.4 Every `run` step has explicit `shell:` and, where needed, `working-directory:` — 66ec5c9
+- [x] 3.5 Guard step message names the missing token — 66ec5c9
+- [x] 3.6 `action.yml` reads top-to-bottom as the whole review procedure — 66ec5c9
 
 ### Phase 4: Workflow Rewrite
 
 #### Automated
 
-- [ ] 4.1 `ai-code-review.yml` parses as YAML
-- [ ] 4.2 All four event types appear under `types:`
-- [ ] 4.3 Root gates stay green: `npm run typecheck && npm run lint && npm test`
+- [x] 4.1 `ai-code-review.yml` parses as YAML
+- [x] 4.2 All four event types appear under `types:`
+- [x] 4.3 Root gates stay green: `npm run typecheck && npm run lint && npm test`
 
 #### Manual
 
