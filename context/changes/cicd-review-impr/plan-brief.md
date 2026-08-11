@@ -137,10 +137,10 @@ file's existing pattern for `Edit`/`Write`/`NotebookEdit`: structural removal, n
 
 ### Phase 3: output.ts + index.ts — truncation note + tool-call logging
 
-- [x] 3.1 `npm run typecheck` passes
-- [x] 3.2 Manual: force a >3000-line diff locally (or temporarily lower the cap) and confirm the truncation note appears in the report; confirm normal-size diffs show no note
-- [x] 3.3 Manual: confirm tool-call log lines show `file_path`/`pattern` instead of bare tool names
+- [x] 3.1 `npm run typecheck` passes — c0a8fe6
+- [x] 3.2 Manual: force a >3000-line diff locally (or temporarily lower the cap) and confirm the truncation note appears in the report; confirm normal-size diffs show no note — c0a8fe6
+- [x] 3.3 Manual: confirm tool-call log lines show `file_path`/`pattern` instead of bare tool names — c0a8fe6
 
 ### Phase 4: README.md — docs
 
-- [ ] 4.1 Manual: README wiring table and cap/truncation description match the implemented behavior
+- [x] 4.1 Manual: README wiring table and cap/truncation description match the implemented behavior

@@ -80,27 +80,36 @@ npm run typecheck   # tsc --noEmit
 
 ## How it is wired
 
-| Option            | Value                                                                                       | Why                                                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                    | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                         |
-| `settingSources`  | `["project"]`                                                                               | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                  |
-| `skills`          | `[]`                                                                                        | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                              |
-| `allowedTools`    | `Read`, `Grep`, `Glob`, `Bash(git diff\|show\|log\|status:*)`                               | Auto-approved without prompting                                                                                                             |
-| `disallowedTools` | `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone |
-| `permissionMode`  | `dontAsk`                                                                                   | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                            |
-| `model`           | `claude-sonnet-5`                                                                           | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                        |
-| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                             | Forces the verdict, scores and findings into a validated structured result instead of free-form markdown                                    |
-| `maxTurns`        | `40`                                                                                        | Multi-turn by design: fetching diffs and reading surrounding files takes several turns before synthesis                                     |
-| `maxBudgetUsd`    | `2.00`                                                                                      | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                               |
+| Option            | Value                                                                                               | Why                                                                                                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                            | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                                                                                |
+| `settingSources`  | `["project"]`                                                                                       | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                                                                         |
+| `skills`          | `[]`                                                                                                | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                                                                                     |
+| `allowedTools`    | `Read`, `Grep`, `Glob`                                                                              | Auto-approved without prompting — the diff is embedded in the task prompt, so no git tool is needed                                                                                                |
+| `disallowedTools` | `Bash`, `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone                                                        |
+| `permissionMode`  | `dontAsk`                                                                                           | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                                                                                   |
+| `model`           | `claude-sonnet-5`                                                                                   | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                                                                               |
+| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                                     | Forces the verdict, scores and findings into a validated structured result instead of free-form markdown                                                                                           |
+| `maxTurns`        | `20`                                                                                                | Down from 40 now that the diff no longer needs a turn to fetch; kept above the diff-fetch-free minimum of 10 because a real run at 10 exhausted its turns before producing valid structured output |
+| `maxBudgetUsd`    | `2.00`                                                                                              | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                                                                                      |
 
 `allowedTools` only _approves_ tools — it does not remove them. The read-only property comes from
 `disallowedTools`, which is why the write tools are listed there explicitly rather than merely
 omitted above. The report is written by `src/index.ts` from the final `result` message, not by the
 agent.
 
-Cost per review is expected at roughly **$0.30-1.00** (Sonnet, multi-turn, reading files) — up from
-~$0.07 on the single-turn haiku-era run — and wall-clock runs several minutes rather than under one.
-Since the verdict is not a merge gate, the extra latency costs patience, not CI throughput.
+### Diff size cap
+
+The task prompt embeds the full diff (`src/git.ts`'s `getDiff()`), generated-file exclusions
+(`package-lock.json`, `database.types.ts`) already applied. `truncateDiff()` caps that text at the
+first **3000 lines**, cutting wherever that falls rather than aligning to file boundaries. When a
+diff is truncated, both the task prompt and the delivered report carry a deterministic "truncated to
+N of M lines — review is partial" note — decided in Node from the actual line count, not left to the
+model to notice or caveat.
+
+Cost per review is expected at roughly **$0.30-1.00** (Sonnet, reading files after an embedded diff)
+and wall-clock runs a couple of minutes. Since the verdict is not a merge gate, the latency costs
+patience, not CI throughput.
 
 ## Layout
 
