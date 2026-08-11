@@ -721,10 +721,10 @@ run's label step fails with a 404 and turns the job red.
 
 #### Automated
 
-- [x] 5.1 Prettier is clean: `npx prettier --check packages/code-reviewer/README.md`
-- [x] 5.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
+- [x] 5.1 Prettier is clean: `npx prettier --check packages/code-reviewer/README.md` — 9e10e1e
+- [x] 5.2 Root gates stay green: `npm run typecheck && npm run lint && npm test` — 9e10e1e
 
 #### Manual
 
-- [x] 5.3 All three labels exist in GitHub with the exact names, colors and descriptions
-- [x] 5.4 README env-var table matches what `action.yml` binds
+- [x] 5.3 All three labels exist in GitHub with the exact names, colors and descriptions — 9e10e1e
+- [x] 5.4 README env-var table matches what `action.yml` binds — 9e10e1e

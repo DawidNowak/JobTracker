@@ -1,7 +1,7 @@
 ---
 change_id: cicd-code-review
 title: Cicd code review
-status: implementing
+status: implemented
 created: 2026-08-09
 updated: 2026-08-11
 archived_at: null
