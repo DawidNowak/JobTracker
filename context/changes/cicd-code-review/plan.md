@@ -710,21 +710,21 @@ run's label step fails with a 404 and turns the job red.
 
 #### Manual
 
-- [x] 4.4 Test PR: job runs, one comment, exactly one verdict label, green job
-- [x] 4.5 Comment title shows the real branch name, not `HEAD`
-- [x] 4.6 Second commit cancels the first run; comment and label reflect the second commit
-- [x] 4.7 `ai-cr:review` triggers a run and is removed at the end; re-adding triggers again
-- [x] 4.8 An unrelated label starts no run
-- [x] 4.9 Forced error: job red, no comment, existing verdict label untouched
+- [x] 4.4 Test PR: job runs, one comment, exactly one verdict label, green job — f40e188
+- [x] 4.5 Comment title shows the real branch name, not `HEAD` — f40e188
+- [x] 4.6 Second commit cancels the first run; comment and label reflect the second commit — f40e188
+- [x] 4.7 `ai-cr:review` triggers a run and is removed at the end; re-adding triggers again — f40e188
+- [x] 4.8 An unrelated label starts no run — f40e188
+- [x] 4.9 Forced error: job red, no comment, existing verdict label untouched — f40e188
 
 ### Phase 5: Labels & Documentation
 
 #### Automated
 
-- [ ] 5.1 Prettier is clean: `npx prettier --check packages/code-reviewer/README.md`
-- [ ] 5.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
+- [x] 5.1 Prettier is clean: `npx prettier --check packages/code-reviewer/README.md`
+- [x] 5.2 Root gates stay green: `npm run typecheck && npm run lint && npm test`
 
 #### Manual
 
-- [ ] 5.3 All three labels exist in GitHub with the exact names, colors and descriptions
-- [ ] 5.4 README env-var table matches what `action.yml` binds
+- [x] 5.3 All three labels exist in GitHub with the exact names, colors and descriptions
+- [x] 5.4 README env-var table matches what `action.yml` binds
