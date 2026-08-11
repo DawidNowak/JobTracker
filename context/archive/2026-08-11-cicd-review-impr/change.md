@@ -1,10 +1,10 @@
 ---
 change_id: cicd-review-impr
 title: Cicd review impr
-status: impl_reviewed
+status: archived
 created: 2026-08-11
 updated: 2026-08-11
-archived_at: null
+archived_at: 2026-08-11T16:10:20Z
 ---
 
 ## Notes
