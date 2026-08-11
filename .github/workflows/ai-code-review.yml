@@ -21,6 +21,8 @@ jobs:
     # comment, or label. Skipping shows as a neutral check, not a red X — this is
     # deliberate, not a broken job. On a `labeled` event, only the retry label re-runs
     # the review; every other label is a no-op for this job.
+    #
+    # (trivial comment tweak to force a second commit for manual Phase 4 verification)
     if: github.event.pull_request.head.repo.full_name == github.repository && (github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review')
     steps:
       - name: Checkout PR head
