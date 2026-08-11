@@ -531,24 +531,24 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Automated
 
-- [x] 1.1 `npm run typecheck` passes
+- [x] 1.1 `npm run typecheck` passes — 75bed2d
 
 #### Manual
 
-- [x] 1.2 A branch touching `context/changes/**` lists those files but embeds none of their bodies
-- [x] 1.3 A branch touching only `src/` produces an unchanged diff body
+- [x] 1.2 A branch touching `context/changes/**` lists those files but embeds none of their bodies — 75bed2d
+- [x] 1.3 A branch touching only `src/` produces an unchanged diff body — 75bed2d
 
 ### Phase 2: src/criteria.ts — criteria as data
 
 #### Automated
 
-- [ ] 2.1 `npm run typecheck` passes
-- [ ] 2.2 `CriterionId` resolves to a five-member literal union, not `string`
+- [x] 2.1 `npm run typecheck` passes
+- [x] 2.2 `CriterionId` resolves to a five-member literal union, not `string`
 
 #### Manual
 
-- [ ] 2.3 Every `rules` entry traces to a rule in `AGENTS.md` or `tests/README.md` today
-- [ ] 2.4 Every `failsWhen` is checkable against a diff, not a judgment call
+- [x] 2.3 Every `rules` entry traces to a rule in `AGENTS.md` or `tests/README.md` today
+- [x] 2.4 Every `failsWhen` is checkable against a diff, not a judgment call
 
 ### Phase 3: Contract swap — schema.ts + prompt.ts + output.ts + index.ts
 
