@@ -143,4 +143,4 @@ file's existing pattern for `Edit`/`Write`/`NotebookEdit`: structural removal, n
 
 ### Phase 4: README.md — docs
 
-- [x] 4.1 Manual: README wiring table and cap/truncation description match the implemented behavior
+- [x] 4.1 Manual: README wiring table and cap/truncation description match the implemented behavior — 7c3730f
