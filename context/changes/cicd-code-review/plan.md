@@ -704,18 +704,18 @@ run's label step fails with a 404 and turns the job red.
 
 #### Automated
 
-- [x] 4.1 `ai-code-review.yml` parses as YAML
-- [x] 4.2 All four event types appear under `types:`
-- [x] 4.3 Root gates stay green: `npm run typecheck && npm run lint && npm test`
+- [x] 4.1 `ai-code-review.yml` parses as YAML — 453a8fe
+- [x] 4.2 All four event types appear under `types:` — 453a8fe
+- [x] 4.3 Root gates stay green: `npm run typecheck && npm run lint && npm test` — 453a8fe
 
 #### Manual
 
-- [ ] 4.4 Test PR: job runs, one comment, exactly one verdict label, green job
-- [ ] 4.5 Comment title shows the real branch name, not `HEAD`
-- [ ] 4.6 Second commit cancels the first run; comment and label reflect the second commit
-- [ ] 4.7 `ai-cr:review` triggers a run and is removed at the end; re-adding triggers again
-- [ ] 4.8 An unrelated label starts no run
-- [ ] 4.9 Forced error: job red, no comment, existing verdict label untouched
+- [x] 4.4 Test PR: job runs, one comment, exactly one verdict label, green job
+- [x] 4.5 Comment title shows the real branch name, not `HEAD`
+- [x] 4.6 Second commit cancels the first run; comment and label reflect the second commit
+- [x] 4.7 `ai-cr:review` triggers a run and is removed at the end; re-adding triggers again
+- [x] 4.8 An unrelated label starts no run
+- [x] 4.9 Forced error: job red, no comment, existing verdict label untouched
 
 ### Phase 5: Labels & Documentation
 
