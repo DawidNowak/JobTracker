@@ -2,35 +2,66 @@ name: AI Code Review
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches: [master]
-  workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
+
+concurrency:
+  group: ai-code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/code-reviewer
+    # Fork PRs get no secrets and a read-only token, so the reviewer cannot authenticate,
+    # comment, or label. Skipping shows as a neutral check, not a red X — this is
+    # deliberate, not a broken job. On a `labeled` event, only the retry label re-runs
+    # the review; every other label is a no-op for this job.
+    #
+    # (trivial comment tweak to force a second commit for manual Phase 4 verification)
+    if: github.event.pull_request.head.repo.full_name == github.repository && (github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review')
     steps:
-      - name: Checkout repository
+      - name: Checkout PR head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Configure node
-        uses: actions/setup-node@v4
+      - id: review
+        name: Run AI code review
+        uses: ./.github/actions/ai-code-review
         with:
-          node-version-file: ".nvmrc"
+          claude-code-oauth-token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-body: ${{ github.event.pull_request.body }}
+          pr-head-ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run agent
-        run: npm run review
+      - name: Label verdict — PASS
+        if: steps.review.outputs.verdict == 'PASS'
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --add-label "ai-cr:passed"
+          gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ai-cr:failed" || true
+
+      - name: Label verdict — FAIL
+        if: steps.review.outputs.verdict == 'FAIL'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --add-label "ai-cr:failed"
+          gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ai-cr:passed" || true
+
+      # Re-adding a label that is already applied fires no `labeled` event, so this
+      # removal must run even when the review step failed — otherwise a failed run
+      # leaves `ai-cr:review` stuck and the PR becomes unretryable.
+      - name: Remove retry label
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ai-cr:review" || true

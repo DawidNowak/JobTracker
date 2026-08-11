@@ -6,7 +6,15 @@ writes a markdown report.
 
 This package is **self-contained**: it has its own `package.json`, `tsconfig.json` and `node_modules`,
 and is excluded from the root `tsconfig.json` and `eslint.config.js`. The app's `npm run typecheck`,
-`npm run lint` and `npm test` do not see it.
+`npm run lint` and `npm test` do not see it — the one exception is `prettier --write .` at the repo
+root, which formats this package's files like any other.
+
+In CI, the review is driven by `.github/actions/ai-code-review` (see
+`.github/workflows/ai-code-review.yml`), a composite action that installs this package and runs
+`npm run review` against the checked-out PR head. The action's `verdict` output is read from the
+`verdict=<value>` line this package writes to `$GITHUB_OUTPUT` — see [How it is
+wired](#how-it-is-wired) — so the JSON Schema in `src/schema.ts` is a CI-affecting contract: a field
+rename or an added required field changes what the action can parse out of a run.
 
 ## Setup
 
@@ -54,6 +62,18 @@ The agent streams its reasoning and tool calls to the terminal, then delivers th
 
 On a branch with no changes against `master` it exits early without calling the API.
 
+### Environment variables
+
+All of the following are set by the CI action and optional everywhere else — a local run behaves
+identically without any of them:
+
+| Variable        | Set by                           | Purpose                                                                                              |
+| --------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `PR_TITLE`      | `.github/actions/ai-code-review` | PR title, given to the agent as author-supplied intent, not instructions                             |
+| `PR_BODY`       | `.github/actions/ai-code-review` | PR body, same treatment as `PR_TITLE`                                                                |
+| `PR_HEAD_REF`   | `.github/actions/ai-code-review` | Real branch name; falls back to `getCurrentBranch()`, which returns `HEAD` on a detached CI checkout |
+| `GITHUB_OUTPUT` | The GitHub Actions runner        | Step-output file `emitVerdict()` appends `verdict=<value>` to; a no-op when unset                    |
+
 ```bash
 npm run typecheck   # tsc --noEmit
 ```
@@ -68,12 +88,19 @@ npm run typecheck   # tsc --noEmit
 | `allowedTools`    | `Read`, `Grep`, `Glob`, `Bash(git diff\|show\|log\|status:*)`                               | Auto-approved without prompting                                                                                                             |
 | `disallowedTools` | `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone |
 | `permissionMode`  | `dontAsk`                                                                                   | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                            |
-| `model`           | `claude-haiku-4-5`                                                                          |                                                                                                                                             |
+| `model`           | `claude-sonnet-5`                                                                           | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                        |
+| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                             | Forces the verdict, scores and findings into a validated structured result instead of free-form markdown                                    |
+| `maxTurns`        | `40`                                                                                        | Multi-turn by design: fetching diffs and reading surrounding files takes several turns before synthesis                                     |
+| `maxBudgetUsd`    | `2.00`                                                                                      | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                               |
 
 `allowedTools` only _approves_ tools — it does not remove them. The read-only property comes from
 `disallowedTools`, which is why the write tools are listed there explicitly rather than merely
 omitted above. The report is written by `src/index.ts` from the final `result` message, not by the
 agent.
+
+Cost per review is expected at roughly **$0.30-1.00** (Sonnet, multi-turn, reading files) — up from
+~$0.07 on the single-turn haiku-era run — and wall-clock runs several minutes rather than under one.
+Since the verdict is not a merge gate, the extra latency costs patience, not CI throughput.
 
 ## Layout
 

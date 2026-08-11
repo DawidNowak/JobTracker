@@ -2,9 +2,10 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getChangedFiles, getCurrentBranch, getDiffStat, getFullDiff, getMergeBase, getRepoRoot } from "./git.ts";
-import { deliverReport } from "./output.ts";
+import { getChangedFiles, getCurrentBranch, getDiffStat, getMergeBase, getRepoRoot } from "./git.ts";
+import { deliverReport, emitVerdict } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
+import { parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,7 +14,7 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 // silently pick up the app's .env instead.
 config({ path: path.join(PACKAGE_ROOT, ".env") });
 
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-sonnet-5";
 
 /**
  * Tools auto-approved without prompting. Paired with permissionMode "dontAsk", anything
@@ -64,7 +65,11 @@ async function main(): Promise<void> {
   reportCredentialSource();
 
   const repoRoot = getRepoRoot();
-  const branch = getCurrentBranch(repoRoot);
+  // A CI checkout of a specific SHA leaves HEAD detached, where getCurrentBranch() returns
+  // the literal string "HEAD" — the workflow knows the real branch name and passes it through.
+  const branch = process.env.PR_HEAD_REF || getCurrentBranch(repoRoot);
+  const prTitle = process.env.PR_TITLE ?? "";
+  const prBody = process.env.PR_BODY ?? "";
   const base = getMergeBase(repoRoot);
   const changedFiles = getChangedFiles(base, repoRoot);
 
@@ -74,15 +79,14 @@ async function main(): Promise<void> {
   }
 
   const diffStat = getDiffStat(base, repoRoot);
-  const diff = getFullDiff(base, repoRoot);
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
-  let finalReport: string | null = null;
+  let reviewOutput: ReviewOutput | null = null;
   let failed = false;
 
   for await (const message of query({
-    prompt: buildTaskPrompt({ base, branch, changedFiles, diffStat, diff }),
+    prompt: buildTaskPrompt({ base, branch, changedFiles, diffStat, prTitle, prBody }),
     options: {
       cwd: repoRoot,
       model: MODEL,
@@ -98,8 +102,11 @@ async function main(): Promise<void> {
       allowedTools: ALLOWED_TOOLS,
       disallowedTools: DISALLOWED_TOOLS,
       permissionMode: "dontAsk",
-      maxTurns: 15,
+      maxTurns: 40,
       effort: "high",
+      outputFormat: { type: "json_schema", schema: REVIEW_SCHEMA },
+      // Roughly 20-30x the current per-run cost — only fires on a runaway.
+      maxBudgetUsd: 2.0,
     },
   })) {
     if (message.type === "assistant") {
@@ -112,7 +119,12 @@ async function main(): Promise<void> {
       }
     } else if (message.type === "result") {
       if (message.subtype === "success") {
-        finalReport = message.result;
+        reviewOutput = parseReviewOutput(message.structured_output);
+        if (reviewOutput === null) {
+          failed = true;
+          console.error("\nRun succeeded but returned no valid structured output. Raw result:\n");
+          console.error(message.result);
+        }
       } else {
         failed = true;
         console.error(`\nRun ended without a review: ${message.subtype}`);
@@ -121,8 +133,9 @@ async function main(): Promise<void> {
     }
   }
 
-  if (finalReport !== null) {
-    await deliverReport(finalReport, { branch, base, fileCount: changedFiles.length });
+  if (reviewOutput !== null) {
+    emitVerdict(reviewOutput.verdict);
+    await deliverReport(reviewOutput, { branch, base, fileCount: changedFiles.length });
   }
 
   if (failed) process.exit(1);

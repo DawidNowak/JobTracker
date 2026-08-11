@@ -1,0 +1,69 @@
+name: AI Code Review
+description: Runs the Claude Agent SDK code reviewer against the checked-out PR head and emits a PASS/FAIL verdict.
+
+inputs:
+  claude-code-oauth-token:
+    description: OAuth token for the Claude Code SDK.
+    required: true
+  github-token:
+    description: Token used by the reviewer to post/update the PR comment.
+    required: true
+  pr-title:
+    description: Title of the pull request being reviewed.
+    required: false
+    default: ""
+  pr-body:
+    description: Body of the pull request being reviewed.
+    required: false
+    default: ""
+  pr-head-ref:
+    description: Branch name of the pull request head.
+    required: false
+    default: ""
+
+outputs:
+  verdict:
+    description: "PASS or FAIL, empty when the review produced no verdict."
+    value: ${{ steps.review.outputs.verdict }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate required tokens
+      shell: bash
+      env:
+        CLAUDE_CODE_OAUTH_TOKEN: ${{ inputs.claude-code-oauth-token }}
+        GH_TOKEN_INPUT: ${{ inputs.github-token }}
+      run: |
+        if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+          echo "::error::claude-code-oauth-token input is empty — set the CLAUDE_CODE_OAUTH_TOKEN secret."
+          exit 1
+        fi
+        if [ -z "$GH_TOKEN_INPUT" ]; then
+          echo "::error::github-token input is empty — set the GITHUB_TOKEN secret."
+          exit 1
+        fi
+
+    - name: Configure node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+        cache-dependency-path: packages/code-reviewer/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: packages/code-reviewer
+      run: npm ci
+
+    - name: Run agent
+      id: review
+      shell: bash
+      working-directory: packages/code-reviewer
+      env:
+        CLAUDE_CODE_OAUTH_TOKEN: ${{ inputs.claude-code-oauth-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_BODY: ${{ inputs.pr-body }}
+        PR_HEAD_REF: ${{ inputs.pr-head-ref }}
+      run: npm run review
