@@ -127,8 +127,8 @@ file's existing pattern for `Edit`/`Write`/`NotebookEdit`: structural removal, n
 
 ### Phase 1: git.ts — diff computation & truncation
 
-- [ ] 1.1 `npm run typecheck` passes with the new diff-fetch + truncation functions
-- [ ] 1.2 `buildDiffCommand` removed, no remaining references
+- [x] 1.1 `npm run typecheck` passes with the new diff-fetch + truncation functions
+- [x] 1.2 `buildDiffCommand` removed, no remaining references
 
 ### Phase 2: prompt.ts + index.ts — embed diff, drop fetch tools, cut turns
 

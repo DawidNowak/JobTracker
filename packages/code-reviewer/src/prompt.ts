@@ -1,5 +1,3 @@
-import { buildDiffCommand } from "./git.ts";
-
 /**
  * Appended to the `claude_code` system prompt preset, so the agent keeps Claude Code's
  * tool guidance and safety rules and gains a reviewer role on top.
@@ -119,17 +117,6 @@ ${changedFiles.join("\n")}
 ## Diffstat
 
 ${diffStat}
-
-## Fetching the diff
-
-The diff is not included above — fetch it yourself:
-
-\`\`\`
-${buildDiffCommand(base)}
-\`\`\`
-
-To drill into one file, replace the trailing \`.\` with its path, e.g.
-\`${buildDiffCommand(base, "path/to/file.ts")}\`.
 
 Before scoring, open whatever the diff depends on but does not show: the definition of every
 symbol it calls but does not define, and any caller, type, schema, or policy the change touches.

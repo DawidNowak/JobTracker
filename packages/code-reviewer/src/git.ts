@@ -70,12 +70,34 @@ export function getDiffStat(base: string, cwd: string): string {
 const GENERATED_FILE_EXCLUDES = ["**/package-lock.json", "**/database.types.ts"];
 
 /**
- * The literal `git diff` invocation the agent should run itself, generated-file exclusions
- * baked in so it doesn't spend a turn reading `package-lock.json` churn. `pathspec` replaces
- * the leading `.` for a per-file diff; omit it for the full changeset.
+ * Full diff text for the changeset, generated-file exclusions folded in directly. Embedded
+ * straight into the task prompt rather than left for the agent to fetch itself.
  */
-export function buildDiffCommand(base: string, pathspec?: string): string {
-  const target = pathspec ?? ".";
-  const excludes = GENERATED_FILE_EXCLUDES.map((p) => `':(exclude)${p}'`).join(" ");
-  return `git diff ${base} -- '${target}' ${excludes}`;
+export function getDiff(base: string, cwd: string): string {
+  const excludes = GENERATED_FILE_EXCLUDES.map((p) => `:(exclude)${p}`);
+  return git(["diff", base, "--", ".", ...excludes], cwd);
+}
+
+export interface TruncatedDiff {
+  text: string;
+  totalLines: number;
+  includedLines: number;
+  truncated: boolean;
+}
+
+/**
+ * Caps diff text at `maxLines`, cutting wherever that falls rather than aligning to file
+ * boundaries — a bounded review should always run rather than being blocked or silently
+ * skipped.
+ */
+export function truncateDiff(text: string, maxLines = 3000): TruncatedDiff {
+  const lines = text.split("\n");
+  const totalLines = lines.length;
+  const truncated = totalLines > maxLines;
+  return {
+    text: truncated ? lines.slice(0, maxLines).join("\n") : text,
+    totalLines,
+    includedLines: truncated ? maxLines : totalLines,
+    truncated,
+  };
 }
