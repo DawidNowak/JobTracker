@@ -35,16 +35,16 @@ opening files the diff depends on. `maxTurns` is 10. Console tool-call logs show
 
 ## Key Decisions Made
 
-| Decision              | Choice                                                                        | Why                                                                                                                                                                   | Source |
-| --------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Diff delivery         | Embed diff text directly in the prompt instead of agent-fetched               | Removes the multi-turn fetch step that was `README.md`'s stated reason for `maxTurns: 40`                                                                             | Plan   |
-| Overflow behavior     | Truncate to the first 3000 lines (cut wherever that falls, not skipped)       | A bounded review should always run rather than being blocked or silently skipped                                                                                      | Plan   |
-| Line-count metric     | Lines of the actual embedded diff text (post exclusions)                      | Matches exactly what drives prompt size / token cost — not diffstat or byte size                                                                                      | Plan   |
-| Truncation visibility | Deterministic line in the report header, not model-reported                   | Always accurate; doesn't rely on the model remembering to caveat its own summary                                                                                      | Plan   |
-| Tool access           | Remove all four `Bash(git *)` entries; add bare `"Bash"` to `disallowedTools` | `git diff` is now redundant; `show/log/status` were never referenced in `prompt.ts` anyway; matches the file's existing "bare-name deny = structural removal" pattern | Plan   |
-| `maxTurns`            | 10 (down from 40)                                                             | Diff-fetch turns are gone; remaining turns cover opening dependent files + synthesis                                                                                  | Plan   |
-| `maxBudgetUsd`        | Unchanged at $2.00                                                            | Already documented as a rare runaway backstop, not a tuning target — out of scope here                                                                                | Plan   |
-| Tool-call logging     | Per-tool key fields (`file_path` for Read, `pattern` for Grep/Glob)           | Readable CI logs without a generic JSON dump                                                                                                                          | Plan   |
+| Decision              | Choice                                                                             | Why                                                                                                                                                                                          | Source                     |
+| --------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Diff delivery         | Embed diff text directly in the prompt instead of agent-fetched                    | Removes the multi-turn fetch step that was `README.md`'s stated reason for `maxTurns: 40`                                                                                                    | Plan                       |
+| Overflow behavior     | Truncate to the first 3000 lines (cut wherever that falls, not skipped)            | A bounded review should always run rather than being blocked or silently skipped                                                                                                             | Plan                       |
+| Line-count metric     | Lines of the actual embedded diff text (post exclusions)                           | Matches exactly what drives prompt size / token cost — not diffstat or byte size                                                                                                             | Plan                       |
+| Truncation visibility | Deterministic line in the report header, not model-reported                        | Always accurate; doesn't rely on the model remembering to caveat its own summary                                                                                                             | Plan                       |
+| Tool access           | Remove all four `Bash(git *)` entries; add bare `"Bash"` to `disallowedTools`      | `git diff` is now redundant; `show/log/status` were never referenced in `prompt.ts` anyway; matches the file's existing "bare-name deny = structural removal" pattern                        | Plan                       |
+| `maxTurns`            | 20 (down from 40; raised from the originally-planned 10 after manual verification) | Diff-fetch turns are gone, but a real run at 10 hit `error_max_structured_output_retries` (ran out of turns before producing valid structured output); 20 completed cleanly on the same diff | Plan + manual verification |
+| `maxBudgetUsd`        | Unchanged at $2.00                                                                 | Already documented as a rare runaway backstop, not a tuning target — out of scope here                                                                                                       | Plan                       |
+| Tool-call logging     | Per-tool key fields (`file_path` for Read, `pattern` for Grep/Glob)                | Readable CI logs without a generic JSON dump                                                                                                                                                 | Plan                       |
 
 ## Scope
 
@@ -127,13 +127,13 @@ file's existing pattern for `Edit`/`Write`/`NotebookEdit`: structural removal, n
 
 ### Phase 1: git.ts — diff computation & truncation
 
-- [x] 1.1 `npm run typecheck` passes with the new diff-fetch + truncation functions
-- [x] 1.2 `buildDiffCommand` removed, no remaining references
+- [x] 1.1 `npm run typecheck` passes with the new diff-fetch + truncation functions — b3fdb8d
+- [x] 1.2 `buildDiffCommand` removed, no remaining references — b3fdb8d
 
 ### Phase 2: prompt.ts + index.ts — embed diff, drop fetch tools, cut turns
 
-- [ ] 2.1 `npm run typecheck` passes
-- [ ] 2.2 Manual: `npm run review` locally on a real branch diff — no `Bash(git diff)` call in the log, review still produces findings
+- [x] 2.1 `npm run typecheck` passes
+- [x] 2.2 Manual: `npm run review` locally on a real branch diff — no `Bash(git diff)` call in the log, review still produces findings
 
 ### Phase 3: output.ts + index.ts — truncation note + tool-call logging
 

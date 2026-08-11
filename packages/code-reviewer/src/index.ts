@@ -2,7 +2,15 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getChangedFiles, getCurrentBranch, getDiffStat, getMergeBase, getRepoRoot } from "./git.ts";
+import {
+  getChangedFiles,
+  getCurrentBranch,
+  getDiff,
+  getDiffStat,
+  getMergeBase,
+  getRepoRoot,
+  truncateDiff,
+} from "./git.ts";
 import { deliverReport, emitVerdict } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
 import { parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
@@ -20,15 +28,7 @@ const MODEL = "claude-sonnet-5";
  * Tools auto-approved without prompting. Paired with permissionMode "dontAsk", anything
  * outside this list is denied rather than prompting — a headless run has nobody to answer.
  */
-const ALLOWED_TOOLS = [
-  "Read",
-  "Grep",
-  "Glob",
-  "Bash(git diff:*)",
-  "Bash(git show:*)",
-  "Bash(git log:*)",
-  "Bash(git status:*)",
-];
+const ALLOWED_TOOLS = ["Read", "Grep", "Glob"];
 
 /**
  * allowedTools only *approves*; it does not remove anything. Bare-name deny rules do remove
@@ -37,6 +37,7 @@ const ALLOWED_TOOLS = [
  * cwd (the repo root) and keep the reviewer out of local secret files.
  */
 const DISALLOWED_TOOLS = [
+  "Bash",
   "Edit",
   "Write",
   "NotebookEdit",
@@ -79,6 +80,7 @@ async function main(): Promise<void> {
   }
 
   const diffStat = getDiffStat(base, repoRoot);
+  const diff = truncateDiff(getDiff(base, repoRoot));
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
@@ -86,7 +88,18 @@ async function main(): Promise<void> {
   let failed = false;
 
   for await (const message of query({
-    prompt: buildTaskPrompt({ base, branch, changedFiles, diffStat, prTitle, prBody }),
+    prompt: buildTaskPrompt({
+      base,
+      branch,
+      changedFiles,
+      diffStat,
+      diff: diff.text,
+      diffTruncated: diff.truncated,
+      diffTotalLines: diff.totalLines,
+      diffIncludedLines: diff.includedLines,
+      prTitle,
+      prBody,
+    }),
     options: {
       cwd: repoRoot,
       model: MODEL,
@@ -102,7 +115,7 @@ async function main(): Promise<void> {
       allowedTools: ALLOWED_TOOLS,
       disallowedTools: DISALLOWED_TOOLS,
       permissionMode: "dontAsk",
-      maxTurns: 40,
+      maxTurns: 20,
       effort: "high",
       outputFormat: { type: "json_schema", schema: REVIEW_SCHEMA },
       // Roughly 20-30x the current per-run cost — only fires on a runaway.

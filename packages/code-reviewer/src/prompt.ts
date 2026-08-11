@@ -40,11 +40,10 @@ and do not report pure formatting — Prettier and ESLint own that.
 
 ## How to investigate
 
-The diff is not provided to you — fetch it yourself with the command given in the task prompt
-before judging anything, rather than guessing from the file list or diffstat.
+The diff is provided in the task prompt — do not spend a turn re-fetching it.
 \`package-lock.json\` and \`database.types.ts\` are excluded from that diff: treat a change to
-one of them as a signal (a dependency bump, a schema change) rather than something to fetch and
-read line-by-line. Before scoring, open whatever the diff depends on but does not show: the
+one of them as a signal (a dependency bump, a schema change) rather than something to read
+line-by-line. Before scoring, open whatever the diff depends on but does not show: the
 definition of every symbol it calls but does not define, and any caller, type, schema, or policy
 the change touches. A finding you cannot support with code you actually opened is not a finding.
 
@@ -94,11 +93,42 @@ export interface TaskPromptInput {
   branch: string;
   changedFiles: string[];
   diffStat: string;
+  diff: string;
+  diffTruncated: boolean;
+  diffTotalLines: number;
+  diffIncludedLines: number;
   prTitle: string;
   prBody: string;
 }
 
-export function buildTaskPrompt({ base, branch, changedFiles, diffStat, prTitle, prBody }: TaskPromptInput): string {
+/**
+ * A diff touching a markdown file can itself contain a run of backticks — including one long
+ * enough to close a naively-chosen ``` fence early. CommonMark's own rule is that a fence only
+ * closes on a run of backticks at least as long as the one that opened it, so picking a run
+ * longer than any backtick sequence already in the diff text guarantees no premature close.
+ */
+function fenceFor(text: string): string {
+  const longestRun = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
+  return "`".repeat(Math.max(3, longestRun + 1));
+}
+
+export function buildTaskPrompt({
+  base,
+  branch,
+  changedFiles,
+  diffStat,
+  diff,
+  diffTruncated,
+  diffTotalLines,
+  diffIncludedLines,
+  prTitle,
+  prBody,
+}: TaskPromptInput): string {
+  const truncationWarning = diffTruncated
+    ? `\n\n**Truncated to the first ${diffIncludedLines} of ${diffTotalLines} lines — review is partial.**`
+    : "";
+  const fence = fenceFor(diff);
+
   return `Review the changes on branch \`${branch}\` against \`${base}\` (the merge-base with master).
 
 ## PR title and body
@@ -117,6 +147,12 @@ ${changedFiles.join("\n")}
 ## Diffstat
 
 ${diffStat}
+
+## Diff${truncationWarning}
+
+${fence}diff
+${diff}
+${fence}
 
 Before scoring, open whatever the diff depends on but does not show: the definition of every
 symbol it calls but does not define, and any caller, type, schema, or policy the change touches.
