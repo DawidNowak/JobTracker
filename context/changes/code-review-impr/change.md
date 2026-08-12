@@ -1,7 +1,7 @@
 ---
 change_id: code-review-impr
 title: Review criteria & mechanical gate
-status: implementing
+status: implemented
 created: 2026-08-11
 updated: 2026-08-12
 archived_at: null

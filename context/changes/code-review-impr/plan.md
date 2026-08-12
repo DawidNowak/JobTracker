@@ -584,5 +584,5 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Manual
 
-- [x] 5.1 Criteria list, gate rule and wiring table match the implemented behavior
-- [x] 5.2 No sentence still describes the verdict as non-blocking
+- [x] 5.1 Criteria list, gate rule and wiring table match the implemented behavior — 65ccabb
+- [x] 5.2 No sentence still describes the verdict as non-blocking — 65ccabb
