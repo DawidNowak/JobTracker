@@ -554,18 +554,18 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Automated
 
-- [x] 3.1 `npm run typecheck` passes
-- [x] 3.2 No references remain to `SCORE_DIMENSIONS`, `report_markdown`, `DIMENSION_LABELS` or `stripLeadingFindingsHeading`
+- [x] 3.1 `npm run typecheck` passes — de6d084
+- [x] 3.2 No references remain to `SCORE_DIMENSIONS`, `report_markdown`, `DIMENSION_LABELS` or `stripLeadingFindingsHeading` — de6d084
 
 #### Manual
 
-- [x] 3.3 A real multi-file branch returns five criterion results and a findings array, no `error_max_structured_output_retries`
-- [x] 3.4 Report renders the criteria table and findings; verdict matches `deriveVerdict`'s rule
-- [x] 3.5 Deliberate break: missing `prerender = false` fails `api_and_validation_contract` with a `file:line` BLOCKING finding
-- [x] 3.6 Deliberate break: `USING (true)` fails `security_and_data_isolation`
-- [x] 3.7 A docs-only diff yields `NOT_APPLICABLE` rather than invented judgments
-- [x] 3.8 Consistency check verified via a temporary forced inconsistency: violations logged, no verdict, no comment, exit 1
-- [x] 3.9 Cost and turn count stay within the README's documented band
+- [x] 3.3 A real multi-file branch returns five criterion results and a findings array, no `error_max_structured_output_retries` — de6d084
+- [x] 3.4 Report renders the criteria table and findings; verdict matches `deriveVerdict`'s rule — de6d084
+- [x] 3.5 Deliberate break: missing `prerender = false` fails `api_and_validation_contract` with a `file:line` BLOCKING finding — de6d084
+- [x] 3.6 Deliberate break: `USING (true)` fails `security_and_data_isolation` — de6d084
+- [x] 3.7 A docs-only diff yields `NOT_APPLICABLE` rather than invented judgments — de6d084
+- [x] 3.8 Consistency check verified via a temporary forced inconsistency: violations logged, no verdict, no comment, exit 1 — de6d084
+- [x] 3.9 Cost and turn count stay within the README's documented band — de6d084
 
 ### Phase 4: ai-code-review.yml — the gate
 
