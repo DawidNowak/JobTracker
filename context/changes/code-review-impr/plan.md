@@ -542,30 +542,30 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Automated
 
-- [x] 2.1 `npm run typecheck` passes
-- [x] 2.2 `CriterionId` resolves to a five-member literal union, not `string`
+- [x] 2.1 `npm run typecheck` passes — 4bc6763
+- [x] 2.2 `CriterionId` resolves to a five-member literal union, not `string` — 4bc6763
 
 #### Manual
 
-- [x] 2.3 Every `rules` entry traces to a rule in `AGENTS.md` or `tests/README.md` today
-- [x] 2.4 Every `failsWhen` is checkable against a diff, not a judgment call
+- [x] 2.3 Every `rules` entry traces to a rule in `AGENTS.md` or `tests/README.md` today — 4bc6763
+- [x] 2.4 Every `failsWhen` is checkable against a diff, not a judgment call — 4bc6763
 
 ### Phase 3: Contract swap — schema.ts + prompt.ts + output.ts + index.ts
 
 #### Automated
 
-- [ ] 3.1 `npm run typecheck` passes
-- [ ] 3.2 No references remain to `SCORE_DIMENSIONS`, `report_markdown`, `DIMENSION_LABELS` or `stripLeadingFindingsHeading`
+- [x] 3.1 `npm run typecheck` passes
+- [x] 3.2 No references remain to `SCORE_DIMENSIONS`, `report_markdown`, `DIMENSION_LABELS` or `stripLeadingFindingsHeading`
 
 #### Manual
 
-- [ ] 3.3 A real multi-file branch returns five criterion results and a findings array, no `error_max_structured_output_retries`
-- [ ] 3.4 Report renders the criteria table and findings; verdict matches `deriveVerdict`'s rule
-- [ ] 3.5 Deliberate break: missing `prerender = false` fails `api_and_validation_contract` with a `file:line` BLOCKING finding
-- [ ] 3.6 Deliberate break: `USING (true)` fails `security_and_data_isolation`
-- [ ] 3.7 A docs-only diff yields `NOT_APPLICABLE` rather than invented judgments
-- [ ] 3.8 Consistency check verified via a temporary forced inconsistency: violations logged, no verdict, no comment, exit 1
-- [ ] 3.9 Cost and turn count stay within the README's documented band
+- [x] 3.3 A real multi-file branch returns five criterion results and a findings array, no `error_max_structured_output_retries`
+- [x] 3.4 Report renders the criteria table and findings; verdict matches `deriveVerdict`'s rule
+- [x] 3.5 Deliberate break: missing `prerender = false` fails `api_and_validation_contract` with a `file:line` BLOCKING finding
+- [x] 3.6 Deliberate break: `USING (true)` fails `security_and_data_isolation`
+- [x] 3.7 A docs-only diff yields `NOT_APPLICABLE` rather than invented judgments
+- [x] 3.8 Consistency check verified via a temporary forced inconsistency: violations logged, no verdict, no comment, exit 1
+- [x] 3.9 Cost and turn count stay within the README's documented band
 
 ### Phase 4: ai-code-review.yml — the gate
 

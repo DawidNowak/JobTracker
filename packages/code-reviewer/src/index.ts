@@ -14,7 +14,7 @@ import {
 } from "./git.ts";
 import { deliverReport, emitVerdict } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
-import { parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
+import { checkConsistency, deriveVerdict, parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -198,16 +198,24 @@ async function main(): Promise<void> {
   }
 
   if (reviewOutput !== null) {
-    emitVerdict(reviewOutput.verdict);
-    await deliverReport(reviewOutput, {
-      branch,
-      base,
-      fileCount: changedFiles.length,
-      diffUnavailable,
-      diffTruncated: diff.truncated,
-      diffTotalLines: diff.totalLines,
-      diffIncludedLines: diff.includedLines,
-    });
+    const violations = checkConsistency(reviewOutput);
+    if (violations.length > 0) {
+      failed = true;
+      console.error("\nReview output is internally inconsistent — no verdict emitted, no comment posted:");
+      for (const violation of violations) console.error(`  - ${violation}`);
+    } else {
+      const verdict = deriveVerdict(reviewOutput);
+      emitVerdict(verdict);
+      await deliverReport(reviewOutput, verdict, {
+        branch,
+        base,
+        fileCount: changedFiles.length,
+        diffUnavailable,
+        diffTruncated: diff.truncated,
+        diffTotalLines: diff.totalLines,
+        diffIncludedLines: diff.includedLines,
+      });
+    }
   }
 
   if (failed) process.exit(1);
