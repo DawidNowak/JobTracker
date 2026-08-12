@@ -33,3 +33,14 @@ an attempt to build a fully isolated docs-only diff (via a throwaway integration
 as `origin/master`) tripped a pre-commit hook that spawned a dev server and hung on a port conflict;
 abandoned that approach and relied instead on the `NOT_APPLICABLE` behavior already observed
 repeatedly for untouched criteria across the other three runs.
+
+**Phase 4 manual verification (2026-08-12):** verified live against a throwaway PR (#28, base
+`master`, closed and deleted after). FAIL path: dropped `prerender = false` from
+`src/pages/api/applications/index.ts` → job red, `ai-cr:failed` applied, reviewer correctly cited
+`api_and_validation_contract` FAIL with a `file:line` BLOCKING finding (it also flagged a real,
+pre-existing bug in `output.ts` — unescaped `|` in `formatCriteriaTable`'s markdown cells — noted
+as a follow-up, not fixed here). Retry path: re-applying `ai-cr:review` mid-FAIL triggered a fresh
+run and the label was auto-removed after. PASS path: reverted the violation, pushed, job went
+green with `ai-cr:passed`. Errored-run path: blanked `claude-code-oauth-token` in the workflow
+input (not the secret) to trip the composite action's own token guard before any verdict —
+job still failed via the review step's exit code, `Enforce verdict` correctly showed `skipped`.
