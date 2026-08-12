@@ -1,51 +1,59 @@
 import { appendFileSync, readFileSync } from "node:fs";
+import { CRITERIA } from "./criteria.ts";
 import { upsertPrComment } from "./github.ts";
-import type { ReviewOutput } from "./schema.ts";
+import type { Finding, ReviewOutput, Verdict } from "./schema.ts";
 
 export interface ReportMeta {
   branch: string;
   base: string;
   fileCount: number;
+  diffUnavailable: boolean;
+  diffTruncated: boolean;
+  diffTotalLines: number;
+  diffIncludedLines: number;
 }
 
-const DIMENSION_LABELS: Record<keyof ReviewOutput["scores"], string> = {
-  correctness: "Correctness",
-  idiomatic_style: "Idiomatic style",
-  complexity: "Complexity",
-  test_coverage: "Test coverage",
-  security: "Security",
-};
+const CRITERION_LABELS: Record<string, string> = Object.fromEntries(CRITERIA.map((criterion) => [criterion.id, criterion.title]));
 
-function formatScoresTable(scores: ReviewOutput["scores"]): string {
-  const rows = Object.entries(scores).map(
-    ([dimension, score]) => `| ${DIMENSION_LABELS[dimension as keyof ReviewOutput["scores"]]} | ${score} |`,
-  );
-  return ["| Dimension | Score |", "| --- | --- |", ...rows].join("\n");
+function formatCriteriaTable(criteria: ReviewOutput["criteria"]): string {
+  const rows = criteria.map((result) => `| ${CRITERION_LABELS[result.id]} | ${result.status} | ${result.rationale} |`);
+  return ["| Criterion | Status | Notes |", "| --- | --- | --- |", ...rows].join("\n");
 }
 
-/**
- * The model is told `report_markdown` is the findings section alone and that the "## Findings"
- * heading below is added for it, but it sometimes writes one anyway. Strip a leading one rather
- * than trust prompt compliance, so the comment never renders the heading twice.
- */
-function stripLeadingFindingsHeading(markdown: string): string {
-  return markdown.replace(/^#{1,6}\s*findings\s*\n+/i, "");
+function formatFinding(finding: Finding): string {
+  const confidenceLabel = finding.confidence === "CERTAIN" ? "Certain" : "Possible";
+  return [
+    `- **${finding.file}:${finding.line}** — ${finding.severity} · ${confidenceLabel} (\`${CRITERION_LABELS[finding.criterion]}\`)`,
+    `  - What: ${finding.what}`,
+    `  - Why: ${finding.why}`,
+    `  - Fix: ${finding.fix}`,
+  ].join("\n");
 }
 
-function formatFindings(reportMarkdown: string): string {
-  const trimmed = stripLeadingFindingsHeading(reportMarkdown.trim());
-  return trimmed === "" ? "No findings." : trimmed;
+/** `BLOCKING` findings first, in the order the model returned them within each group. */
+function formatFindings(findings: ReviewOutput["findings"]): string {
+  if (findings.length === 0) return "No findings.";
+  const blocking = findings.filter((finding) => finding.severity === "BLOCKING");
+  const advisory = findings.filter((finding) => finding.severity === "ADVISORY");
+  return [...blocking, ...advisory].map(formatFinding).join("\n\n");
 }
 
 /**
  * Assembles the comment from the structured fields rather than pasting one blob of model
- * markdown, so the verdict, summary and scorecard have a fixed shape the model cannot
- * reformat or duplicate.
+ * markdown, so the verdict, summary, criteria table and findings have a fixed shape the model
+ * cannot reformat or duplicate.
  */
-export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
+export function formatReport(output: ReviewOutput, verdict: Verdict, meta: ReportMeta): string {
+  const truncationNote = meta.diffUnavailable
+    ? [`> **Diff could not be fetched (likely exceeds the size limit) — review is based on the file list only.**`, ""]
+    : meta.diffTruncated
+      ? [`> **Truncated to the first ${meta.diffIncludedLines} of ${meta.diffTotalLines} diff lines — review is partial.**`, ""]
+      : [];
+
   const header = [
     `# Code review — \`${meta.branch}\``,
     "",
+    ...truncationNote,
     `- Branch: \`${meta.branch}\``,
     `- Merge-base: \`${meta.base}\``,
     `- Changed files: ${meta.fileCount}`,
@@ -55,18 +63,16 @@ export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
     "",
   ].join("\n");
 
-  const findings = formatFindings(output.report_markdown);
-
   const body = [
-    `**Verdict: ${output.verdict}**`,
+    `**Verdict: ${verdict}**`,
     "",
     output.summary,
     "",
-    formatScoresTable(output.scores),
+    formatCriteriaTable(output.criteria),
     "",
     "## Findings",
     "",
-    findings,
+    formatFindings(output.findings),
   ].join("\n");
 
   return header + body + "\n";
@@ -76,7 +82,7 @@ export function formatReport(output: ReviewOutput, meta: ReportMeta): string {
  * Writes the verdict to the runner's step-output file so the composite action can map it to
  * an action output. Only ever the four/five-character verdict — never the report.
  */
-export function emitVerdict(verdict: ReviewOutput["verdict"]): void {
+export function emitVerdict(verdict: Verdict): void {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (!outputFile) return;
   appendFileSync(outputFile, `verdict=${verdict}\n`);
@@ -114,8 +120,8 @@ function resolvePullRequestContext(): PullRequestContext | null {
  * Locally: print the review to the console. In CI on a pull_request run: post it as a PR
  * comment instead, updating a prior run's comment rather than piling up duplicates.
  */
-export async function deliverReport(output: ReviewOutput, meta: ReportMeta): Promise<void> {
-  const report = formatReport(output, meta);
+export async function deliverReport(output: ReviewOutput, verdict: Verdict, meta: ReportMeta): Promise<void> {
+  const report = formatReport(output, verdict, meta);
   const prContext = resolvePullRequestContext();
 
   if (prContext) {

@@ -2,10 +2,19 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getChangedFiles, getCurrentBranch, getDiffStat, getMergeBase, getRepoRoot } from "./git.ts";
+import {
+  EMPTY_DIFF,
+  getChangedFiles,
+  getCurrentBranch,
+  getDiff,
+  getDiffStat,
+  getMergeBase,
+  getRepoRoot,
+  truncateDiff,
+} from "./git.ts";
 import { deliverReport, emitVerdict } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
-import { parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
+import { checkConsistency, deriveVerdict, parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -20,30 +29,61 @@ const MODEL = "claude-sonnet-5";
  * Tools auto-approved without prompting. Paired with permissionMode "dontAsk", anything
  * outside this list is denied rather than prompting — a headless run has nobody to answer.
  */
-const ALLOWED_TOOLS = [
-  "Read",
-  "Grep",
-  "Glob",
-  "Bash(git diff:*)",
-  "Bash(git show:*)",
-  "Bash(git log:*)",
-  "Bash(git status:*)",
-];
+const ALLOWED_TOOLS = ["Read", "Grep", "Glob"];
 
 /**
  * allowedTools only *approves*; it does not remove anything. Bare-name deny rules do remove
  * the tool from the model's context, so the read-only property is structural here rather
  * than resting solely on permissionMode. The path-scoped Read rules anchor at the session
- * cwd (the repo root) and keep the reviewer out of local secret files.
+ * cwd (the repo root) and keep the reviewer out of local secret files. Claude Code only
+ * consults `Read(path)` rules for filesystem access — a `Grep(path)` or `Glob(path)` rule is
+ * accepted but never checked (and warns at startup) — so the node_modules rule below is a
+ * single `Read` entry, applied best-effort to all three read-only tools by the SDK itself. It
+ * keeps the reviewer out of dependency source and type declarations entirely: nothing in this
+ * repo's own conventions turns on verifying a third-party package's internals, and a model that
+ * starts second-guessing SDK typings against its `.d.ts` files burns turns (and cost) with no
+ * bearing on the diff being reviewed.
  */
 const DISALLOWED_TOOLS = [
+  "Bash",
   "Edit",
   "Write",
   "NotebookEdit",
   "Read(/.env*)",
   "Read(/.dev.vars*)",
   "Read(/auth.json)",
+  "Read(**/node_modules/**)",
 ];
+
+// Strips control characters (newlines, ANSI escapes, etc.) so a value drawn from model tool
+// calls — themselves influenced by the diff text — cannot inject fake log lines or terminal
+// escape sequences into CI console output.
+function sanitizeForLog(value: string): string {
+  return value.replace(/[\x00-\x1f\x7f]/g, "");
+}
+
+/**
+ * Console tool-call logging should show what was actually read or searched, not just the bare
+ * tool name — `Read` gets its `file_path`, `Grep`/`Glob` get their `pattern` (plus `path` when
+ * scoped to a subdirectory). `input` is `unknown` on the SDK's `ToolUseBlock`, so every field
+ * access is guarded rather than cast.
+ */
+function describeToolUse(name: string, input: unknown): string {
+  const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
+
+  if (name === "Read") {
+    return typeof record.file_path === "string" ? sanitizeForLog(record.file_path) : "";
+  }
+
+  if (name === "Grep" || name === "Glob") {
+    const parts: string[] = [];
+    if (typeof record.pattern === "string") parts.push(sanitizeForLog(record.pattern));
+    if (typeof record.path === "string") parts.push(sanitizeForLog(record.path));
+    return parts.join(" ");
+  }
+
+  return "";
+}
 
 /**
  * The SDK resolves credentials itself, in this order: ANTHROPIC_API_KEY, then
@@ -79,6 +119,17 @@ async function main(): Promise<void> {
   }
 
   const diffStat = getDiffStat(base, repoRoot);
+  // A diff that overflows execFileSync's buffer throws before truncateDiff ever sees it —
+  // catch that here so an oversized diff degrades to "diff unavailable" instead of crashing
+  // the whole run, matching truncateDiff's own "always bounded" intent for the normal case.
+  let diff = EMPTY_DIFF;
+  let diffUnavailable = false;
+  try {
+    diff = truncateDiff(getDiff(base, repoRoot));
+  } catch (err) {
+    diffUnavailable = true;
+    console.error(`Failed to fetch diff (likely exceeds the size limit): ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
@@ -86,7 +137,19 @@ async function main(): Promise<void> {
   let failed = false;
 
   for await (const message of query({
-    prompt: buildTaskPrompt({ base, branch, changedFiles, diffStat, prTitle, prBody }),
+    prompt: buildTaskPrompt({
+      base,
+      branch,
+      changedFiles,
+      diffStat,
+      diff: diff.text,
+      diffUnavailable,
+      diffTruncated: diff.truncated,
+      diffTotalLines: diff.totalLines,
+      diffIncludedLines: diff.includedLines,
+      prTitle,
+      prBody,
+    }),
     options: {
       cwd: repoRoot,
       model: MODEL,
@@ -102,7 +165,7 @@ async function main(): Promise<void> {
       allowedTools: ALLOWED_TOOLS,
       disallowedTools: DISALLOWED_TOOLS,
       permissionMode: "dontAsk",
-      maxTurns: 40,
+      maxTurns: 20,
       effort: "high",
       outputFormat: { type: "json_schema", schema: REVIEW_SCHEMA },
       // Roughly 20-30x the current per-run cost — only fires on a runaway.
@@ -114,7 +177,8 @@ async function main(): Promise<void> {
         if (block.type === "text") {
           console.log(block.text);
         } else if (block.type === "tool_use") {
-          console.log(`  [tool] ${block.name}`);
+          const detail = describeToolUse(block.name, block.input);
+          console.log(detail ? `  [tool] ${block.name} ${detail}` : `  [tool] ${block.name}`);
         }
       }
     } else if (message.type === "result") {
@@ -134,8 +198,24 @@ async function main(): Promise<void> {
   }
 
   if (reviewOutput !== null) {
-    emitVerdict(reviewOutput.verdict);
-    await deliverReport(reviewOutput, { branch, base, fileCount: changedFiles.length });
+    const violations = checkConsistency(reviewOutput);
+    if (violations.length > 0) {
+      failed = true;
+      console.error("\nReview output is internally inconsistent — no verdict emitted, no comment posted:");
+      for (const violation of violations) console.error(`  - ${violation}`);
+    } else {
+      const verdict = deriveVerdict(reviewOutput);
+      emitVerdict(verdict);
+      await deliverReport(reviewOutput, verdict, {
+        branch,
+        base,
+        fileCount: changedFiles.length,
+        diffUnavailable,
+        diffTruncated: diff.truncated,
+        diffTotalLines: diff.totalLines,
+        diffIncludedLines: diff.includedLines,
+      });
+    }
   }
 
   if (failed) process.exit(1);

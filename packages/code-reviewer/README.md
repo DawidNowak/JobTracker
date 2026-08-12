@@ -80,33 +80,96 @@ npm run typecheck   # tsc --noEmit
 
 ## How it is wired
 
-| Option            | Value                                                                                       | Why                                                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                    | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                         |
-| `settingSources`  | `["project"]`                                                                               | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                  |
-| `skills`          | `[]`                                                                                        | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                              |
-| `allowedTools`    | `Read`, `Grep`, `Glob`, `Bash(git diff\|show\|log\|status:*)`                               | Auto-approved without prompting                                                                                                             |
-| `disallowedTools` | `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone |
-| `permissionMode`  | `dontAsk`                                                                                   | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                            |
-| `model`           | `claude-sonnet-5`                                                                           | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                        |
-| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                             | Forces the verdict, scores and findings into a validated structured result instead of free-form markdown                                    |
-| `maxTurns`        | `40`                                                                                        | Multi-turn by design: fetching diffs and reading surrounding files takes several turns before synthesis                                     |
-| `maxBudgetUsd`    | `2.00`                                                                                      | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                               |
+| Option            | Value                                                                                               | Why                                                                                                                                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                            | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                                                                                  |
+| `settingSources`  | `["project"]`                                                                                       | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                                                                           |
+| `skills`          | `[]`                                                                                                | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                                                                                       |
+| `allowedTools`    | `Read`, `Grep`, `Glob`                                                                              | Auto-approved without prompting — the diff is embedded in the task prompt, so no git tool is needed                                                                                                  |
+| `disallowedTools` | `Bash`, `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone                                                          |
+| `permissionMode`  | `dontAsk`                                                                                           | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                                                                                     |
+| `model`           | `claude-sonnet-5`                                                                                   | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                                                                                 |
+| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                                     | Forces a per-criterion status, rationale and a structured findings array — the model never authors a verdict; `src/index.ts` calls `deriveVerdict()` to compute `PASS`/`FAIL` from the five statuses |
+| `maxTurns`        | `20`                                                                                                | Down from 40 now that the diff no longer needs a turn to fetch; kept above the diff-fetch-free minimum of 10 because a real run at 10 exhausted its turns before producing valid structured output   |
+| `maxBudgetUsd`    | `2.00`                                                                                              | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                                                                                        |
 
 `allowedTools` only _approves_ tools — it does not remove them. The read-only property comes from
 `disallowedTools`, which is why the write tools are listed there explicitly rather than merely
 omitted above. The report is written by `src/index.ts` from the final `result` message, not by the
 agent.
 
-Cost per review is expected at roughly **$0.30-1.00** (Sonnet, multi-turn, reading files) — up from
-~$0.07 on the single-turn haiku-era run — and wall-clock runs several minutes rather than under one.
-Since the verdict is not a merge gate, the extra latency costs patience, not CI throughput.
+### Diff size cap
+
+The task prompt embeds the full diff (`src/git.ts`'s `getDiff()`), generated-file exclusions
+(`package-lock.json`, `database.types.ts`) and the `context/**` exclusion (below) already applied.
+`truncateDiff()` caps that text at the
+first **3000 lines**, cutting wherever that falls rather than aligning to file boundaries. When a
+diff is truncated, both the task prompt and the delivered report carry a deterministic "truncated to
+N of M lines — review is partial" note — decided in Node from the actual line count, not left to the
+model to notice or caveat.
+
+Cost per review is expected at roughly **$0.30-1.00** (Sonnet, reading files after an embedded diff)
+and wall-clock runs a couple of minutes. The job now goes red on `FAIL` (see [Gate
+rule](#gate-rule)), so that latency sits on the critical path to merge, not just on patience.
+
+`context/**` (active and archived planning artifacts alike) is invisible to the reviewer entirely —
+excluded from the changed-files list, the diffstat and the diff body by `OUT_OF_SCOPE_EXCLUDES` in
+`src/git.ts`, not just diff-body-excluded the way lockfiles are. None of the five criteria below can
+act on "a plan changed"; comparing implementation to plan is `/10x-impl-review`'s job, not this
+reviewer's.
+
+## Review criteria
+
+`src/criteria.ts` is the single source of truth for what the reviewer checks — the JSON schema's
+enum, the prompt's "what to look for" section and the report's table labels all derive from it. Each
+of the five always comes back with a status, never skipped:
+
+| id                            | Anchored in                                                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `correctness`                 | Generic but indispensable — wrong results, crashes, silent no-ops, missing `await`, unhandled rejection, swallowed errors                                                                |
+| `security_and_data_isolation` | `AGENTS.md` 🚫/✅ — RLS with **separate** SELECT/INSERT/UPDATE/DELETE policies per role, never `USING (true)`, `SUPABASE_URL`/`SUPABASE_KEY` server-only, IDOR                           |
+| `api_and_validation_contract` | `AGENTS.md` ✅ + Code Style — `prerender = false` on every API route, zod on all input, `@/lib/http` helpers, uppercase handler names, Polish error copy                                 |
+| `architecture_boundaries`     | `AGENTS.md` ✅/⚠️/🚫 — strict island architecture, `src/lib` purity vs `src/lib/services`, `@/*` alias, `cn()` only, no `class:list`, no Next directives, `src/components/ui/` untouched |
+| `test_discipline`             | `tests/README.md` Hard rules — risk-proportional coverage, no mocking Supabase, never assert through `src/lib/services/`, correct vitest pool                                            |
+
+Each criterion resolves to one status:
+
+| Status           | Meaning                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `PASS`           | Nothing in the diff violates this criterion's rules.                                                                     |
+| `CONCERN`        | A real issue was found, but not one that should block the merge.                                                         |
+| `FAIL`           | A rule was violated seriously enough to block — always backed by a `BLOCKING` finding.                                   |
+| `NOT_APPLICABLE` | Nothing in the diff touches this criterion's surface at all (e.g. a docs-only change and `security_and_data_isolation`). |
+
+Every finding cites a `file:line`, a severity (`BLOCKING` / `ADVISORY`), a confidence (`CERTAIN` /
+`POSSIBLE`), and what/why/fix — `POSSIBLE` findings state what would settle them and can never be
+`BLOCKING`.
+
+## Gate rule
+
+The verdict is not model-authored — `deriveVerdict()` in `src/schema.ts` computes it in Node:
+**`FAIL` iff any of the five criteria is `FAIL`**; `CONCERN` and `NOT_APPLICABLE` never block.
+
+That's backed by a biconditional `checkConsistency()` enforces on every run: a criterion is `FAIL`
+**if and only if** it carries at least one `BLOCKING` finding (which is always `CERTAIN` confidence
+with a non-empty `file`). Either direction failing — an evidence-free `FAIL`, or a `BLOCKING` finding
+filed under a criterion marked anything else — means the run is inconsistent. `src/index.ts` treats
+that the same as a schema parse failure: it logs the violations, emits no verdict, posts no comment,
+and exits non-zero. A half-trusted gate is worse than a visibly broken one.
+
+On a `FAIL` verdict, `.github/workflows/ai-code-review.yml`'s `Enforce verdict` step (the job's last
+step, after labelling and retry-label cleanup both complete) prints an `::error::` annotation and
+exits 1, turning the job red. **Requiring that check in branch protection is a separate, manual
+switch** — this change makes the job fail; it does not by itself block merging.
 
 ## Layout
 
-- `src/index.ts` — entry point: credentials, diff collection, `query()`, streaming, report
+- `src/index.ts` — entry point: credentials, diff collection, `query()`, streaming, verdict, report
 - `src/git.ts` — merge-base and diff helpers over `git`
+- `src/criteria.ts` — the five review criteria, as data; single source for the schema, prompt and report
+- `src/schema.ts` — the structured output contract, `deriveVerdict()` and `checkConsistency()`
 - `src/prompt.ts` — the reviewer instructions and the per-run task prompt
+- `src/output.ts` — renders the criteria table and findings into the report
 
-To change what the reviewer looks for or how it reports, edit `src/prompt.ts`. Project-specific
-conventions belong in the repo's `AGENTS.md`, not here.
+To change what the reviewer looks for, edit `src/criteria.ts`. Project-specific conventions belong in
+the repo's `AGENTS.md`, not here.
