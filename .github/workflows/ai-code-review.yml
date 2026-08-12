@@ -65,3 +65,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ai-cr:review" || true
+
+      # Must run last: failing the job earlier would skip any non-always() step
+      # below it, and labelling / retry-label removal above are not always().
+      # A run that errors before producing a verdict leaves outputs.verdict empty,
+      # so this condition is false and the step is skipped — the job already
+      # failed via the review step's own exit code in that case.
+      - name: Enforce verdict
+        if: steps.review.outputs.verdict == 'FAIL'
+        run: |
+          echo "::error::AI code review failed — see the review comment on this PR for details."
+          exit 1

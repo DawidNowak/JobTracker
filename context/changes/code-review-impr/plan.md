@@ -571,14 +571,14 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Automated
 
-- [ ] 4.1 Workflow parses with no syntax error
+- [x] 4.1 Workflow parses with no syntax error
 
 #### Manual
 
-- [ ] 4.2 A FAIL PR gets `ai-cr:failed`, a red job, and its retry label removed
-- [ ] 4.3 A PASS PR gets `ai-cr:passed` and a green job
-- [ ] 4.4 An errored run still fails the job; the enforce step is skipped on an empty verdict
-- [ ] 4.5 Re-applying `ai-cr:review` re-runs the review on a failed PR
+- [x] 4.2 A FAIL PR gets `ai-cr:failed`, a red job, and its retry label removed
+- [x] 4.3 A PASS PR gets `ai-cr:passed` and a green job
+- [x] 4.4 An errored run still fails the job; the enforce step is skipped on an empty verdict
+- [x] 4.5 Re-applying `ai-cr:review` re-runs the review on a failed PR
 
 ### Phase 5: README.md — docs
 
