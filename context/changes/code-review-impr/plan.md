@@ -571,7 +571,7 @@ its `$GITHUB_OUTPUT` mechanism, so `action.yml` needs no change. The rollback is
 
 #### Automated
 
-- [ ] 4.1 Workflow parses with no syntax error
+- [x] 4.1 Workflow parses with no syntax error
 
 #### Manual
 
