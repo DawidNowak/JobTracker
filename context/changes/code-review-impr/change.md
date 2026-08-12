@@ -44,3 +44,12 @@ run and the label was auto-removed after. PASS path: reverted the violation, pus
 green with `ai-cr:passed`. Errored-run path: blanked `claude-code-oauth-token` in the workflow
 input (not the secret) to trip the composite action's own token guard before any verdict —
 job still failed via the review step's exit code, `Enforce verdict` correctly showed `skipped`.
+
+**Phase 5 manual verification (2026-08-12):** cross-checked the new README sections against the
+implemented source rather than re-deriving them from the plan — "Review criteria" table against
+`src/criteria.ts`'s ids/titles, "Gate rule" against `.github/workflows/ai-code-review.yml`'s
+`Enforce verdict` step (ordering, `if` condition) and `src/schema.ts`'s `deriveVerdict`/
+`checkConsistency`, and the "How it is wired" `outputFormat` row against the actual
+`parseReviewOutput` → `checkConsistency` → `deriveVerdict` → `emitVerdict`/`deliverReport` flow in
+`src/index.ts`. Grepped for leftover non-blocking language ("not a merge gate", "non-blocking") —
+none remained; the old sentence was replaced with wording noting the job now goes red on `FAIL`.
