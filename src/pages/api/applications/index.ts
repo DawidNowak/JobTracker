@@ -4,6 +4,8 @@ import { applicationCreateSchema } from "@/lib/validation/applications";
 import { createApplication } from "@/lib/services/applications";
 import { jsonResponse, formatApplicationErrors } from "@/lib/http";
 
+export const prerender = false;
+
 export const POST: APIRoute = async (context) => {
   const user = context.locals.user;
   if (!user) {
