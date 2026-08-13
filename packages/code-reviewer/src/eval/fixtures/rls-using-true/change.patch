@@ -1,0 +1,36 @@
+diff --git a/supabase/migrations/20260812090000_quick_notes_table.sql b/supabase/migrations/20260812090000_quick_notes_table.sql
+new file mode 100644
+index 0000000..60b3f0b
+--- /dev/null
++++ b/supabase/migrations/20260812090000_quick_notes_table.sql
+@@ -0,0 +1,30 @@
++-- Add a lightweight notes table for quick, ungrouped jottings tied to a user.
++create table public.quick_notes (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references auth.users(id) on delete cascade,
++  body text not null,
++  created_at timestamptz not null default now()
++);
++
++alter table public.quick_notes enable row level security;
++
++create policy quick_notes_select_own
++  on public.quick_notes for select
++  to authenticated
++  using (true);
++
++create policy quick_notes_insert_own
++  on public.quick_notes for insert
++  to authenticated
++  with check (user_id = auth.uid());
++
++create policy quick_notes_update_own
++  on public.quick_notes for update
++  to authenticated
++  using (user_id = auth.uid())
++  with check (user_id = auth.uid());
++
++create policy quick_notes_delete_own
++  on public.quick_notes for delete
++  to authenticated
++  using (user_id = auth.uid());

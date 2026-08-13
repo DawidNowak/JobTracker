@@ -1,0 +1,13 @@
+diff --git a/src/lib/utils.ts b/src/lib/utils.ts
+index a5ef193..2ae41f7 100644
+--- a/src/lib/utils.ts
++++ b/src/lib/utils.ts
+@@ -1,6 +1,8 @@
+ import { clsx, type ClassValue } from "clsx";
+ import { twMerge } from "tailwind-merge";
+ 
++// Resolves conflicting Tailwind utilities (e.g. two padding classes) after merging the
++// conditional inputs, so the last one wins instead of both being emitted.
+ export function cn(...inputs: ClassValue[]) {
+   return twMerge(clsx(inputs));
+ }

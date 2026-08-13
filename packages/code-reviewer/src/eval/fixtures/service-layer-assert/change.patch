@@ -1,0 +1,40 @@
+diff --git a/tests/integration/services-archive-application.test.ts b/tests/integration/services-archive-application.test.ts
+new file mode 100644
+index 0000000..f0c67c1
+--- /dev/null
++++ b/tests/integration/services-archive-application.test.ts
+@@ -0,0 +1,34 @@
++import { describe, it, expect, beforeEach, afterEach } from "vitest";
++import { createAdminClient } from "../helpers/supabase-clients";
++import { provisionUser, cleanupUser } from "../helpers/users";
++import type { SupabaseClient } from "@supabase/supabase-js";
++import type { Database } from "@/lib/database.types";
++import { archiveApplication } from "@/lib/services/applications";
++
++describe("archiveApplication — archives an owned application", () => {
++  const admin = createAdminClient();
++  let user: { userId: string; client: SupabaseClient<Database> };
++  let applicationId: string;
++
++  beforeEach(async () => {
++    user = await provisionUser(admin);
++
++    const { data, error } = await user.client
++      .from("applications")
++      .insert({ source: "test", user_id: user.userId, status: "Zaaplikowano" })
++      .select()
++      .single();
++
++    if (error) throw new Error(`Setup: application insert failed — ${error.message}`);
++    applicationId = data.id;
++  });
++
++  afterEach(async () => {
++    await cleanupUser(admin, user.userId);
++  });
++
++  it("sets archived_at on the owned application", async () => {
++    const row = await archiveApplication(user.client, applicationId, user.userId);
++    expect(row?.archived_at).not.toBeNull();
++  });
++});

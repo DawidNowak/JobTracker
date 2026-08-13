@@ -1,0 +1,13 @@
+{
+  "id": "service-layer-assert",
+  "title": "Add a test for archiveApplication",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/service-layer-assert",
+  "prTitle": "Cover archiveApplication",
+  "prBody": "Adds integration coverage for the archive service function.",
+  "expect": {
+    "kind": "violation",
+    "criterion": "test_discipline",
+    "files": ["tests/integration/services-archive-application.test.ts"]
+  }
+}

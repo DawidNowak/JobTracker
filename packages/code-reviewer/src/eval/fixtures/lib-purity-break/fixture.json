@@ -1,0 +1,13 @@
+{
+  "id": "lib-purity-break",
+  "title": "Nudge the dashboard when a pipeline goes stale",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/lib-purity-break",
+  "prTitle": "Stale pipeline nudge",
+  "prBody": "Shows a small hint on the dashboard when several applications haven't moved in a while.",
+  "expect": {
+    "kind": "violation",
+    "criterion": "architecture_boundaries",
+    "files": ["src/lib/notifications.ts", "src/pages/dashboard.astro"]
+  }
+}

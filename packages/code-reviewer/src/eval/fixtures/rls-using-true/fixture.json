@@ -1,0 +1,13 @@
+{
+  "id": "rls-using-true",
+  "title": "Add a quick_notes table for scratch jottings",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/rls-using-true",
+  "prTitle": "Add quick notes table",
+  "prBody": "Lightweight, ungrouped notes a user can jot down outside the per-application notes feature. New `quick_notes` table with RLS scoped to the owning user.",
+  "expect": {
+    "kind": "violation",
+    "criterion": "security_and_data_isolation",
+    "files": ["supabase/migrations/20260812090000_quick_notes_table.sql"]
+  }
+}

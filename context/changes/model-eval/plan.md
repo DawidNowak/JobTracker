@@ -657,15 +657,15 @@ written from `main()` alone.
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [ ] 2.2 Every fixture's patch applies cleanly at its pinned base SHA (`--check` mode)
-- [ ] 2.3 No worktree remains after a `--check` run: `git worktree list` shows only the primary tree
+- [x] 2.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
+- [x] 2.2 Every fixture's patch applies cleanly at its pinned base SHA (`--check` mode)
+- [x] 2.3 No worktree remains after a `--check` run: `git worktree list` shows only the primary tree
 
 #### Manual
 
-- [ ] 2.4 Each seeded patch reads as a plausible change — nothing announces the planted violation
-- [ ] 2.5 The clean control genuinely violates no rule in `criteria.ts`
-- [ ] 2.6 Aborting a `--check` run mid-way leaves no worktree that blocks a re-run
+- [x] 2.4 Each seeded patch reads as a plausible change — nothing announces the planted violation
+- [x] 2.5 The clean control genuinely violates no rule in `criteria.ts`
+- [x] 2.6 Aborting a `--check` run mid-way leaves no worktree that blocks a re-run
 
 ### Phase 3: Matrix runner and scoring
 

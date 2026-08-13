@@ -1,0 +1,36 @@
+diff --git a/src/pages/api/applications/[id]/pin.ts b/src/pages/api/applications/[id]/pin.ts
+new file mode 100644
+index 0000000..d0dc835
+--- /dev/null
++++ b/src/pages/api/applications/[id]/pin.ts
+@@ -0,0 +1,30 @@
++import type { APIRoute } from "astro";
++import { createClient } from "@/lib/supabase";
++import { jsonResponse } from "@/lib/http";
++
++export const POST: APIRoute = async (context) => {
++  const user = context.locals.user;
++  if (!user) {
++    return jsonResponse(401, { error: "Brak autoryzacji." });
++  }
++
++  const body = await context.request.json();
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return jsonResponse(500, { error: "Supabase nie jest skonfigurowany." });
++  }
++
++  const { data, error } = await supabase
++    .from("applications")
++    .update({ pinned: body.pinned })
++    .eq("id", context.params.id)
++    .eq("user_id", user.id)
++    .select("*")
++    .maybeSingle();
++
++  if (error) {
++    return jsonResponse(500, { error: "Nie udało się przypiąć aplikacji." });
++  }
++
++  return jsonResponse(200, { application: data });
++};

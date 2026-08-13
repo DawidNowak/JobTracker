@@ -1,0 +1,13 @@
+{
+  "id": "route-missing-prerender",
+  "title": "Add an endpoint to pin an application",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/route-missing-prerender",
+  "prTitle": "Add pin endpoint",
+  "prBody": "Lets a user pin an application to the top of their board. Mirrors the existing archive endpoint's ownership check.",
+  "expect": {
+    "kind": "violation",
+    "criterion": "api_and_validation_contract",
+    "files": ["src/pages/api/applications/[id]/pin.ts"]
+  }
+}
