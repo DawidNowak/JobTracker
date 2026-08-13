@@ -642,16 +642,16 @@ written from `main()` alone.
 
 #### Automated
 
-- [ ] 1.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [ ] 1.2 Repo typecheck unaffected: `npm run typecheck`
-- [ ] 1.3 Lint passes: `npm run lint`
-- [ ] 1.4 Prettier is clean: `npm run format` produces no diff on the package
+- [x] 1.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
+- [x] 1.2 Repo typecheck unaffected: `npm run typecheck`
+- [x] 1.3 Lint passes: `npm run lint`
+- [x] 1.4 Prettier is clean: `npm run format` produces no diff on the package
 
 #### Manual
 
-- [ ] 1.5 `npm run review` produces the same console output and report as before the refactor
-- [ ] 1.6 `npm run review` on a branch with no changes still exits early without calling the API
-- [ ] 1.7 No call to `deliverReport` or `emitVerdict` exists inside `runReview`
+- [x] 1.5 `npm run review` produces the same console output and report as before the refactor
+- [x] 1.6 `npm run review` on a branch with no changes still exits early without calling the API
+- [x] 1.7 No call to `deliverReport` or `emitVerdict` exists inside `runReview`
 
 ### Phase 2: Fixture rig and corpus
 
