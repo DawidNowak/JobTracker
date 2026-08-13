@@ -657,32 +657,32 @@ written from `main()` alone.
 
 #### Automated
 
-- [x] 2.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [x] 2.2 Every fixture's patch applies cleanly at its pinned base SHA (`--check` mode)
-- [x] 2.3 No worktree remains after a `--check` run: `git worktree list` shows only the primary tree
+- [x] 2.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck` — 6a7191f
+- [x] 2.2 Every fixture's patch applies cleanly at its pinned base SHA (`--check` mode) — 6a7191f
+- [x] 2.3 No worktree remains after a `--check` run: `git worktree list` shows only the primary tree — 6a7191f
 
 #### Manual
 
-- [x] 2.4 Each seeded patch reads as a plausible change — nothing announces the planted violation
-- [x] 2.5 The clean control genuinely violates no rule in `criteria.ts`
-- [x] 2.6 Aborting a `--check` run mid-way leaves no worktree that blocks a re-run
+- [x] 2.4 Each seeded patch reads as a plausible change — nothing announces the planted violation — 6a7191f
+- [x] 2.5 The clean control genuinely violates no rule in `criteria.ts` — 6a7191f
+- [x] 2.6 Aborting a `--check` run mid-way leaves no worktree that blocks a re-run — 6a7191f
 
 ### Phase 3: Matrix runner and scoring
 
 #### Automated
 
-- [ ] 3.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [ ] 3.2 Lint passes: `npm run lint`
-- [ ] 3.3 Single-cell single-fixture dry run completes and appends one JSONL record
-- [ ] 3.4 A `--max-runs 0` run aborts before dispatching any model call and reports every cell as not-run
-- [ ] 3.5 The negative control scores `missed`, not `caught` — a stored run replayed through `scoreRun()` with `expect.criterion` pointed at a different criterion id
-- [ ] 3.6 `git status` is clean after a run — no stray worktrees, no untracked result files
+- [x] 3.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
+- [x] 3.2 Lint passes: `npm run lint`
+- [x] 3.3 Single-cell single-fixture dry run completes and appends one JSONL record
+- [x] 3.4 A `--max-runs 0` run aborts before dispatching any model call and reports every cell as not-run
+- [x] 3.5 The negative control scores `missed`, not `caught` — a stored run replayed through `scoreRun()` with `expect.criterion` pointed at a different criterion id
+- [x] 3.6 `git status` is clean after a run — no stray worktrees, no untracked result files
 
 #### Manual
 
-- [ ] 3.7 The ranking section states which tier decided the order, and names any cell it eliminated and why
-- [ ] 3.8 The haiku row is labeled effort-not-supported rather than presented as `@ high`
-- [ ] 3.9 Killing the sweep mid-run preserves all previously completed records in the JSONL
+- [x] 3.7 The ranking section states which tier decided the order, and names any cell it eliminated and why
+- [x] 3.8 The haiku row is labeled effort-not-supported rather than presented as `@ high`
+- [x] 3.9 Killing the sweep mid-run preserves all previously completed records in the JSONL
 
 ### Phase 4: Run the sweep and decide
 

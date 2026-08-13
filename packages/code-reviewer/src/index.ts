@@ -322,7 +322,11 @@ async function main(): Promise<void> {
   if (failed) process.exit(1);
 }
 
-main().catch((err: unknown) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+// Importing this module (e.g. the eval sweep pulling in `runReview`) must not also trigger a
+// real review as a side effect of module load — only running the file directly does.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err: unknown) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}
