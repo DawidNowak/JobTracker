@@ -33,7 +33,7 @@ interface CellSummary {
   violationScored: number;
   violationCaught: number;
   cleanScored: number;
-  cleanFalsePositive: number;
+  cleanPass: number;
   perFixtureCaught: number;
   perFixtureTotal: number;
   errored: number;
@@ -64,7 +64,7 @@ function summarizeCell(cell: Cell, allRecords: EvalRunRecord[], fixtures: Fixtur
   const scoredClean = cleanRecords.filter((record) => record.outcome !== "rate_limited");
 
   const violationCaught = scoredViolation.filter((record) => record.outcome === "caught").length;
-  const cleanFalsePositive = scoredClean.filter((record) => record.outcome === "false_positive").length;
+  const cleanPass = scoredClean.filter((record) => record.outcome === "clean_pass").length;
 
   // Strict per-fixture column: a fixture counts as caught only when both of its runs caught it.
   let perFixtureCaught = 0;
@@ -91,7 +91,7 @@ function summarizeCell(cell: Cell, allRecords: EvalRunRecord[], fixtures: Fixtur
     violationScored: scoredViolation.length,
     violationCaught,
     cleanScored: scoredClean.length,
-    cleanFalsePositive,
+    cleanPass,
     perFixtureCaught,
     perFixtureTotal,
     errored,
@@ -112,8 +112,7 @@ function formatCellRow(summary: CellSummary): string {
     ? `${cell.model} @ ${cell.effort}`
     : `${cell.model} @ ${cell.effort} (effort not supported)`;
   const violationTally = summary.violationScored > 0 ? `${summary.violationCaught}/${summary.violationScored}` : "—";
-  const cleanTally =
-    summary.cleanScored > 0 ? `${summary.cleanScored - summary.cleanFalsePositive}/${summary.cleanScored}` : "—";
+  const cleanTally = summary.cleanScored > 0 ? `${summary.cleanPass}/${summary.cleanScored}` : "—";
   const perFixture = summary.perFixtureTotal > 0 ? `${summary.perFixtureCaught}/${summary.perFixtureTotal}` : "—";
   const turns = summary.medianTurns ?? "—";
   const duration = summary.medianDurationMs !== null ? `${(summary.medianDurationMs / 1000).toFixed(0)}s` : "—";
@@ -133,9 +132,10 @@ interface RankingResult {
 }
 
 /**
- * Tier 1: rank by catch rate; a cell is eliminated only if its caught-run count falls more than
- * one fixture-run below the best cell's (a single flaky miss never eliminates, a systematic gap
- * always does). Tier 2 (fewer errored runs) and tier 3 (turns, then latency) break ties left by
+ * Tier 1: rank by catch rate; a cell is eliminated only if its catch rate falls more than one
+ * fixture-run's worth below the best cell's, scaled to its own run count (a single flaky miss
+ * never eliminates, a systematic gap always does). Tier 2 (fewer errored runs) and tier 3 (turns,
+ * then latency) break ties left by
  * the tier before them — a single lexicographic sort, so a leader-only tie (e.g. two cells tied
  * at the top with a third cell behind both) is disambiguated by tier 2/3 exactly like a
  * cohort-wide tie is. Requiring *every* survivor to share the same catch rate before tier 2 could
@@ -151,20 +151,24 @@ function rankCells(summaries: CellSummary[]): RankingResult {
     return { order: [], eliminated, decidingTier: null, tieNote: null };
   }
 
-  const bestCaught = Math.max(...ranked.map((summary) => summary.violationCaught));
+  const catchRate = (summary: CellSummary): number => summary.violationCaught / summary.violationScored;
+
+  // Denominators can legitimately differ per cell (rate-limited runs are excluded per cell), so
+  // the "more than one fixture-run below the best" margin is expressed in rate terms, then scaled
+  // to this cell's own run count — comparing raw `violationCaught` counts across cells with
+  // different denominators would unfairly penalize a quota-truncated cell with a perfect rate.
+  const bestRate = Math.max(...ranked.map(catchRate));
   const survivors = ranked.filter((summary) => {
-    const gap = bestCaught - summary.violationCaught;
+    const gap = (bestRate - catchRate(summary)) * summary.violationScored;
     if (gap > 1) {
       eliminated.set(
         summary.cell.id,
-        `caught ${summary.violationCaught}/${summary.violationScored} violation runs, ${gap} fewer than the best cell's ${bestCaught} — a systematic gap, not a single flaky miss.`,
+        `caught ${summary.violationCaught}/${summary.violationScored} violation runs — ${gap.toFixed(1)} runs below what the best cell's catch rate would imply over the same run count, a systematic gap rather than a single flaky miss.`,
       );
       return false;
     }
     return true;
   });
-
-  const catchRate = (summary: CellSummary): number => summary.violationCaught / summary.violationScored;
   // `survivors` always contains at least the cell that achieved `bestCaught` (gap 0), so `first`
   // below is never undefined despite `noUncheckedIndexedAccess`.
   const first = (list: CellSummary[]): CellSummary => {

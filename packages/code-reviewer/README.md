@@ -80,18 +80,19 @@ npm run typecheck   # tsc --noEmit
 
 ## How it is wired
 
-| Option            | Value                                                                                               | Why                                                                                                                                                                                                  |
-| ----------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                            | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                                                                                  |
-| `settingSources`  | `["project"]`                                                                                       | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                                                                           |
-| `skills`          | `[]`                                                                                                | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                                                                                       |
-| `allowedTools`    | `Read`, `Grep`, `Glob`                                                                              | Auto-approved without prompting — the diff is embedded in the task prompt, so no git tool is needed                                                                                                  |
-| `disallowedTools` | `Bash`, `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone                                                          |
-| `permissionMode`  | `dontAsk`                                                                                           | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                                                                                     |
-| `model`           | `claude-sonnet-5`                                                                                   | Investigates before scoring — `claude-haiku-4-5` never opened a file                                                                                                                                 |
-| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                                     | Forces a per-criterion status, rationale and a structured findings array — the model never authors a verdict; `src/index.ts` calls `deriveVerdict()` to compute `PASS`/`FAIL` from the five statuses |
-| `maxTurns`        | `20`                                                                                                | Down from 40 now that the diff no longer needs a turn to fetch; kept above the diff-fetch-free minimum of 10 because a real run at 10 exhausted its turns before producing valid structured output   |
-| `maxBudgetUsd`    | `2.00`                                                                                              | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                                                                                        |
+| Option            | Value                                                                                               | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `systemPrompt`    | `claude_code` preset + `REVIEWER_APPEND`                                                            | Keeps Claude Code's tool guidance and safety rules; layers the reviewer role on top                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `settingSources`  | `["project"]`                                                                                       | Loads the repo's `CLAUDE.md` → `AGENTS.md`, so project conventions are not duplicated here                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `skills`          | `[]`                                                                                                | The repo ships 33 skills; none are review inputs, and advertising them costs context every run                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `allowedTools`    | `Read`, `Grep`, `Glob`                                                                              | Auto-approved without prompting — the diff is embedded in the task prompt, so no git tool is needed                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `disallowedTools` | `Bash`, `Edit`, `Write`, `NotebookEdit`, plus `Read` rules for `.env*` / `.dev.vars*` / `auth.json` | Bare-name deny rules **remove** the tool from the model's context, so read-only is structural rather than resting on `permissionMode` alone                                                                                                                                                                                                                                                                                                                                                                                            |
+| `permissionMode`  | `dontAsk`                                                                                           | Anything outside `allowedTools` is denied outright; a headless run has nobody to answer a prompt                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `model`           | `claude-sonnet-5`                                                                                   | Kept as the incumbent after the model-eval sweep (see [`results.md`](../../context/changes/model-eval/results.md)): the automated decision rule ranked `claude-opus-5 @ high` and `claude-sonnet-5 @ xhigh` narrowly ahead on raw catch rate (10/10 vs. this cell's 9/10 violation runs caught), but shipping stayed on the incumbent — a human override, since the sweep runs on flat subscription billing (no real cost differentiator between cells) and this cell has the best turns/latency in the matrix (11 turns / 71s median) |
+| `effort`          | `high`                                                                                              | Same sweep. `claude-sonnet-5 @ xhigh` caught one more violation run (10/10 vs. this cell's 9/10) but cost 47s more median latency (118s vs. 71s) for it; the one-run gap sits inside the decision rule's own single-flaky-miss margin, not a systematic one, so it did not move the human override off the incumbent's `high` setting                                                                                                                                                                                                  |
+| `outputFormat`    | `json_schema` (`src/schema.ts`)                                                                     | Forces a per-criterion status, rationale and a structured findings array — the model never authors a verdict; `src/index.ts` calls `deriveVerdict()` to compute `PASS`/`FAIL` from the five statuses                                                                                                                                                                                                                                                                                                                                   |
+| `maxTurns`        | `20`                                                                                                | Down from 40 now that the diff no longer needs a turn to fetch; kept above the diff-fetch-free minimum of 10 because a real run at 10 exhausted its turns before producing valid structured output                                                                                                                                                                                                                                                                                                                                     |
+| `maxBudgetUsd`    | `2.00`                                                                                              | Hard cost ceiling — a run that hits it ends as an error subtype rather than spending silently                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 `allowedTools` only _approves_ tools — it does not remove them. The read-only property comes from
 `disallowedTools`, which is why the write tools are listed there explicitly rather than merely
@@ -162,6 +163,45 @@ step, after labelling and retry-label cleanup both complete) prints an `::error:
 exits 1, turning the job red. **Requiring that check in branch protection is a separate, manual
 switch** — this change makes the job fail; it does not by itself block merging.
 
+## Model eval
+
+`model` and `effort` above are not a guess — they come from a repeatable harness under `src/eval/`
+that runs the candidate `(model, effort)` cells against a committed fixture corpus of seeded
+violations and scores the structured output mechanically. Re-run it whenever a new model ships:
+
+```bash
+cd packages/code-reviewer
+npm run eval
+```
+
+By default this runs the full matrix (every cell in `src/eval/cells.ts` × every fixture in
+`src/eval/fixtures/` × 2 runs each). Flags narrow that:
+
+| Flag         | Example                         | Effect                                                                        |
+| ------------ | ------------------------------- | ----------------------------------------------------------------------------- |
+| `--max-runs` | `--max-runs 12`                 | Stops before starting any cell that would push the run count over the ceiling |
+| `--cells`    | `--cells sonnet-high,opus-high` | Only runs the named cell ids (comma-separated)                                |
+| `--fixtures` | `--fixtures clean-control`      | Only runs the named fixture ids (comma-separated)                             |
+
+Each completed run is appended to `eval-results/runs.jsonl` (git-ignored) as it finishes, so a
+killed or rate-limited sweep never loses already-paid-for work — re-run with a narrower `--cells` /
+`--fixtures` to fill in what didn't complete. `npm run eval:report` renders the accumulated JSONL
+into the scored matrix; `npm run eval:check` applies and discards every fixture patch to prove the
+corpus still applies cleanly, without calling the model.
+
+**Adding a fixture**: create `src/eval/fixtures/<id>/fixture.json` plus `change.patch`, pinned to a
+`baseSha` on `master`. `fixture.json` declares `expect: { kind: "violation", criterion, files }` for
+a seeded rule break, or `expect: { kind: "clean" }` for a control that must come back `PASS`. The
+seeded violation should read as a plausible, unlabelled change — no filename or comment should
+announce the planted defect, or the fixture measures nothing.
+
+**Fixture rot**: each patch is pinned to a specific base SHA. If that region of the tree changes
+materially, the patch may stop applying (`npm run eval:check` catches this) or stop testing the rule
+it was written for — re-pin the `baseSha` and regenerate the patch when that happens.
+
+The full sweep, its scoring rules, the decision-rule caveats, and the result of the first run are
+recorded in [`context/changes/model-eval/results.md`](../../context/changes/model-eval/results.md).
+
 ## Layout
 
 - `src/index.ts` — entry point: credentials, diff collection, `query()`, streaming, verdict, report
@@ -170,6 +210,8 @@ switch** — this change makes the job fail; it does not by itself block merging
 - `src/schema.ts` — the structured output contract, `deriveVerdict()` and `checkConsistency()`
 - `src/prompt.ts` — the reviewer instructions and the per-run task prompt
 - `src/output.ts` — renders the criteria table and findings into the report
+- `src/eval/` — the model-eval harness: fixture rig (`worktree.ts`, `fixtures.ts`), candidate matrix
+  (`cells.ts`), scorer (`score.ts`), sweep driver (`run.ts`), report renderer (`report.ts`)
 
 To change what the reviewer looks for, edit `src/criteria.ts`. Project-specific conventions belong in
 the repo's `AGENTS.md`, not here.

@@ -1,9 +1,9 @@
 ---
 change_id: model-eval
 title: Model eval
-status: implementing
+status: implemented
 created: 2026-08-12
-updated: 2026-08-13
+updated: 2026-08-14
 archived_at: null
 ---
 

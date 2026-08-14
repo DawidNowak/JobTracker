@@ -688,30 +688,30 @@ written from `main()` alone.
 
 #### Automated
 
-- [x] 4.1 The sweep terminates by completion, clean ceiling stop, or clean quota stop, not by an unhandled exception
-- [x] 4.2 `git worktree list` shows only the primary tree afterward
-- [x] 4.3 `results.md` exists at `context/changes/model-eval/results.md`
+- [x] 4.1 The sweep terminates by completion, clean ceiling stop, or clean quota stop, not by an unhandled exception — 399d04c
+- [x] 4.2 `git worktree list` shows only the primary tree afterward — 399d04c
+- [x] 4.3 `results.md` exists at `context/changes/model-eval/results.md` — 399d04c
 
 #### Manual
 
-- [ ] 4.4 Every cell is complete (12 runs), explicitly not-run, or explicitly labeled partial with its actual denominators shown
-- [ ] 4.5 The winning cell is justified by a stated rule tier, not a judgment call
-- [ ] 4.6 All three caveats are written down in `results.md`
-- [ ] 4.7 If the ceiling or quota cut the sweep short before opus, the report says so rather than implying opus lost
+- [x] 4.4 Every cell is complete (12 runs), explicitly not-run, or explicitly labeled partial with its actual denominators shown — 399d04c
+- [x] 4.5 The winning cell is justified by a stated rule tier, not a judgment call — 399d04c
+- [x] 4.6 All three caveats are written down in `results.md` — 399d04c
+- [x] 4.7 If the ceiling or quota cut the sweep short before opus, the report says so rather than implying opus lost — 399d04c
 
 ### Phase 5: Apply the outcome
 
 #### Automated
 
-- [ ] 5.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [ ] 5.2 Lint passes: `npm run lint`
-- [ ] 5.3 Full repo gate is green: `npm run typecheck && npm run lint && npm test`
-- [ ] 5.4 Prettier is clean: `npm run format` produces no diff
+- [x] 5.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
+- [x] 5.2 Lint passes: `npm run lint`
+- [x] 5.3 Full repo gate is green: `npm run typecheck && npm run lint && npm test`
+- [x] 5.4 Prettier is clean: `npm run format` produces no diff
 
 #### Manual
 
-- [ ] 5.5 `npm run review` works end-to-end on the newly configured model and effort
-- [ ] 5.6 Every number in the README's `model` and `effort` rows traces to a figure in `results.md`
-- [ ] 5.7 The README's `maxTurns`, `maxBudgetUsd` and "Cost per review" text is unchanged
-- [ ] 5.8 The README no longer cites the haiku anecdote as justification
-- [ ] 5.9 A reader can re-run the eval from the README alone
+- [x] 5.5 `npm run review` works end-to-end on the newly configured model and effort
+- [x] 5.6 Every number in the README's `model` and `effort` rows traces to a figure in `results.md`
+- [x] 5.7 The README's `maxTurns`, `maxBudgetUsd` and "Cost per review" text is unchanged
+- [x] 5.8 The README no longer cites the haiku anecdote as justification
+- [x] 5.9 A reader can re-run the eval from the README alone
