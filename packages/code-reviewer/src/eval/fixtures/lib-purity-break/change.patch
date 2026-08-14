@@ -1,0 +1,75 @@
+diff --git a/src/lib/notifications.ts b/src/lib/notifications.ts
+new file mode 100644
+index 0000000..d6b1ec5
+--- /dev/null
++++ b/src/lib/notifications.ts
+@@ -0,0 +1,30 @@
++import { createClient } from "@/lib/supabase";
++import type { AstroCookies } from "astro";
++
++const STALE_AFTER_DAYS = 14;
++const NUDGE_THRESHOLD = 3;
++
++/**
++ * Counts applications that have not moved status in `STALE_AFTER_DAYS` and decides whether the
++ * dashboard should show a "check your pipeline" nudge.
++ */
++export async function shouldShowStaleNudge(
++  requestHeaders: Headers,
++  cookies: AstroCookies,
++  userId: string,
++): Promise<boolean> {
++  const supabase = createClient(requestHeaders, cookies);
++  if (!supabase) return false;
++
++  const staleCutoff = new Date(Date.now() - STALE_AFTER_DAYS * 24 * 60 * 60 * 1000).toISOString();
++
++  const { data, error } = await supabase
++    .from("applications")
++    .select("id")
++    .eq("user_id", userId)
++    .is("archived_at", null)
++    .lt("last_action_at", staleCutoff);
++
++  if (error) return false;
++  return data.length >= NUDGE_THRESHOLD;
++}
+diff --git a/src/pages/dashboard.astro b/src/pages/dashboard.astro
+index 36f6efa..10b9447 100644
+--- a/src/pages/dashboard.astro
++++ b/src/pages/dashboard.astro
+@@ -6,6 +6,7 @@ import { listActiveApplications } from "@/lib/services/applications";
+ import { applicationStatusValues } from "@/lib/validation/applications";
+ import type { ApplicationStatus } from "@/lib/validation/applications";
+ import type { ApplicationRow } from "@/types";
++import { shouldShowStaleNudge } from "../lib/notifications";
+ 
+ const supabase = createClient(Astro.request.headers, Astro.cookies);
+ 
+@@ -15,6 +16,8 @@ const grouped: Record<ApplicationStatus, ApplicationRow[]> = {
+   Rozmowa: [],
+ };
+ 
++let staleNudge = false;
++
+ if (supabase) {
+   try {
+     const rows = await listActiveApplications(supabase);
+@@ -23,6 +26,10 @@ if (supabase) {
+         grouped[row.status as ApplicationStatus].push(row);
+       }
+     }
++    const user = Astro.locals.user;
++    if (user) {
++      staleNudge = await shouldShowStaleNudge(Astro.request.headers, Astro.cookies, user.id);
++    }
+   } catch (err) {
+     // RLS or transient error — render an empty board. Surfacing is out of scope for S-02.
+     // eslint-disable-next-line no-console
+@@ -32,5 +39,6 @@ if (supabase) {
+ ---
+ 
+ <AppShell title="Tablica" activeNav="tablica">
++  {staleNudge && <p class="text-sm text-muted-foreground">Kilka aplikacji nie miało ruchu od dawna — sprawdź swój pipeline.</p>}
+   <KanbanBoard client:load applications={grouped} />
+ </AppShell>

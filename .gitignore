@@ -46,6 +46,9 @@ pnpm-debug.log*
 stryker.log
 reports/
 
+# code-reviewer eval raw run logs (only the curated results.md is committed)
+packages/code-reviewer/eval-results/
+
 # playwright cli artifacts
 .playwright-cli/
 auth.json

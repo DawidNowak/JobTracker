@@ -1,0 +1,13 @@
+{
+  "id": "swallowed-await",
+  "title": "Bump last_action_at when an application is archived",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/swallowed-await",
+  "prTitle": "Touch last_action_at on archive",
+  "prBody": "The archive action should also refresh last_action_at so it shows up as recently touched.",
+  "expect": {
+    "kind": "violation",
+    "criterion": "correctness",
+    "files": ["src/pages/api/applications/[id]/archive.ts"]
+  }
+}

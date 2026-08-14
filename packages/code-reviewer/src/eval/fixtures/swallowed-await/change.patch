@@ -1,0 +1,21 @@
+diff --git a/src/pages/api/applications/[id]/archive.ts b/src/pages/api/applications/[id]/archive.ts
+index 0a6a9ac..1de5e93 100644
+--- a/src/pages/api/applications/[id]/archive.ts
++++ b/src/pages/api/applications/[id]/archive.ts
+@@ -27,6 +27,16 @@ export const POST: APIRoute = async (context) => {
+   try {
+     const row = await archiveApplication(supabase, idParam, user.id);
+     if (row) {
++      // Best-effort bump so "last touched" reflects the archive action too — don't hold up
++      // the response on it.
++      supabase
++        .from("applications")
++        .update({ last_action_at: new Date().toISOString() })
++        .eq("id", idParam)
++        .eq("user_id", user.id)
++        .then(() => {})
++        .catch(() => {});
++
+       return jsonResponse(200, { application: row });
+     }
+ 

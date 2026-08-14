@@ -1,4 +1,4 @@
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import { query, type EffortLevel, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { config } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,9 +12,16 @@ import {
   getRepoRoot,
   truncateDiff,
 } from "./git.ts";
-import { deliverReport, emitVerdict } from "./output.ts";
+import { deliverReport, emitVerdict, type ReportMeta } from "./output.ts";
 import { buildTaskPrompt, REVIEWER_APPEND } from "./prompt.ts";
-import { checkConsistency, deriveVerdict, parseReviewOutput, REVIEW_SCHEMA, type ReviewOutput } from "./schema.ts";
+import {
+  checkConsistency,
+  deriveVerdict,
+  parseReviewOutput,
+  REVIEW_SCHEMA,
+  type ReviewOutput,
+  type Verdict,
+} from "./schema.ts";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -24,6 +31,7 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 config({ path: path.join(PACKAGE_ROOT, ".env") });
 
 const MODEL = "claude-sonnet-5";
+const DEFAULT_EFFORT: EffortLevel = "high";
 
 /**
  * Tools auto-approved without prompting. Paired with permissionMode "dontAsk", anything
@@ -101,21 +109,62 @@ function reportCredentialSource(): void {
   }
 }
 
-async function main(): Promise<void> {
-  reportCredentialSource();
+export interface RunReviewOptions {
+  repoRoot: string;
+  base: string;
+  branch: string;
+  prTitle: string;
+  prBody: string;
+  model?: string;
+  effort?: EffortLevel;
+  /** Called for every SDK message as it streams in. Omit to run silently (e.g. an eval sweep). */
+  onMessage?: (message: SDKMessage) => void;
+}
 
-  const repoRoot = getRepoRoot();
-  // A CI checkout of a specific SHA leaves HEAD detached, where getCurrentBranch() returns
-  // the literal string "HEAD" — the workflow knows the real branch name and passes it through.
-  const branch = process.env.PR_HEAD_REF || getCurrentBranch(repoRoot);
-  const prTitle = process.env.PR_TITLE ?? "";
-  const prBody = process.env.PR_BODY ?? "";
-  const base = getMergeBase(repoRoot);
+export interface ReviewRun {
+  output: ReviewOutput | null;
+  consistencyViolations: string[];
+  verdict: Verdict | null;
+  costUsd: number;
+  numTurns: number;
+  resultSubtype: string;
+  durationMs: number;
+  changedFileCount: number;
+  meta: ReportMeta;
+}
+
+/**
+ * Owns diff collection and the `query()` call; returns everything a caller needs to judge the
+ * run. Delivers no report and emits no verdict — `deliverReport()` and `emitVerdict()` stay in
+ * `main()` so an eval run in a GitHub-Actions context can never post a PR comment or overwrite
+ * the real verdict output.
+ */
+export async function runReview(options: RunReviewOptions): Promise<ReviewRun> {
+  const { repoRoot, base, branch, prTitle, prBody, model = MODEL, effort = DEFAULT_EFFORT, onMessage } = options;
+
   const changedFiles = getChangedFiles(base, repoRoot);
+  const emptyMeta: ReportMeta = {
+    branch,
+    base,
+    fileCount: 0,
+    diffUnavailable: false,
+    diffTruncated: false,
+    diffTotalLines: 0,
+    diffIncludedLines: 0,
+  };
 
   if (changedFiles.length === 0) {
-    console.log(`No changes on \`${branch}\` against \`${base}\` — nothing to review.`);
-    return;
+    return {
+      output: null,
+      consistencyViolations: [],
+      verdict: null,
+      costUsd: 0,
+      numTurns: 0,
+      resultSubtype: "no_changes",
+      durationMs: 0,
+      changedFileCount: 0,
+      meta: emptyMeta,
+    };
   }
 
   const diffStat = getDiffStat(base, repoRoot);
@@ -128,13 +177,28 @@ async function main(): Promise<void> {
     diff = truncateDiff(getDiff(base, repoRoot));
   } catch (err) {
     diffUnavailable = true;
-    console.error(`Failed to fetch diff (likely exceeds the size limit): ${err instanceof Error ? err.message : String(err)}`);
+    console.error(
+      `Failed to fetch diff (likely exceeds the size limit): ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   console.log(`Reviewing ${changedFiles.length} changed file(s) on \`${branch}\` against \`${base}\`...\n`);
 
+  const meta: ReportMeta = {
+    branch,
+    base,
+    fileCount: changedFiles.length,
+    diffUnavailable,
+    diffTruncated: diff.truncated,
+    diffTotalLines: diff.totalLines,
+    diffIncludedLines: diff.includedLines,
+  };
+
   let reviewOutput: ReviewOutput | null = null;
-  let failed = false;
+  let costUsd = 0;
+  let numTurns = 0;
+  let resultSubtype = "";
+  const startedAt = Date.now();
 
   for await (const message of query({
     prompt: buildTaskPrompt({
@@ -152,7 +216,7 @@ async function main(): Promise<void> {
     }),
     options: {
       cwd: repoRoot,
-      model: MODEL,
+      model,
       // The preset gives us Claude Code's tool guidance and safety rules; the append layers
       // the reviewer role on top without replacing any of it.
       systemPrompt: { type: "preset", preset: "claude_code", append: REVIEWER_APPEND },
@@ -166,13 +230,67 @@ async function main(): Promise<void> {
       disallowedTools: DISALLOWED_TOOLS,
       permissionMode: "dontAsk",
       maxTurns: 20,
-      effort: "high",
+      effort,
       outputFormat: { type: "json_schema", schema: REVIEW_SCHEMA },
       // Roughly 20-30x the current per-run cost — only fires on a runaway.
       maxBudgetUsd: 2.0,
     },
   })) {
-    if (message.type === "assistant") {
+    onMessage?.(message);
+
+    if (message.type === "result") {
+      resultSubtype = message.subtype;
+      numTurns = message.num_turns;
+      costUsd = message.total_cost_usd ?? 0;
+
+      if (message.subtype === "success") {
+        reviewOutput = parseReviewOutput(message.structured_output);
+        if (reviewOutput === null) {
+          console.error("\nRun succeeded but returned no valid structured output. Raw result:\n");
+          console.error(message.result);
+        }
+      } else {
+        console.error(`\nRun ended without a review: ${message.subtype}`);
+      }
+      console.log(`\nTurns: ${numTurns}  Cost: $${costUsd.toFixed(4)}`);
+    }
+  }
+
+  const consistencyViolations = reviewOutput !== null ? checkConsistency(reviewOutput) : [];
+  const verdict = reviewOutput !== null && consistencyViolations.length === 0 ? deriveVerdict(reviewOutput) : null;
+
+  return {
+    output: reviewOutput,
+    consistencyViolations,
+    verdict,
+    costUsd,
+    numTurns,
+    resultSubtype,
+    durationMs: Date.now() - startedAt,
+    changedFileCount: changedFiles.length,
+    meta,
+  };
+}
+
+async function main(): Promise<void> {
+  reportCredentialSource();
+
+  const repoRoot = getRepoRoot();
+  // A CI checkout of a specific SHA leaves HEAD detached, where getCurrentBranch() returns
+  // the literal string "HEAD" — the workflow knows the real branch name and passes it through.
+  const branch = process.env.PR_HEAD_REF || getCurrentBranch(repoRoot);
+  const prTitle = process.env.PR_TITLE ?? "";
+  const prBody = process.env.PR_BODY ?? "";
+  const base = getMergeBase(repoRoot);
+
+  const run = await runReview({
+    repoRoot,
+    base,
+    branch,
+    prTitle,
+    prBody,
+    onMessage: (message) => {
+      if (message.type !== "assistant") return;
       for (const block of message.message.content) {
         if (block.type === "text") {
           console.log(block.text);
@@ -181,47 +299,34 @@ async function main(): Promise<void> {
           console.log(detail ? `  [tool] ${block.name} ${detail}` : `  [tool] ${block.name}`);
         }
       }
-    } else if (message.type === "result") {
-      if (message.subtype === "success") {
-        reviewOutput = parseReviewOutput(message.structured_output);
-        if (reviewOutput === null) {
-          failed = true;
-          console.error("\nRun succeeded but returned no valid structured output. Raw result:\n");
-          console.error(message.result);
-        }
-      } else {
-        failed = true;
-        console.error(`\nRun ended without a review: ${message.subtype}`);
-      }
-      console.log(`\nTurns: ${message.num_turns}  Cost: $${(message.total_cost_usd ?? 0).toFixed(4)}`);
-    }
+    },
+  });
+
+  if (run.changedFileCount === 0) {
+    console.log(`No changes on \`${branch}\` against \`${base}\` — nothing to review.`);
+    return;
   }
 
-  if (reviewOutput !== null) {
-    const violations = checkConsistency(reviewOutput);
-    if (violations.length > 0) {
-      failed = true;
+  const failed = run.output === null || run.consistencyViolations.length > 0;
+
+  if (run.output !== null) {
+    if (run.consistencyViolations.length > 0) {
       console.error("\nReview output is internally inconsistent — no verdict emitted, no comment posted:");
-      for (const violation of violations) console.error(`  - ${violation}`);
-    } else {
-      const verdict = deriveVerdict(reviewOutput);
-      emitVerdict(verdict);
-      await deliverReport(reviewOutput, verdict, {
-        branch,
-        base,
-        fileCount: changedFiles.length,
-        diffUnavailable,
-        diffTruncated: diff.truncated,
-        diffTotalLines: diff.totalLines,
-        diffIncludedLines: diff.includedLines,
-      });
+      for (const violation of run.consistencyViolations) console.error(`  - ${violation}`);
+    } else if (run.verdict !== null) {
+      emitVerdict(run.verdict);
+      await deliverReport(run.output, run.verdict, run.meta);
     }
   }
 
   if (failed) process.exit(1);
 }
 
-main().catch((err: unknown) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+// Importing this module (e.g. the eval sweep pulling in `runReview`) must not also trigger a
+// real review as a side effect of module load — only running the file directly does.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err: unknown) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}

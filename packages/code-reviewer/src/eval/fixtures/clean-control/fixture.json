@@ -1,0 +1,11 @@
+{
+  "id": "clean-control",
+  "title": "Clarify what cn() actually resolves",
+  "baseSha": "0d9b76472f55d646380d3ddae9af2af06b3c4034",
+  "branch": "eval/clean-control",
+  "prTitle": "Add a comment to cn()",
+  "prBody": "A one-line comment explaining why cn() exists, for anyone new to the codebase.",
+  "expect": {
+    "kind": "clean"
+  }
+}

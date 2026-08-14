@@ -6,6 +6,9 @@
   "description": "Claude Agent SDK code reviewer for the JobTracker branch diff",
   "scripts": {
     "review": "tsx src/index.ts",
+    "eval": "tsx src/eval/run.ts",
+    "eval:check": "tsx src/eval/check.ts",
+    "eval:report": "tsx src/eval/report.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
