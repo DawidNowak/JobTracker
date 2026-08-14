@@ -135,8 +135,13 @@ interface RankingResult {
 /**
  * Tier 1: rank by catch rate; a cell is eliminated only if its caught-run count falls more than
  * one fixture-run below the best cell's (a single flaky miss never eliminates, a systematic gap
- * always does). Tier 2 (fewer errored runs) and tier 3 (turns, then latency) only run among
- * survivors, and only when the prior tier leaves every survivor exactly tied.
+ * always does). Tier 2 (fewer errored runs) and tier 3 (turns, then latency) break ties left by
+ * the tier before them — a single lexicographic sort, so a leader-only tie (e.g. two cells tied
+ * at the top with a third cell behind both) is disambiguated by tier 2/3 exactly like a
+ * cohort-wide tie is. Requiring *every* survivor to share the same catch rate before tier 2 could
+ * even run would silently fall back to declaration order for the actual leaders whenever a
+ * lower-ranked survivor's rate happened to differ — the exact "judgment call, not a stated tier"
+ * outcome the plan's success criteria rule out.
  */
 function rankCells(summaries: CellSummary[]): RankingResult {
   const ranked = summaries.filter((summary) => summary.violationScored > 0);
@@ -168,32 +173,30 @@ function rankCells(summaries: CellSummary[]): RankingResult {
     return head;
   };
 
+  const order = [...survivors].sort((a, b) => {
+    const rateDiff = catchRate(b) - catchRate(a);
+    if (rateDiff !== 0) return rateDiff;
+    const erroredDiff = a.errored - b.errored;
+    if (erroredDiff !== 0) return erroredDiff;
+    const turnsDiff = (a.medianTurns ?? Infinity) - (b.medianTurns ?? Infinity);
+    if (turnsDiff !== 0) return turnsDiff;
+    return (a.medianDurationMs ?? Infinity) - (b.medianDurationMs ?? Infinity);
+  });
+
+  const winner = first(order);
+  const runnerUp = order[1];
+
   let decidingTier: 1 | 2 | 3 = 1;
-  let order = [...survivors].sort((a, b) => catchRate(b) - catchRate(a));
-
-  const tier1Tied = order.length > 1 && order.every((summary) => catchRate(summary) === catchRate(first(order)));
-  if (tier1Tied) {
-    decidingTier = 2;
-    order = [...survivors].sort((a, b) => a.errored - b.errored);
-
-    const tier2Tied = order.length > 1 && order.every((summary) => summary.errored === first(order).errored);
-    if (tier2Tied) {
-      decidingTier = 3;
-      order = [...order].sort((a, b) => {
-        const turnsDiff = (a.medianTurns ?? Infinity) - (b.medianTurns ?? Infinity);
-        return turnsDiff !== 0 ? turnsDiff : (a.medianDurationMs ?? Infinity) - (b.medianDurationMs ?? Infinity);
-      });
-    }
+  if (runnerUp !== undefined && catchRate(winner) === catchRate(runnerUp)) {
+    decidingTier = winner.errored === runnerUp.errored ? 3 : 2;
   }
 
-  const runnerUp = order[1];
-  const winner = first(order);
   const stillTied =
     runnerUp !== undefined &&
-    winner.medianTurns === runnerUp.medianTurns &&
-    winner.medianDurationMs === runnerUp.medianDurationMs &&
     catchRate(winner) === catchRate(runnerUp) &&
-    winner.errored === runnerUp.errored;
+    winner.errored === runnerUp.errored &&
+    winner.medianTurns === runnerUp.medianTurns &&
+    winner.medianDurationMs === runnerUp.medianDurationMs;
 
   return {
     order,

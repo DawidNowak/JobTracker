@@ -671,26 +671,26 @@ written from `main()` alone.
 
 #### Automated
 
-- [x] 3.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [x] 3.2 Lint passes: `npm run lint`
-- [x] 3.3 Single-cell single-fixture dry run completes and appends one JSONL record
-- [x] 3.4 A `--max-runs 0` run aborts before dispatching any model call and reports every cell as not-run
-- [x] 3.5 The negative control scores `missed`, not `caught` — a stored run replayed through `scoreRun()` with `expect.criterion` pointed at a different criterion id
-- [x] 3.6 `git status` is clean after a run — no stray worktrees, no untracked result files
+- [x] 3.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck` — 7bdfdb5
+- [x] 3.2 Lint passes: `npm run lint` — 7bdfdb5
+- [x] 3.3 Single-cell single-fixture dry run completes and appends one JSONL record — 7bdfdb5
+- [x] 3.4 A `--max-runs 0` run aborts before dispatching any model call and reports every cell as not-run — 7bdfdb5
+- [x] 3.5 The negative control scores `missed`, not `caught` — a stored run replayed through `scoreRun()` with `expect.criterion` pointed at a different criterion id — 7bdfdb5
+- [x] 3.6 `git status` is clean after a run — no stray worktrees, no untracked result files — 7bdfdb5
 
 #### Manual
 
-- [x] 3.7 The ranking section states which tier decided the order, and names any cell it eliminated and why
-- [x] 3.8 The haiku row is labeled effort-not-supported rather than presented as `@ high`
-- [x] 3.9 Killing the sweep mid-run preserves all previously completed records in the JSONL
+- [x] 3.7 The ranking section states which tier decided the order, and names any cell it eliminated and why — 7bdfdb5
+- [x] 3.8 The haiku row is labeled effort-not-supported rather than presented as `@ high` — 7bdfdb5
+- [x] 3.9 Killing the sweep mid-run preserves all previously completed records in the JSONL — 7bdfdb5
 
 ### Phase 4: Run the sweep and decide
 
 #### Automated
 
-- [ ] 4.1 The sweep terminates by completion, clean ceiling stop, or clean quota stop, not by an unhandled exception
-- [ ] 4.2 `git worktree list` shows only the primary tree afterward
-- [ ] 4.3 `results.md` exists at `context/changes/model-eval/results.md`
+- [x] 4.1 The sweep terminates by completion, clean ceiling stop, or clean quota stop, not by an unhandled exception
+- [x] 4.2 `git worktree list` shows only the primary tree afterward
+- [x] 4.3 `results.md` exists at `context/changes/model-eval/results.md`
 
 #### Manual
 

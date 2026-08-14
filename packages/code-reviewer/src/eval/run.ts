@@ -87,8 +87,13 @@ function parseArgs(argv: string[]): SweepArgs {
  */
 function classifyThrownError(err: unknown): { resultSubtype: string; errorMessage: string } {
   const message = err instanceof Error ? err.message : String(err);
+  // The subscription usage-limit rejection observed in practice reads "You've hit your limit ·
+  // resets <time>" — it never says "rate limit" or "quota", so the phrase-based patterns below
+  // exist specifically to catch it alongside the more conventional API-style wording.
   const looksLikeUsageLimit =
-    /rate.?limit|usage.limit|quota|too many requests|\b429\b|blocking_limit|rapid_refill_breaker/i.test(message);
+    /rate.?limit|usage.?limit|quota|too many requests|\b429\b|blocking_limit|rapid_refill_breaker|hit\s+(your|the|its)\s+(usage\s+)?limit|reached\s+(your|the)\s+(usage\s+)?limit/i.test(
+      message,
+    );
   return {
     resultSubtype: looksLikeUsageLimit ? RATE_LIMITED_SUBTYPE : "error_during_execution",
     errorMessage: message,
@@ -119,10 +124,17 @@ function buildThrownErrorRun(fixture: Fixture, resultSubtype: string, durationMs
   };
 }
 
-async function runOne(cell: Cell, fixture: Fixture): Promise<ReviewRun> {
+interface RunOneResult {
+  run: ReviewRun;
+  /** Only set when `runReview()` threw — kept alongside the run so the JSONL record stays
+   * auditable instead of the classification silently discarding the text it was decided on. */
+  errorMessage?: string;
+}
+
+async function runOne(cell: Cell, fixture: Fixture): Promise<RunOneResult> {
   const startedAt = Date.now();
   try {
-    return await withFixtureWorktree(fixture, (worktreePath) =>
+    const run = await withFixtureWorktree(fixture, (worktreePath) =>
       runReview({
         repoRoot: worktreePath,
         base: fixture.baseSha,
@@ -135,10 +147,11 @@ async function runOne(cell: Cell, fixture: Fixture): Promise<ReviewRun> {
         // JSONL exists to replace.
       }),
     );
+    return { run };
   } catch (err) {
     const { resultSubtype, errorMessage } = classifyThrownError(err);
     console.error(`  threw: ${errorMessage}`);
-    return buildThrownErrorRun(fixture, resultSubtype, Date.now() - startedAt);
+    return { run: buildThrownErrorRun(fixture, resultSubtype, Date.now() - startedAt), errorMessage };
   }
 }
 
@@ -172,7 +185,7 @@ async function main(): Promise<void> {
 
     for (const fixture of fixtures) {
       for (let runIndex = 0; runIndex < RUNS_PER_FIXTURE; runIndex++) {
-        const run = await runOne(cell, fixture);
+        const { run, errorMessage } = await runOne(cell, fixture);
         const outcome = scoreRun(fixture, run);
         completed += 1;
         consecutiveRateLimited = outcome === "rate_limited" ? consecutiveRateLimited + 1 : 0;
@@ -184,6 +197,7 @@ async function main(): Promise<void> {
           timestamp: new Date().toISOString(),
           run,
           outcome,
+          ...(errorMessage !== undefined ? { errorMessage } : {}),
         };
         appendFileSync(RESULTS_PATH, `${JSON.stringify(record)}\n`);
         console.log(`  [${completed}/${maxRuns}] ${cell.id} × ${fixture.id} #${runIndex + 1}: ${outcome}`);
