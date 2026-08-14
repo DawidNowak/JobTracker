@@ -703,15 +703,15 @@ written from `main()` alone.
 
 #### Automated
 
-- [x] 5.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck`
-- [x] 5.2 Lint passes: `npm run lint`
-- [x] 5.3 Full repo gate is green: `npm run typecheck && npm run lint && npm test`
-- [x] 5.4 Prettier is clean: `npm run format` produces no diff
+- [x] 5.1 Typecheck passes: `cd packages/code-reviewer && npm run typecheck` — 8ea8a03
+- [x] 5.2 Lint passes: `npm run lint` — 8ea8a03
+- [x] 5.3 Full repo gate is green: `npm run typecheck && npm run lint && npm test` — 8ea8a03
+- [x] 5.4 Prettier is clean: `npm run format` produces no diff — 8ea8a03
 
 #### Manual
 
-- [x] 5.5 `npm run review` works end-to-end on the newly configured model and effort
-- [x] 5.6 Every number in the README's `model` and `effort` rows traces to a figure in `results.md`
-- [x] 5.7 The README's `maxTurns`, `maxBudgetUsd` and "Cost per review" text is unchanged
-- [x] 5.8 The README no longer cites the haiku anecdote as justification
-- [x] 5.9 A reader can re-run the eval from the README alone
+- [x] 5.5 `npm run review` works end-to-end on the newly configured model and effort — 8ea8a03
+- [x] 5.6 Every number in the README's `model` and `effort` rows traces to a figure in `results.md` — 8ea8a03
+- [x] 5.7 The README's `maxTurns`, `maxBudgetUsd` and "Cost per review" text is unchanged — 8ea8a03
+- [x] 5.8 The README no longer cites the haiku anecdote as justification — 8ea8a03
+- [x] 5.9 A reader can re-run the eval from the README alone — 8ea8a03
