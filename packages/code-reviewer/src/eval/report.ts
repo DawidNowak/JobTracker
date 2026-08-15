@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { CELLS, type Cell } from "./cells.ts";
 import { loadFixtures, type Fixture } from "./fixtures.ts";
 import { RESULTS_PATH, RUNS_PER_FIXTURE, type EvalRunRecord } from "./run.ts";
+import { scoreRun } from "./score.ts";
 
 function loadRecords(): EvalRunRecord[] {
   if (!existsSync(RESULTS_PATH)) return [];
@@ -37,14 +38,36 @@ interface CellSummary {
   perFixtureCaught: number;
   perFixtureTotal: number;
   errored: number;
+  inconsistent: number;
   rateLimited: number;
   medianTurns: number | null;
   medianDurationMs: number | null;
   costs: { median: number | null; min: number | null; max: number | null };
 }
 
+/**
+ * The persisted `record.outcome` reflects whatever scorer wrote it at sweep time — for the 48
+ * records already on disk, that is the pre-split scorer, which cannot tell "inconsistent" from
+ * "errored". Re-derive the outcome from the current `scoreRun` instead of trusting the stored
+ * value, so a scorer fix is visible in the report without re-running the sweep. Falls back to the
+ * stored value if the record's fixture can't be resolved (a stale fixture id) or `scoreRun`
+ * declines to score it (a `multi` fixture, which this report's tables don't cover).
+ */
+function resolveOutcome(record: EvalRunRecord, fixturesById: Map<string, Fixture>): EvalRunRecord["outcome"] {
+  const fixture = fixturesById.get(record.fixtureId);
+  if (fixture === undefined) return record.outcome;
+  try {
+    return scoreRun(fixture, record.run);
+  } catch {
+    return record.outcome;
+  }
+}
+
 function summarizeCell(cell: Cell, allRecords: EvalRunRecord[], fixtures: Fixture[]): CellSummary {
-  const records = allRecords.filter((record) => record.cellId === cell.id);
+  const fixturesById = new Map(fixtures.map((fixture) => [fixture.id, fixture]));
+  const records = allRecords
+    .filter((record) => record.cellId === cell.id)
+    .map((record) => ({ ...record, outcome: resolveOutcome(record, fixturesById) }));
   const violationFixtures = fixtures.filter((fixture) => fixture.expect.kind === "violation");
   const cleanFixtures = fixtures.filter((fixture) => fixture.expect.kind === "clean");
   const expectedRuns = fixtures.length * RUNS_PER_FIXTURE;
@@ -77,6 +100,7 @@ function summarizeCell(cell: Cell, allRecords: EvalRunRecord[], fixtures: Fixtur
   }
 
   const errored = records.filter((record) => record.outcome === "errored").length;
+  const inconsistent = records.filter((record) => record.outcome === "inconsistent").length;
   const rateLimited = records.filter((record) => record.outcome === "rate_limited").length;
 
   // Turns/duration/cost are only meaningful for a run that actually completed a review.
@@ -95,6 +119,7 @@ function summarizeCell(cell: Cell, allRecords: EvalRunRecord[], fixtures: Fixtur
     perFixtureCaught,
     perFixtureTotal,
     errored,
+    inconsistent,
     rateLimited,
     medianTurns: median(turns),
     medianDurationMs: median(durations),
@@ -121,7 +146,7 @@ function formatCellRow(summary: CellSummary): string {
       ? `$${summary.costs.median.toFixed(4)} (min $${(summary.costs.min ?? 0).toFixed(4)}, max $${(summary.costs.max ?? 0).toFixed(4)})`
       : "—";
 
-  return `| ${label} | ${status} | ${violationTally} | ${cleanTally} | ${perFixture} | ${summary.errored} | ${summary.rateLimited} | ${turns} | ${duration} | ${cost} |`;
+  return `| ${label} | ${status} | ${violationTally} | ${cleanTally} | ${perFixture} | ${summary.errored} | ${summary.inconsistent} | ${summary.rateLimited} | ${turns} | ${duration} | ${cost} |`;
 }
 
 interface RankingResult {
@@ -177,11 +202,15 @@ function rankCells(summaries: CellSummary[]): RankingResult {
     return head;
   };
 
+  // "Reliability" folds inconsistent runs in alongside errored ones for tier 2 — both are a run
+  // the cell failed to produce a usable result for, just for different reasons.
+  const reliabilityGap = (summary: CellSummary): number => summary.errored + summary.inconsistent;
+
   const order = [...survivors].sort((a, b) => {
     const rateDiff = catchRate(b) - catchRate(a);
     if (rateDiff !== 0) return rateDiff;
-    const erroredDiff = a.errored - b.errored;
-    if (erroredDiff !== 0) return erroredDiff;
+    const reliabilityDiff = reliabilityGap(a) - reliabilityGap(b);
+    if (reliabilityDiff !== 0) return reliabilityDiff;
     const turnsDiff = (a.medianTurns ?? Infinity) - (b.medianTurns ?? Infinity);
     if (turnsDiff !== 0) return turnsDiff;
     return (a.medianDurationMs ?? Infinity) - (b.medianDurationMs ?? Infinity);
@@ -192,13 +221,13 @@ function rankCells(summaries: CellSummary[]): RankingResult {
 
   let decidingTier: 1 | 2 | 3 = 1;
   if (runnerUp !== undefined && catchRate(winner) === catchRate(runnerUp)) {
-    decidingTier = winner.errored === runnerUp.errored ? 3 : 2;
+    decidingTier = reliabilityGap(winner) === reliabilityGap(runnerUp) ? 3 : 2;
   }
 
   const stillTied =
     runnerUp !== undefined &&
     catchRate(winner) === catchRate(runnerUp) &&
-    winner.errored === runnerUp.errored &&
+    reliabilityGap(winner) === reliabilityGap(runnerUp) &&
     winner.medianTurns === runnerUp.medianTurns &&
     winner.medianDurationMs === runnerUp.medianDurationMs;
 
@@ -255,8 +284,8 @@ export function renderReport(): string {
     "",
     `Generated ${new Date().toISOString()}. ${records.length} run(s) read from \`${RESULTS_PATH}\`. Cost is indicative only — the sweep runs on subscription auth.`,
     "",
-    "| Cell | Status | Violation caught (per-run) | Clean passed (per-run) | Violation caught (per-fixture) | Errored | Rate-limited | Median turns | Median duration | Cost (indicative) |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Cell | Status | Violation caught (per-run) | Clean passed (per-run) | Violation caught (per-fixture) | Errored | Inconsistent | Rate-limited | Median turns | Median duration | Cost (indicative) |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...summaries.map(formatCellRow),
     "",
     renderRanking(summaries),

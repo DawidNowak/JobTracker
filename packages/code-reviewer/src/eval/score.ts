@@ -15,6 +15,7 @@ export type RunOutcome =
   | "false_positive"
   | "clean_pass"
   | "errored"
+  | "inconsistent"
   | "rate_limited";
 
 /**
@@ -39,13 +40,13 @@ function normalizePath(value: string): string {
  * equality — an equality check here would be silently and uniformly wrong, scoring every cell as
  * `missed` rather than surfacing that the scorer, not the models, is broken.
  */
-function matchesExpectedFile(findingFile: string, expectedFile: string): boolean {
+export function matchesExpectedFile(findingFile: string, expectedFile: string): boolean {
   const finding = normalizePath(findingFile);
   const expected = normalizePath(expectedFile);
   return finding === expected || finding.endsWith(`/${expected}`);
 }
 
-function hasBlockingFindingOnExpectedFile(
+export function hasBlockingFindingOnExpectedFile(
   output: NonNullable<ReviewRun["output"]>,
   criterionId: string,
   files: readonly string[],
@@ -61,14 +62,22 @@ function hasBlockingFindingOnExpectedFile(
 export function scoreRun(fixture: Fixture, run: ReviewRun): RunOutcome {
   if (run.resultSubtype === RATE_LIMITED_SUBTYPE) return "rate_limited";
 
-  if (run.output === null || run.consistencyViolations.length > 0 || run.resultSubtype !== "success") {
+  if (run.output === null || run.resultSubtype !== "success") {
     return "errored";
+  }
+
+  if (run.consistencyViolations.length > 0) {
+    return "inconsistent";
   }
 
   const { output } = run;
 
   if (fixture.expect.kind === "clean") {
     return run.verdict === "PASS" ? "clean_pass" : "false_positive";
+  }
+
+  if (fixture.expect.kind === "multi") {
+    throw new Error(`scoreRun does not support "multi" fixtures (${fixture.id}) — use gradeRun instead.`);
   }
 
   const { criterion, files } = fixture.expect;
