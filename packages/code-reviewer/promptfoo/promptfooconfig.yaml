@@ -31,21 +31,13 @@ defaultTest:
       value: file://./grade-assert.ts:validity
       metric: validity
 
-# Phase 2 smoke corpus: the six existing single-defect/clean fixtures under src/eval/fixtures/,
-# so the rig can be proven end-to-end (provider, worktree lifecycle, grading) before any
-# multi-issue fixture exists. Phase 3 replaces this list with the three multi-issue fixtures
-# (multi-board-filters, multi-followup-reminders, multi-scraper-parser) — the corpus Phase 4's
-# 4 variants × 3 fixtures × 2 repeats = 24-run sweep actually decides the winner on.
+# The three multi-issue fixtures — the corpus Phase 4's 4 variants × 3 fixtures × 2 repeats =
+# 24-run sweep actually decides the winner on. (Phase 2's smoke corpus was the six existing
+# single-defect/clean fixtures under src/eval/fixtures/; see git history for that list.)
 tests:
   - vars:
-      fixtureId: clean-control
+      fixtureId: multi-board-filters
   - vars:
-      fixtureId: lib-purity-break
+      fixtureId: multi-followup-reminders
   - vars:
-      fixtureId: rls-using-true
-  - vars:
-      fixtureId: route-missing-prerender
-  - vars:
-      fixtureId: service-layer-assert
-  - vars:
-      fixtureId: swallowed-await
+      fixtureId: multi-scraper-parser

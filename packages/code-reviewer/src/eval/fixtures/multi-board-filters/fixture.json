@@ -1,0 +1,60 @@
+{
+  "id": "multi-board-filters",
+  "title": "Board filtering — save and reuse a filter combination",
+  "baseSha": "7ea8c4808da3e298fa83fa5681c26bb5a906cf20",
+  "branch": "eval/multi-board-filters",
+  "prTitle": "Add board filtering with saved filters",
+  "prBody": "Lets a user filter the Kanban board by status and work mode, and save a named combination for reuse later. Adds two endpoints (list filter options, save a named filter), a filter-query helper, a service layer, a FilterPanel island, and a saved_filters migration.",
+  "expect": {
+    "kind": "multi",
+    "defects": [
+      {
+        "id": "missing-prerender",
+        "criterion": "api_and_validation_contract",
+        "file": "src/pages/api/applications/filters/options.ts",
+        "rule": "AGENTS.md ✅ — export `const prerender = false` from every API route."
+      },
+      {
+        "id": "unvalidated-save-body",
+        "criterion": "api_and_validation_contract",
+        "file": "src/pages/api/applications/filters/index.ts",
+        "rule": "AGENTS.md ✅ — validate inputs with zod. The POST body is cast with `as` and reaches `saveNamedFilter`'s insert unvalidated."
+      },
+      {
+        "id": "supabase-call-in-lib",
+        "criterion": "architecture_boundaries",
+        "file": "src/lib/board-filter-query.ts",
+        "rule": "Project Structure — `src/lib/` is pure utilities only (no Supabase, no domain logic); Supabase queries belong in `src/lib/services/`. This file calls `createClient` and queries `applications` directly from `src/lib/`."
+      },
+      {
+        "id": "swallowed-last-used-update",
+        "criterion": "correctness",
+        "file": "src/lib/services/board-filters.ts",
+        "rule": "AGENTS.md correctness baseline — a missing `await` or unhandled promise rejection. `saveNamedFilter`'s `last_used_at` update is fired without `await` and has no `.catch`, so a failure is silently dropped."
+      },
+      {
+        "id": "test-asserts-through-service",
+        "criterion": "test_discipline",
+        "file": "tests/integration/services-board-filters.test.ts",
+        "rule": "tests/README.md Hard rules — never assert through `src/lib/services/`; assert at the row level (PostgREST responses). This test asserts on `saveNamedFilter`'s return value instead of querying `saved_filters` directly."
+      }
+    ],
+    "decoys": [
+      {
+        "id": "filter-panel-genuine-island",
+        "file": "src/components/board/FilterPanel.tsx",
+        "note": "A React component with real `useState` and click handlers driving toggled filter chips — genuinely needs the island rule, not static content forced into React."
+      },
+      {
+        "id": "filter-labels-genuinely-pure",
+        "file": "src/lib/filter-labels.ts",
+        "note": "Pure label/icon lookups and string formatting with no Supabase import and no domain orchestration — a legitimate `src/lib/` utility."
+      },
+      {
+        "id": "using-true-in-comment-only",
+        "file": "supabase/migrations/20260815090000_saved_filters_table.sql",
+        "note": "The literal text `using (true)` appears only inside the header comment describing what an earlier draft did; all four executable policies scope by `user_id = auth.uid()`."
+      }
+    ]
+  }
+}

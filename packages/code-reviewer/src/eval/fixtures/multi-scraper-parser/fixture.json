@@ -1,0 +1,53 @@
+{
+  "id": "multi-scraper-parser",
+  "title": "Add a pracuj.pl parser alongside LinkedIn and JustJoin.it",
+  "baseSha": "7ea8c4808da3e298fa83fa5681c26bb5a906cf20",
+  "branch": "eval/multi-scraper-parser",
+  "prTitle": "Parse job postings from pracuj.pl",
+  "prBody": "Extends the \"paste a link\" parser to a third portal. Adds src/lib/parsers/pracuj.ts, wires it into recognize()/parse.ts/status.ts, two unit tests, a parse-status diagnostic endpoint, and a parse_failures log table.",
+  "expect": {
+    "kind": "multi",
+    "defects": [
+      {
+        "id": "corrupted-test-in-node-pool",
+        "criterion": "test_discipline",
+        "file": "tests/unit/parsers/pracuj-corrupted.test.ts",
+        "rule": "tests/README.md Pools — a test that calls HTMLRewriter directly (i.e., a parser unit test needing the workerd global) belongs in the workers pool. This test exercises `parsePracuj`, which uses `HTMLRewriter`, but `vitest.config.ts`'s workers `include` only gains `pracuj.test.ts`, not this file — it falls through to the node pool's broad `tests/unit/**/*.test.ts` glob and runs against the WASM polyfill instead of the real workerd global."
+      },
+      {
+        "id": "pracuj-relative-import",
+        "criterion": "architecture_boundaries",
+        "file": "src/lib/parsers/pracuj.ts",
+        "rule": "AGENTS.md ✅ — internal imports use the `@/*` alias, never relative deep paths. `import type { WorkMode } from \"../validation/applications\";` bypasses the alias."
+      },
+      {
+        "id": "parse-status-leaks-key",
+        "criterion": "security_and_data_isolation",
+        "file": "src/pages/api/applications/parse-status.ts",
+        "rule": "AGENTS.md 🚫 — SUPABASE_URL and SUPABASE_KEY are server-only and must never appear in a response body. The `GET` handler returns `{ url: SUPABASE_URL, key: SUPABASE_KEY }` in its JSON body."
+      }
+    ],
+    "decoys": [
+      {
+        "id": "pracuj-happy-test-correct-pool",
+        "file": "tests/unit/parsers/pracuj.test.ts",
+        "note": "Also exercises `parsePracuj`'s `HTMLRewriter` usage, but is correctly added to `vitest.config.ts`'s workers `include` array — the sibling file that was correctly wired, next to the one that wasn't."
+      },
+      {
+        "id": "config-legitimate-supabase-url",
+        "file": "src/lib/parsers/config.ts",
+        "note": "References `SUPABASE_URL` from `astro:env/server`, but only inside a server-side `console.error` diagnostic line — never returned in any response body, so it does not cross the client/server boundary the rule guards."
+      },
+      {
+        "id": "badge-verbatim-shadcn",
+        "file": "src/components/ui/badge.tsx",
+        "note": "A new, unmodified shadcn/ui Badge component (new-york variant) — added exactly as upstream ships it, not hand-edited, so it diff-merges cleanly on a future `shadcn add` re-run."
+      },
+      {
+        "id": "parse-failures-rls-correct",
+        "file": "supabase/migrations/20260815094500_parse_failures_table.sql",
+        "note": "`parse_failures` defines all four per-role policies (SELECT/INSERT/UPDATE/DELETE), each scoped by `user_id = auth.uid()` — the migration-adjacent surface this fixture deliberately carries, sitting right next to the response-body leak in a route file."
+      }
+    ]
+  }
+}

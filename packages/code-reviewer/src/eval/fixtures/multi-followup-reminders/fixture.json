@@ -1,0 +1,54 @@
+{
+  "id": "multi-followup-reminders",
+  "title": "Follow-up reminders — scheduled nudges layered on the existing badge",
+  "baseSha": "7ea8c4808da3e298fa83fa5681c26bb5a906cf20",
+  "branch": "eval/multi-followup-reminders",
+  "prTitle": "Add scheduled follow-up reminders",
+  "prBody": "Lets a user schedule a follow-up reminder for an application instead of relying only on the passive staleness badge. Adds a follow_up_reminders table plus per-user settings, create/list/dismiss endpoints, and two hooks for the badge UI.",
+  "expect": {
+    "kind": "multi",
+    "defects": [
+      {
+        "id": "reminders-rls-missing-delete",
+        "criterion": "security_and_data_isolation",
+        "file": "supabase/migrations/20260815093000_follow_up_reminders_table.sql",
+        "rule": "AGENTS.md ✅ — every new Supabase table gets RLS with separate SELECT/INSERT/UPDATE/DELETE policies per role. `follow_up_reminders` defines SELECT/INSERT/UPDATE but no DELETE policy."
+      },
+      {
+        "id": "reminder-create-english-copy",
+        "criterion": "api_and_validation_contract",
+        "file": "src/pages/api/applications/[id]/reminders/index.ts",
+        "rule": "AGENTS.md — UI copy is in Polish, match existing wording in error messages. The `POST` handler in this file returns \"Unauthorized.\", \"Invalid request body.\", and \"Could not save reminder.\" in English, while its own `GET` handler and every sibling route use Polish."
+      },
+      {
+        "id": "reminder-badge-concatenated-classes",
+        "criterion": "architecture_boundaries",
+        "file": "src/components/hooks/useReminderBadge.ts",
+        "rule": "AGENTS.md ✅ — Tailwind classes merge only via `cn()` from `@/lib/utils`, never concatenated strings. `className = due ? base + \" bg-red-100...\" : base + \" bg-amber-100...\"` concatenates instead of using `cn()`."
+      },
+      {
+        "id": "dismiss-missing-await",
+        "criterion": "correctness",
+        "file": "src/pages/api/applications/[id]/reminders/[reminderId].ts",
+        "rule": "AGENTS.md correctness baseline — a missing `await` or unhandled promise rejection. The `DELETE` handler fires the `dismissed_at` update without `await` and returns `{ ok: true }` before it resolves, so a failed dismiss is reported as a success."
+      }
+    ],
+    "decoys": [
+      {
+        "id": "reminder-settings-rls-correct",
+        "file": "supabase/migrations/20260815093500_follow_up_reminder_settings_table.sql",
+        "note": "`follow_up_reminder_settings` defines all four per-role policies (SELECT/INSERT/UPDATE/DELETE), each scoped by `user_id = auth.uid()` — a correct migration sitting right next to the one that's missing a policy."
+      },
+      {
+        "id": "countdown-hook-class-list-in-comment",
+        "file": "src/components/hooks/useReminderCountdown.ts",
+        "note": "The string `class:list={{ \"text-red-600\": overdue }}` appears only inside a comment explaining why this hook does *not* use that pattern; the hook itself returns a plain number and touches no class strings at all."
+      },
+      {
+        "id": "schedule-test-correct-pool",
+        "file": "tests/unit/reminders/schedule.test.ts",
+        "note": "Tests `computeNextReminderDate` / `isReminderDue` — pure date math with no Supabase and no `HTMLRewriter` — so it correctly sits in the node pool via `tests/unit/**/*.test.ts`, not the workers pool."
+      }
+    ]
+  }
+}

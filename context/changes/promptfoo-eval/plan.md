@@ -663,33 +663,33 @@ the correction, and `change.md` already records the contradiction.
 
 #### Automated
 
-- [x] 2.1 Typecheck passes
-- [x] 2.2 Promptfoo validates the config and provider
-- [x] 2.3 Smoke run completes: 1 variant × 1 existing fixture × 1 run, graded
-- [x] 2.4 Repo-wide gates pass
+- [x] 2.1 Typecheck passes — f754b58
+- [x] 2.2 Promptfoo validates the config and provider — f754b58
+- [x] 2.3 Smoke run completes: 1 variant × 1 existing fixture × 1 run, graded — f754b58
+- [x] 2.4 Repo-wide gates pass — f754b58
 
 #### Manual
 
-- [x] 2.5 Worktree created and removed; `git worktree list` clean
-- [x] 2.6 Provider metadata matches the SDK options at `index.ts:217-237`
-- [x] 2.7 The four variants differ only in the consistency paragraph
-- [x] 2.8 A forced consistency violation scores 0 with the violation text in `reason`
+- [x] 2.5 Worktree created and removed; `git worktree list` clean — f754b58
+- [x] 2.6 Provider metadata matches the SDK options at `index.ts:217-237` — f754b58
+- [x] 2.7 The four variants differ only in the consistency paragraph — f754b58
+- [x] 2.8 A forced consistency violation scores 0 with the violation text in `reason` — f754b58
 
 ### Phase 3: The multi-issue fixture corpus
 
 #### Automated
 
-- [ ] 3.1 All nine fixtures apply cleanly and validate (`npm run eval:check`)
-- [ ] 3.2 Typecheck passes
-- [ ] 3.3 Each new fixture's diff is 300–600 lines and under `MAX_DIFF_LINES`
-- [ ] 3.4 A 1-variant × 3-fixture × 1-run pass produces a non-degenerate composite score
+- [x] 3.1 All nine fixtures apply cleanly and validate (`npm run eval:check`)
+- [x] 3.2 Typecheck passes
+- [x] 3.3 Each new fixture's diff is 300–600 lines and under `MAX_DIFF_LINES`
+- [x] 3.4 A 1-variant × 3-fixture × 1-run pass produces a non-degenerate composite score
 
 #### Manual
 
-- [ ] 3.5 Every planted defect is real and its cited rule says what the citation claims
-- [ ] 3.6 Every decoy is genuinely innocent
-- [ ] 3.7 Each diff reads as a plausible feature PR
-- [ ] 3.8 Defect and decoy files are disjoint, one planted item each
+- [x] 3.5 Every planted defect is real and its cited rule says what the citation claims
+- [x] 3.6 Every decoy is genuinely innocent
+- [x] 3.7 Each diff reads as a plausible feature PR
+- [x] 3.8 Defect and decoy files are disjoint, one planted item each
 
 ### Phase 4: Run the sweep and decide
 

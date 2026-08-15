@@ -1,0 +1,357 @@
+diff --git a/src/components/ui/badge.tsx b/src/components/ui/badge.tsx
+new file mode 100644
+index 0000000..3d1aba7
+--- /dev/null
++++ b/src/components/ui/badge.tsx
+@@ -0,0 +1,29 @@
++import * as React from "react";
++import { cva, type VariantProps } from "class-variance-authority";
++
++import { cn } from "@/lib/utils";
++
++const badgeVariants = cva(
++  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
++  {
++    variants: {
++      variant: {
++        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
++        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
++        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
++        outline: "text-foreground",
++      },
++    },
++    defaultVariants: {
++      variant: "default",
++    },
++  },
++);
++
++export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
++
++function Badge({ className, variant, ...props }: BadgeProps) {
++  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
++}
++
++export { Badge, badgeVariants };
+diff --git a/src/lib/parsers/config.ts b/src/lib/parsers/config.ts
+new file mode 100644
+index 0000000..1545a9e
+--- /dev/null
++++ b/src/lib/parsers/config.ts
+@@ -0,0 +1,10 @@
++import { SUPABASE_URL } from "astro:env/server";
++
++/**
++ * Server-only diagnostic line for parser failures — never included in any HTTP response body,
++ * just written to the server log so a stuck scrape can be correlated with which project it hit.
++ */
++export function logParserFailure(portal: string, reason: string): void {
++  // eslint-disable-next-line no-console
++  console.error(`[parser:${portal}] ${reason} (project: ${SUPABASE_URL ?? "unconfigured"})`);
++}
+diff --git a/src/lib/parsers/pracuj.ts b/src/lib/parsers/pracuj.ts
+new file mode 100644
+index 0000000..691e470
+--- /dev/null
++++ b/src/lib/parsers/pracuj.ts
+@@ -0,0 +1,81 @@
++import type { ParseResult } from "./types";
++import type { WorkMode } from "../validation/applications";
++
++const USER_AGENT =
++  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
++
++const MAX_BUFFER_CHARS = 2_000_000;
++
++function mapWorkMode(label: string | undefined): WorkMode | undefined {
++  if (!label) return undefined;
++  const lower = label.toLowerCase();
++  if (lower.includes("zdaln")) return "Zdalna";
++  if (lower.includes("hybryd")) return "Hybrydowa";
++  if (lower.includes("stacjonar") || lower.includes("biur")) return "Stacjonarna";
++  return undefined;
++}
++
++export async function parsePracuj(slug: string): Promise<ParseResult> {
++  if (!/^[a-zA-Z0-9,._-]+$/.test(slug)) throw new Error("parsePracuj: invalid slug");
++  const url = `https://www.pracuj.pl/praca/${encodeURIComponent(slug)}`;
++  const response = await fetch(url, {
++    redirect: "manual",
++    signal: AbortSignal.timeout(8000),
++    headers: {
++      "User-Agent": USER_AGENT,
++      "Accept-Language": "pl-PL,pl;q=0.9",
++    },
++  });
++
++  if (response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
++    throw new Error("pracuj.pl unexpected redirect");
++  }
++  if (response.status !== 200) {
++    throw new Error(`pracuj.pl non-200 status: ${response.status}`);
++  }
++
++  let position: string | undefined;
++  let company: string | undefined;
++  let workModeLabel: string | undefined;
++  const descriptionParts: string[] = [];
++
++  const rewritten = new HTMLRewriter()
++    .on("h1[data-test='text-positionName']", {
++      text(t) {
++        position = ((position ?? "") + t.text).trim();
++      },
++    })
++    .on("h2[data-test='text-employerName']", {
++      text(t) {
++        company = ((company ?? "") + t.text).trim();
++      },
++    })
++    .on("div[data-test='text-workModes']", {
++      text(t) {
++        workModeLabel = ((workModeLabel ?? "") + t.text).trim();
++      },
++    })
++    .on("div[data-test='section-benefit-description'] p", {
++      text(t) {
++        descriptionParts.push(t.text);
++      },
++    })
++    .transform(response);
++
++  const html = await rewritten.text();
++  if (html.length > MAX_BUFFER_CHARS) {
++    throw new Error(`pracuj.pl buffer too large: ${html.length}`);
++  }
++  if (position === undefined) {
++    throw new Error("pracuj.pl: position heading not found");
++  }
++
++  const result: ParseResult = { position };
++  if (company) result.company = company;
++  const workMode = mapWorkMode(workModeLabel);
++  if (workMode) result.work_mode = workMode;
++  const description = descriptionParts.join(" ").trim();
++  if (description.length > 0) result.description = description;
++
++  return result;
++}
+diff --git a/src/lib/parsers/recognize.ts b/src/lib/parsers/recognize.ts
+index 5a3b0d8..f603703 100644
+--- a/src/lib/parsers/recognize.ts
++++ b/src/lib/parsers/recognize.ts
+@@ -1,4 +1,7 @@
+-export type RecognizedSource = { kind: "linkedin"; jobId: string } | { kind: "jjit"; slug: string };
++export type RecognizedSource =
++  | { kind: "linkedin"; jobId: string }
++  | { kind: "jjit"; slug: string }
++  | { kind: "pracuj"; slug: string };
+ 
+ export function recognize(source: string): RecognizedSource | null {
+   const trimmed = source.trim();
+@@ -35,5 +38,13 @@ export function recognize(source: string): RecognizedSource | null {
+     return null;
+   }
+ 
++  if (host === "pracuj.pl" || host === "www.pracuj.pl") {
++    const match = /^\/praca\/([a-zA-Z0-9,._-]+)\/?$/.exec(url.pathname);
++    if (match) {
++      return { kind: "pracuj", slug: match[1] };
++    }
++    return null;
++  }
++
+   return null;
+ }
+diff --git a/src/lib/parsers/status.ts b/src/lib/parsers/status.ts
+index 545d236..a6fe610 100644
+--- a/src/lib/parsers/status.ts
++++ b/src/lib/parsers/status.ts
+@@ -1,15 +1,16 @@
+ import type { ParseResult, ParseStatus } from "./types";
+ 
+-export const EXPECTED_KEYS: Record<"linkedin" | "jjit", (keyof ParseResult)[]> = {
++export const EXPECTED_KEYS: Record<"linkedin" | "jjit" | "pracuj", (keyof ParseResult)[]> = {
+   linkedin: ["position", "company", "description"],
+   jjit: ["position", "company", "description", "salary", "work_mode"],
++  pracuj: ["position", "company", "description", "work_mode"],
+ };
+ 
+ export function countDefined(result: ParseResult): number {
+   return (Object.keys(result) as (keyof ParseResult)[]).filter((k) => result[k] !== undefined).length;
+ }
+ 
+-export function resolveStatus(result: ParseResult, kind: "linkedin" | "jjit"): ParseStatus {
++export function resolveStatus(result: ParseResult, kind: "linkedin" | "jjit" | "pracuj"): ParseStatus {
+   const populated = countDefined(result);
+   if (populated === 0) return "empty";
+   const expected = EXPECTED_KEYS[kind];
+diff --git a/src/pages/api/applications/parse-status.ts b/src/pages/api/applications/parse-status.ts
+new file mode 100644
+index 0000000..00ae3cc
+--- /dev/null
++++ b/src/pages/api/applications/parse-status.ts
+@@ -0,0 +1,20 @@
++import type { APIRoute } from "astro";
++import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server";
++import { jsonResponse } from "@/lib/http";
++
++export const prerender = false;
++
++export const GET: APIRoute = async (context) => {
++  const user = context.locals.user;
++  if (!user) {
++    return jsonResponse(401, { error: "Brak autoryzacji." });
++  }
++
++  // Lets the "Wklej link" form show a banner when scraping can't work because Supabase isn't
++  // wired up for this deployment — parsed results are inserted through the same client.
++  return jsonResponse(200, {
++    configured: Boolean(SUPABASE_URL && SUPABASE_KEY),
++    url: SUPABASE_URL,
++    key: SUPABASE_KEY,
++  });
++};
+diff --git a/src/pages/api/applications/parse.ts b/src/pages/api/applications/parse.ts
+index 3fa49da..b87b90a 100644
+--- a/src/pages/api/applications/parse.ts
++++ b/src/pages/api/applications/parse.ts
+@@ -3,6 +3,7 @@ import { applicationParseSchema } from "@/lib/validation/applications";
+ import { recognize } from "@/lib/parsers/recognize";
+ import { parseLinkedIn } from "@/lib/parsers/linkedin";
+ import { parseJustJoinIT } from "@/lib/parsers/justjoinit";
++import { parsePracuj } from "@/lib/parsers/pracuj";
+ import type { ParseEndpointResponse } from "@/lib/parsers/types";
+ import { resolveStatus } from "@/lib/parsers/status";
+ import { jsonResponse, formatZodErrors } from "@/lib/http";
+@@ -57,7 +58,11 @@ export const POST: APIRoute = async (context) => {
+ 
+   try {
+     const result =
+-      recognized.kind === "linkedin" ? await parseLinkedIn(recognized.jobId) : await parseJustJoinIT(recognized.slug);
++      recognized.kind === "linkedin"
++        ? await parseLinkedIn(recognized.jobId)
++        : recognized.kind === "jjit"
++          ? await parseJustJoinIT(recognized.slug)
++          : await parsePracuj(recognized.slug);
+ 
+     const status = resolveStatus(result, recognized.kind);
+     const payload: ParseEndpointResponse = { result, status };
+diff --git a/supabase/migrations/20260815094500_parse_failures_table.sql b/supabase/migrations/20260815094500_parse_failures_table.sql
+new file mode 100644
+index 0000000..a3dd3a8
+--- /dev/null
++++ b/supabase/migrations/20260815094500_parse_failures_table.sql
+@@ -0,0 +1,32 @@
++-- Log parser failures per user so repeated scrape errors against the same portal are visible
++-- without digging through server logs.
++create table public.parse_failures (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references auth.users(id) on delete cascade,
++  portal text not null,
++  reason text not null,
++  created_at timestamptz not null default now()
++);
++
++alter table public.parse_failures enable row level security;
++
++create policy parse_failures_select_own
++  on public.parse_failures for select
++  to authenticated
++  using (user_id = auth.uid());
++
++create policy parse_failures_insert_own
++  on public.parse_failures for insert
++  to authenticated
++  with check (user_id = auth.uid());
++
++create policy parse_failures_update_own
++  on public.parse_failures for update
++  to authenticated
++  using (user_id = auth.uid())
++  with check (user_id = auth.uid());
++
++create policy parse_failures_delete_own
++  on public.parse_failures for delete
++  to authenticated
++  using (user_id = auth.uid());
+diff --git a/tests/unit/parsers/pracuj-corrupted.test.ts b/tests/unit/parsers/pracuj-corrupted.test.ts
+new file mode 100644
+index 0000000..dec3e3c
+--- /dev/null
++++ b/tests/unit/parsers/pracuj-corrupted.test.ts
+@@ -0,0 +1,21 @@
++import { describe, it, expect } from "vitest";
++import { parsePracuj } from "@/lib/parsers/pracuj";
++import { withFetchStub } from "../../helpers/fetch";
++
++// corrupted.html — the happy fixture with the position heading's data-test attribute
++// stripped, so HTMLRewriter's selector never matches and the parser throws.
++const CORRUPTED_HTML = `<!doctype html><html><body>
++  <h1>Senior Backend Developer</h1>
++  <h2 data-test="text-employerName">Acme Sp. z o.o.</h2>
++</body></html>`;
++
++describe("parsePracuj — corrupted fixture", () => {
++  it("throws when the position heading selector doesn't match", async () => {
++    await withFetchStub(
++      () => new Response(CORRUPTED_HTML, { status: 200 }),
++      async () => {
++        await expect(parsePracuj("acme-backend-dev,warszawa")).rejects.toThrow();
++      },
++    );
++  });
++});
+diff --git a/tests/unit/parsers/pracuj.test.ts b/tests/unit/parsers/pracuj.test.ts
+new file mode 100644
+index 0000000..bf2d295
+--- /dev/null
++++ b/tests/unit/parsers/pracuj.test.ts
+@@ -0,0 +1,30 @@
++import { describe, it, expect } from "vitest";
++import { parsePracuj } from "@/lib/parsers/pracuj";
++import { withFetchStub } from "../../helpers/fetch";
++
++// happy.html — synthetic fixture inlined here (no captured-HTML directory for this portal
++// yet); covers the same four selectors the parser reads.
++const HAPPY_HTML = `<!doctype html><html><body>
++  <h1 data-test="text-positionName">Senior Backend Developer</h1>
++  <h2 data-test="text-employerName">Acme Sp. z o.o.</h2>
++  <div data-test="text-workModes">Praca zdalna</div>
++  <div data-test="section-benefit-description">
++    <p>Rozwijasz nasze API w Node.js i TypeScript.</p>
++  </div>
++</body></html>`;
++
++describe("parsePracuj — happy fixture", () => {
++  it("extracts position, company, work_mode, and description", async () => {
++    await withFetchStub(
++      () => new Response(HAPPY_HTML, { status: 200 }),
++      async () => {
++        const result = await parsePracuj("acme-backend-dev,warszawa");
++
++        expect(result.position).toBe("Senior Backend Developer");
++        expect(result.company).toBe("Acme Sp. z o.o.");
++        expect(result.work_mode).toBe("Zdalna");
++        expect(result.description).toContain("Node.js i TypeScript");
++      },
++    );
++  });
++});
+diff --git a/vitest.config.ts b/vitest.config.ts
+index 12e5efa..b2fc8b8 100644
+--- a/vitest.config.ts
++++ b/vitest.config.ts
+@@ -24,7 +24,11 @@ export default defineConfig({
+         resolve: { alias },
+         test: {
+           name: "workers",
+-          include: ["tests/unit/parsers/linkedin.test.ts", "tests/unit/parsers/justjoinit.test.ts"],
++          include: [
++            "tests/unit/parsers/linkedin.test.ts",
++            "tests/unit/parsers/justjoinit.test.ts",
++            "tests/unit/parsers/pracuj.test.ts",
++          ],
+           poolOptions: {
+             workers: {
+               wrangler: { configPath: "./wrangler.test.jsonc" },
