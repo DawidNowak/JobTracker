@@ -1,0 +1,51 @@
+# Promptfoo prompt-eval rig for the CI/CD code reviewer's REVIEWER_APPEND consistency rule.
+# NOT wired into the review flow — no CI job references this config; run by hand only.
+# See ./README.md for the scoring formula, the fixture-authoring rule, and the rate-limit caveat.
+
+description: "REVIEWER_APPEND consistency-rule variants vs. the fixture corpus"
+
+prompts:
+  - file://./variants/index.ts:incumbent
+  - file://./variants/index.ts:restated
+  - file://./variants/index.ts:workedExample
+  - file://./variants/index.ts:checklist
+
+providers:
+  - id: file://./provider.ts
+    config:
+      model: claude-sonnet-5
+      effort: high
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://./grade-assert.ts:composite
+      metric: composite
+    - type: javascript
+      value: file://./grade-assert.ts:recall
+      metric: recall
+    - type: javascript
+      value: file://./grade-assert.ts:precision
+      metric: precision
+    - type: javascript
+      value: file://./grade-assert.ts:validity
+      metric: validity
+
+# Phase 2 smoke corpus: the six existing single-defect/clean fixtures under src/eval/fixtures/,
+# so the rig can be proven end-to-end (provider, worktree lifecycle, grading) before any
+# multi-issue fixture exists. Phase 3 replaces this list with the three multi-issue fixtures
+# (multi-board-filters, multi-followup-reminders, multi-scraper-parser) — the corpus Phase 4's
+# 4 variants × 3 fixtures × 2 repeats = 24-run sweep actually decides the winner on.
+tests:
+  - vars:
+      fixtureId: clean-control
+  - vars:
+      fixtureId: lib-purity-break
+  - vars:
+      fixtureId: rls-using-true
+  - vars:
+      fixtureId: route-missing-prerender
+  - vars:
+      fixtureId: service-layer-assert
+  - vars:
+      fixtureId: swallowed-await

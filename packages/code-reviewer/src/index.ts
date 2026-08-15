@@ -117,6 +117,9 @@ export interface RunReviewOptions {
   prBody: string;
   model?: string;
   effort?: EffortLevel;
+  /** Appended to the `claude_code` system prompt preset. Defaults to `REVIEWER_APPEND` — the
+   * promptfoo rig overrides this to score a prompt variant against the same production path. */
+  reviewerAppend?: string;
   /** Called for every SDK message as it streams in. Omit to run silently (e.g. an eval sweep). */
   onMessage?: (message: SDKMessage) => void;
 }
@@ -140,7 +143,17 @@ export interface ReviewRun {
  * the real verdict output.
  */
 export async function runReview(options: RunReviewOptions): Promise<ReviewRun> {
-  const { repoRoot, base, branch, prTitle, prBody, model = MODEL, effort = DEFAULT_EFFORT, onMessage } = options;
+  const {
+    repoRoot,
+    base,
+    branch,
+    prTitle,
+    prBody,
+    model = MODEL,
+    effort = DEFAULT_EFFORT,
+    reviewerAppend = REVIEWER_APPEND,
+    onMessage,
+  } = options;
 
   const changedFiles = getChangedFiles(base, repoRoot);
   const emptyMeta: ReportMeta = {
@@ -219,7 +232,7 @@ export async function runReview(options: RunReviewOptions): Promise<ReviewRun> {
       model,
       // The preset gives us Claude Code's tool guidance and safety rules; the append layers
       // the reviewer role on top without replacing any of it.
-      systemPrompt: { type: "preset", preset: "claude_code", append: REVIEWER_APPEND },
+      systemPrompt: { type: "preset", preset: "claude_code", append: reviewerAppend },
       // Loads CLAUDE.md (which @-includes AGENTS.md) and .claude/rules from the repo root,
       // so project conventions do not have to be duplicated in the reviewer prompt.
       settingSources: ["project"],

@@ -1,7 +1,7 @@
 ---
 change_id: promptfoo-eval
 title: Promptfoo eval
-status: planned
+status: implementing
 created: 2026-08-15
 updated: 2026-08-15
 archived_at: null

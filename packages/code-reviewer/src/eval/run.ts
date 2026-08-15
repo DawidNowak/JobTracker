@@ -85,7 +85,7 @@ function parseArgs(argv: string[]): SweepArgs {
  * none of which distinguish a quota rejection from a genuine bug (`schema.ts`'s `ReviewRun`
  * contract does not expose the underlying error text for that path).
  */
-function classifyThrownError(err: unknown): { resultSubtype: string; errorMessage: string } {
+export function classifyThrownError(err: unknown): { resultSubtype: string; errorMessage: string } {
   const message = err instanceof Error ? err.message : String(err);
   // The subscription usage-limit rejection observed in practice reads "You've hit your limit ·
   // resets <time>" — it never says "rate limit" or "quota", so the phrase-based patterns below

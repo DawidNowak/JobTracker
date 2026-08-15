@@ -649,31 +649,31 @@ the correction, and `change.md` already records the contradiction.
 
 #### Automated
 
-- [x] 1.1 Typecheck passes (`npm run typecheck` in the package)
-- [x] 1.2 Fixture corpus still applies cleanly (`npm run eval:check`)
-- [x] 1.3 Replay reproduces the expected tally and names the 3 inconsistent runs (`npm run eval:replay`)
-- [x] 1.4 Model-sweep report still renders with the new column (`npm run eval:report`)
-- [x] 1.5 Repo-wide gates pass (`npm run typecheck && npm run lint && npm test`)
+- [x] 1.1 Typecheck passes (`npm run typecheck` in the package) — ae23d1b
+- [x] 1.2 Fixture corpus still applies cleanly (`npm run eval:check`) — ae23d1b
+- [x] 1.3 Replay reproduces the expected tally and names the 3 inconsistent runs (`npm run eval:replay`) — ae23d1b
+- [x] 1.4 Model-sweep report still renders with the new column (`npm run eval:report`) — ae23d1b
+- [x] 1.5 Repo-wide gates pass (`npm run typecheck && npm run lint && npm test`) — ae23d1b
 
 #### Manual
 
-- [x] 1.6 Report output reads correctly and the model-eval ranking is unchanged
+- [x] 1.6 Report output reads correctly and the model-eval ranking is unchanged — ae23d1b
 
 ### Phase 2: Promptfoo rig — provider, assertions, variants
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes
-- [ ] 2.2 Promptfoo validates the config and provider
-- [ ] 2.3 Smoke run completes: 1 variant × 1 existing fixture × 1 run, graded
-- [ ] 2.4 Repo-wide gates pass
+- [x] 2.1 Typecheck passes
+- [x] 2.2 Promptfoo validates the config and provider
+- [x] 2.3 Smoke run completes: 1 variant × 1 existing fixture × 1 run, graded
+- [x] 2.4 Repo-wide gates pass
 
 #### Manual
 
-- [ ] 2.5 Worktree created and removed; `git worktree list` clean
-- [ ] 2.6 Provider metadata matches the SDK options at `index.ts:217-237`
-- [ ] 2.7 The four variants differ only in the consistency paragraph
-- [ ] 2.8 A forced consistency violation scores 0 with the violation text in `reason`
+- [x] 2.5 Worktree created and removed; `git worktree list` clean
+- [x] 2.6 Provider metadata matches the SDK options at `index.ts:217-237`
+- [x] 2.7 The four variants differ only in the consistency paragraph
+- [x] 2.8 A forced consistency violation scores 0 with the violation text in `reason`
 
 ### Phase 3: The multi-issue fixture corpus
 

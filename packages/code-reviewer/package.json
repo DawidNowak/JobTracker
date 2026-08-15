@@ -10,6 +10,7 @@
     "eval:check": "tsx src/eval/check.ts",
     "eval:report": "tsx src/eval/report.ts",
     "eval:replay": "tsx src/eval/replay.ts",
+    "eval:prompt": "promptfoo eval -c promptfoo/promptfooconfig.yaml",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "promptfoo": "^0.122.0",
     "tsx": "^4.23.0",
     "typescript": "^5.9.3"
   }
