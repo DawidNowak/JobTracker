@@ -1,0 +1,311 @@
+diff --git a/src/components/hooks/useReminderBadge.ts b/src/components/hooks/useReminderBadge.ts
+new file mode 100644
+index 0000000..5ad50d9
+--- /dev/null
++++ b/src/components/hooks/useReminderBadge.ts
+@@ -0,0 +1,42 @@
++import { useEffect, useState } from "react";
++import { isReminderDue } from "@/lib/reminder-schedule";
++
++interface ReminderSummary {
++  id: string;
++  remindAt: string;
++  dismissedAt: string | null;
++}
++
++interface ReminderBadge {
++  label: string;
++  className: string;
++}
++
++export function useReminderBadge(applicationId: string): ReminderBadge | null {
++  const [reminder, setReminder] = useState<ReminderSummary | null>(null);
++
++  useEffect(() => {
++    let cancelled = false;
++    fetch(`/api/applications/${applicationId}/reminders`)
++      .then((res) => (res.ok ? res.json() : null))
++      .then((data: { reminders?: ReminderSummary[] } | null) => {
++        if (cancelled || !data?.reminders) return;
++        const active = data.reminders.find((r) => r.dismissedAt === null) ?? null;
++        setReminder(active);
++      })
++      .catch(() => {
++        if (!cancelled) setReminder(null);
++      });
++    return () => {
++      cancelled = true;
++    };
++  }, [applicationId]);
++
++  if (!reminder) return null;
++
++  const due = isReminderDue(reminder.remindAt);
++  const base = "rounded-full px-2 py-0.5 text-xs font-medium";
++  const className = due ? base + " bg-red-100 text-red-700" : base + " bg-amber-100 text-amber-700";
++
++  return { label: due ? "Czas na follow-up" : "Zaplanowano przypomnienie", className };
++}
+diff --git a/src/components/hooks/useReminderCountdown.ts b/src/components/hooks/useReminderCountdown.ts
+new file mode 100644
+index 0000000..f4335dd
+--- /dev/null
++++ b/src/components/hooks/useReminderCountdown.ts
+@@ -0,0 +1,25 @@
++import { useEffect, useState } from "react";
++
++// Note: we deliberately do NOT use Astro's `class:list={{ "text-red-600": overdue }}` pattern
++// here — this is a plain React hook with no JSX of its own, it just returns numbers for the
++// caller to format.
++export function useReminderCountdown(remindAt: string | null): number | null {
++  const [daysLeft, setDaysLeft] = useState<number | null>(null);
++
++  useEffect(() => {
++    if (!remindAt) {
++      setDaysLeft(null);
++      return;
++    }
++    const target = new Date(remindAt).getTime();
++    const update = () => {
++      const diffMs = target - Date.now();
++      setDaysLeft(Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
++    };
++    update();
++    const interval = setInterval(update, 60 * 60 * 1000);
++    return () => clearInterval(interval);
++  }, [remindAt]);
++
++  return daysLeft;
++}
+diff --git a/src/lib/reminder-schedule.ts b/src/lib/reminder-schedule.ts
+new file mode 100644
+index 0000000..d3a7320
+--- /dev/null
++++ b/src/lib/reminder-schedule.ts
+@@ -0,0 +1,11 @@
++const DEFAULT_REMIND_AFTER_DAYS = 7;
++
++export function computeNextReminderDate(lastActionAt: string, remindAfterDays = DEFAULT_REMIND_AFTER_DAYS): Date {
++  const base = new Date(lastActionAt);
++  base.setDate(base.getDate() + remindAfterDays);
++  return base;
++}
++
++export function isReminderDue(remindAt: string, now: Date = new Date()): boolean {
++  return new Date(remindAt).getTime() <= now.getTime();
++}
+diff --git a/src/lib/validation/reminders.ts b/src/lib/validation/reminders.ts
+new file mode 100644
+index 0000000..070c55e
+--- /dev/null
++++ b/src/lib/validation/reminders.ts
+@@ -0,0 +1,7 @@
++import { z } from "zod";
++
++export const reminderCreateSchema = z.object({
++  remindAt: z.string().datetime(),
++});
++
++export type ReminderCreate = z.infer<typeof reminderCreateSchema>;
+diff --git a/src/pages/api/applications/[id]/reminders/[reminderId].ts b/src/pages/api/applications/[id]/reminders/[reminderId].ts
+new file mode 100644
+index 0000000..9d48e4d
+--- /dev/null
++++ b/src/pages/api/applications/[id]/reminders/[reminderId].ts
+@@ -0,0 +1,28 @@
++import type { APIRoute } from "astro";
++import { createClient } from "@/lib/supabase";
++import { jsonResponse } from "@/lib/http";
++
++export const prerender = false;
++
++export const DELETE: APIRoute = async (context) => {
++  const user = context.locals.user;
++  if (!user) {
++    return jsonResponse(401, { error: "Brak autoryzacji." });
++  }
++
++  const reminderId = context.params.reminderId;
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return jsonResponse(500, { error: "Supabase nie jest skonfigurowany." });
++  }
++
++  // Soft-dismiss: mark dismissed_at instead of a hard delete, so a stale "you forgot to
++  // follow up" toast never re-appears once acknowledged.
++  supabase
++    .from("follow_up_reminders")
++    .update({ dismissed_at: new Date().toISOString() })
++    .eq("id", reminderId)
++    .eq("user_id", user.id);
++
++  return jsonResponse(200, { ok: true });
++};
+diff --git a/src/pages/api/applications/[id]/reminders/index.ts b/src/pages/api/applications/[id]/reminders/index.ts
+new file mode 100644
+index 0000000..7e2addc
+--- /dev/null
++++ b/src/pages/api/applications/[id]/reminders/index.ts
+@@ -0,0 +1,73 @@
++import type { APIRoute } from "astro";
++import { createClient } from "@/lib/supabase";
++import { jsonResponse, formatZodErrors } from "@/lib/http";
++import { reminderCreateSchema } from "@/lib/validation/reminders";
++
++export const prerender = false;
++
++export const GET: APIRoute = async (context) => {
++  const user = context.locals.user;
++  if (!user) {
++    return jsonResponse(401, { error: "Brak autoryzacji." });
++  }
++
++  const applicationId = context.params.id;
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return jsonResponse(500, { error: "Supabase nie jest skonfigurowany." });
++  }
++
++  const { data, error } = await supabase
++    .from("follow_up_reminders")
++    .select("id, remind_at, dismissed_at")
++    .eq("application_id", applicationId)
++    .eq("user_id", user.id)
++    .order("remind_at", { ascending: true });
++
++  if (error) {
++    return jsonResponse(500, { error: "Nie udało się pobrać przypomnień." });
++  }
++
++  return jsonResponse(200, { reminders: data });
++};
++
++export const POST: APIRoute = async (context) => {
++  const user = context.locals.user;
++  if (!user) {
++    return jsonResponse(401, { error: "Unauthorized." });
++  }
++
++  const applicationId = context.params.id;
++  if (!applicationId) {
++    return jsonResponse(400, { error: "Missing application id." });
++  }
++
++  let body: unknown;
++  try {
++    body = await context.request.json();
++  } catch {
++    return jsonResponse(400, { error: "Invalid request body." });
++  }
++
++  const parsed = reminderCreateSchema.safeParse(body);
++  if (!parsed.success) {
++    return jsonResponse(422, { errors: formatZodErrors(parsed.error) });
++  }
++
++  const supabase = createClient(context.request.headers, context.cookies);
++  if (!supabase) {
++    return jsonResponse(500, { error: "Supabase is not configured." });
++  }
++
++  const { data, error } = await supabase
++    .from("follow_up_reminders")
++    .insert({ application_id: applicationId, user_id: user.id, remind_at: parsed.data.remindAt })
++    .select("id, remind_at, dismissed_at")
++    .single();
++
++  if (error) {
++    return jsonResponse(500, { error: "Could not save reminder." });
++  }
++
++  return jsonResponse(201, { reminder: data });
++};
+diff --git a/supabase/migrations/20260815093000_follow_up_reminders_table.sql b/supabase/migrations/20260815093000_follow_up_reminders_table.sql
+new file mode 100644
+index 0000000..20636a2
+--- /dev/null
++++ b/supabase/migrations/20260815093000_follow_up_reminders_table.sql
+@@ -0,0 +1,28 @@
++-- Add follow_up_reminders: a user-scheduled nudge to follow up on an application after a
++-- period of inactivity, layered on top of the existing computed follow-up badge.
++create table public.follow_up_reminders (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references auth.users(id) on delete cascade,
++  application_id uuid not null references public.applications(id) on delete cascade,
++  remind_at timestamptz not null,
++  dismissed_at timestamptz,
++  created_at timestamptz not null default now()
++);
++
++alter table public.follow_up_reminders enable row level security;
++
++create policy follow_up_reminders_select_own
++  on public.follow_up_reminders for select
++  to authenticated
++  using (user_id = auth.uid());
++
++create policy follow_up_reminders_insert_own
++  on public.follow_up_reminders for insert
++  to authenticated
++  with check (user_id = auth.uid());
++
++create policy follow_up_reminders_update_own
++  on public.follow_up_reminders for update
++  to authenticated
++  using (user_id = auth.uid())
++  with check (user_id = auth.uid());
+diff --git a/supabase/migrations/20260815093500_follow_up_reminder_settings_table.sql b/supabase/migrations/20260815093500_follow_up_reminder_settings_table.sql
+new file mode 100644
+index 0000000..2dacdea
+--- /dev/null
++++ b/supabase/migrations/20260815093500_follow_up_reminder_settings_table.sql
+@@ -0,0 +1,29 @@
++-- Per-user defaults for follow_up_reminders: how many days of inactivity trigger a nudge.
++create table public.follow_up_reminder_settings (
++  user_id uuid primary key references auth.users(id) on delete cascade,
++  remind_after_days integer not null default 7,
++  updated_at timestamptz not null default now()
++);
++
++alter table public.follow_up_reminder_settings enable row level security;
++
++create policy follow_up_reminder_settings_select_own
++  on public.follow_up_reminder_settings for select
++  to authenticated
++  using (user_id = auth.uid());
++
++create policy follow_up_reminder_settings_insert_own
++  on public.follow_up_reminder_settings for insert
++  to authenticated
++  with check (user_id = auth.uid());
++
++create policy follow_up_reminder_settings_update_own
++  on public.follow_up_reminder_settings for update
++  to authenticated
++  using (user_id = auth.uid())
++  with check (user_id = auth.uid());
++
++create policy follow_up_reminder_settings_delete_own
++  on public.follow_up_reminder_settings for delete
++  to authenticated
++  using (user_id = auth.uid());
+diff --git a/tests/unit/reminders/schedule.test.ts b/tests/unit/reminders/schedule.test.ts
+new file mode 100644
+index 0000000..444fd39
+--- /dev/null
++++ b/tests/unit/reminders/schedule.test.ts
+@@ -0,0 +1,14 @@
++import { describe, it, expect } from "vitest";
++import { computeNextReminderDate, isReminderDue } from "@/lib/reminder-schedule";
++
++describe("reminder-schedule — pure date math, no Supabase or workerd dependency", () => {
++  it("computeNextReminderDate adds the configured number of days", () => {
++    const next = computeNextReminderDate("2026-08-01T00:00:00.000Z", 7);
++    expect(next.toISOString().slice(0, 10)).toBe("2026-08-08");
++  });
++
++  it("isReminderDue is true once the target time has passed", () => {
++    expect(isReminderDue("2026-08-01T00:00:00.000Z", new Date("2026-08-02T00:00:00.000Z"))).toBe(true);
++    expect(isReminderDue("2026-08-10T00:00:00.000Z", new Date("2026-08-02T00:00:00.000Z"))).toBe(false);
++  });
++});

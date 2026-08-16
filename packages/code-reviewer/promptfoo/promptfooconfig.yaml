@@ -1,0 +1,43 @@
+# Promptfoo prompt-eval rig for the CI/CD code reviewer's REVIEWER_APPEND consistency rule.
+# NOT wired into the review flow — no CI job references this config; run by hand only.
+# See ./README.md for the scoring formula, the fixture-authoring rule, and the rate-limit caveat.
+
+description: "REVIEWER_APPEND consistency-rule variants vs. the fixture corpus"
+
+prompts:
+  - file://./variants/index.ts:incumbent
+  - file://./variants/index.ts:restated
+  - file://./variants/index.ts:workedExample
+  - file://./variants/index.ts:checklist
+
+providers:
+  - id: file://./provider.ts
+    config:
+      model: claude-sonnet-5
+      effort: high
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://./grade-assert.ts:composite
+      metric: composite
+    - type: javascript
+      value: file://./grade-assert.ts:recall
+      metric: recall
+    - type: javascript
+      value: file://./grade-assert.ts:precision
+      metric: precision
+    - type: javascript
+      value: file://./grade-assert.ts:validity
+      metric: validity
+
+# The three multi-issue fixtures — the corpus Phase 4's 4 variants × 3 fixtures × 2 repeats =
+# 24-run sweep actually decides the winner on. (Phase 2's smoke corpus was the six existing
+# single-defect/clean fixtures under src/eval/fixtures/; see git history for that list.)
+tests:
+  - vars:
+      fixtureId: multi-board-filters
+  - vars:
+      fixtureId: multi-followup-reminders
+  - vars:
+      fixtureId: multi-scraper-parser

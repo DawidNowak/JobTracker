@@ -174,8 +174,10 @@ cd packages/code-reviewer
 npm run eval
 ```
 
-By default this runs the full matrix (every cell in `src/eval/cells.ts` × every fixture in
-`src/eval/fixtures/` × 2 runs each). Flags narrow that:
+By default this runs the full matrix (every cell in `src/eval/cells.ts` × every `violation`/`clean`
+fixture in `src/eval/fixtures/` × 2 runs each). `multi` fixtures — the multi-issue corpus under
+`promptfoo/`'s rig — are excluded: this sweep's categorical scorer (`scoreRun`) does not support
+them, only `gradeRun` does. Flags narrow that:
 
 | Flag         | Example                         | Effect                                                                        |
 | ------------ | ------------------------------- | ----------------------------------------------------------------------------- |
@@ -201,6 +203,16 @@ it was written for — re-pin the `baseSha` and regenerate the patch when that h
 
 The full sweep, its scoring rules, the decision-rule caveats, and the result of the first run are
 recorded in [`context/changes/model-eval/results.md`](../../context/changes/model-eval/results.md).
+
+## Prompt eval
+
+`REVIEWER_APPEND`'s FAIL⇔BLOCKING consistency paragraph (`src/prompt.ts:85-`) was similarly tuned
+by a sweep — this one over `promptfoo/`, a self-contained rig that runs the real `runReview()`
+against a corpus of multi-issue fixtures. It is run **by hand only**: no CI job references it, and
+the production review path behaves identically whether it exists or not. See
+[`promptfoo/README.md`](promptfoo/README.md) for how to re-run it, and
+[`context/changes/promptfoo-eval/results.md`](../../context/changes/promptfoo-eval/results.md) for
+the sweep that chose the current wording.
 
 ## Layout
 

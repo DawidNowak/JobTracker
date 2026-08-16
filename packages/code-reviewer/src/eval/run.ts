@@ -85,7 +85,7 @@ function parseArgs(argv: string[]): SweepArgs {
  * none of which distinguish a quota rejection from a genuine bug (`schema.ts`'s `ReviewRun`
  * contract does not expose the underlying error text for that path).
  */
-function classifyThrownError(err: unknown): { resultSubtype: string; errorMessage: string } {
+export function classifyThrownError(err: unknown): { resultSubtype: string; errorMessage: string } {
   const message = err instanceof Error ? err.message : String(err);
   // The subscription usage-limit rejection observed in practice reads "You've hit your limit ·
   // resets <time>" — it never says "rate limit" or "quota", so the phrase-based patterns below
@@ -158,8 +158,13 @@ async function runOne(cell: Cell, fixture: Fixture): Promise<RunOneResult> {
 async function main(): Promise<void> {
   const { maxRuns, cellFilter, fixtureFilter } = parseArgs(process.argv.slice(2));
 
-  const allFixtures = loadFixtures();
-  const fixtures = fixtureFilter ? allFixtures.filter((fixture) => fixtureFilter.has(fixture.id)) : allFixtures;
+  // `scoreRun` only supports the categorical "violation"/"clean" shapes — "multi" fixtures are
+  // graded exclusively through `gradeRun` in the promptfoo rig, so they are excluded here rather
+  // than crashing the sweep (with a real, already-paid-for model call lost) partway through.
+  const modelSweepFixtures = loadFixtures().filter((fixture) => fixture.expect.kind !== "multi");
+  const fixtures = fixtureFilter
+    ? modelSweepFixtures.filter((fixture) => fixtureFilter.has(fixture.id))
+    : modelSweepFixtures;
   const cells = cellFilter ? CELLS.filter((cell) => cellFilter.has(cell.id)) : CELLS;
 
   if (fixtures.length === 0) throw new Error("No fixtures matched --fixtures.");
