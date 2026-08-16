@@ -710,14 +710,14 @@ the correction, and `change.md` already records the contradiction.
 
 #### Automated
 
-- [x] 5.1 Typecheck passes
-- [x] 5.2 Repo-wide gates pass
-- [x] 5.3 Fixtures and replay still pass
-- [x] 5.4 Review flow untouched: `git diff master --stat -- .github/` is empty
-- [x] 5.5 Rig still runs after the prompt change (1×1 smoke)
+- [x] 5.1 Typecheck passes — 570782d
+- [x] 5.2 Repo-wide gates pass — 570782d
+- [x] 5.3 Fixtures and replay still pass — 570782d
+- [x] 5.4 Review flow untouched: `git diff master --stat -- .github/` is empty — 570782d
+- [x] 5.5 Rig still runs after the prompt change (1×1 smoke) — 570782d
 
 #### Manual
 
 - [ ] 5.6 A real PR review runs end-to-end and posts its comment
 - [ ] 5.7 Verdict labels still apply correctly
-- [x] 5.8 `promptfoo/README.md` accurately describes a cold-start re-run
+- [x] 5.8 `promptfoo/README.md` accurately describes a cold-start re-run — 570782d

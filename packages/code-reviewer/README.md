@@ -174,8 +174,10 @@ cd packages/code-reviewer
 npm run eval
 ```
 
-By default this runs the full matrix (every cell in `src/eval/cells.ts` × every fixture in
-`src/eval/fixtures/` × 2 runs each). Flags narrow that:
+By default this runs the full matrix (every cell in `src/eval/cells.ts` × every `violation`/`clean`
+fixture in `src/eval/fixtures/` × 2 runs each). `multi` fixtures — the multi-issue corpus under
+`promptfoo/`'s rig — are excluded: this sweep's categorical scorer (`scoreRun`) does not support
+them, only `gradeRun` does. Flags narrow that:
 
 | Flag         | Example                         | Effect                                                                        |
 | ------------ | ------------------------------- | ----------------------------------------------------------------------------- |
