@@ -107,11 +107,11 @@ decision, not a framing one.
 ## Cross-System Convention
 
 Promptfoo's own coding-agent guidance is "test the system, not the model," and
-recommends `output_format` json_schema over prompting-for-JSON plus `is-json` —
+recommends `output_format` json*schema over prompting-for-JSON plus `is-json` —
 which is what `index.ts:234` already does. The convention for agent evals is
 deterministic assertions over structured output plus trajectory/cost checks;
 `score.ts` is already written in exactly that shape. The leading hypothesis
-matches the convention: keep the deterministic scorer, change _what it scores_.
+matches the convention: keep the deterministic scorer, change \_what it scores*.
 
 ## Reframed (or Confirmed) Problem Statement
 
