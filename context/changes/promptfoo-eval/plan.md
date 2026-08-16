@@ -679,25 +679,25 @@ the correction, and `change.md` already records the contradiction.
 
 #### Automated
 
-- [x] 3.1 All nine fixtures apply cleanly and validate (`npm run eval:check`)
-- [x] 3.2 Typecheck passes
-- [x] 3.3 Each new fixture's diff is 300–600 lines and under `MAX_DIFF_LINES`
-- [x] 3.4 A 1-variant × 3-fixture × 1-run pass produces a non-degenerate composite score
+- [x] 3.1 All nine fixtures apply cleanly and validate (`npm run eval:check`) — e6024d4
+- [x] 3.2 Typecheck passes — e6024d4
+- [x] 3.3 Each new fixture's diff is 300–600 lines and under `MAX_DIFF_LINES` — e6024d4
+- [x] 3.4 A 1-variant × 3-fixture × 1-run pass produces a non-degenerate composite score — e6024d4
 
 #### Manual
 
-- [x] 3.5 Every planted defect is real and its cited rule says what the citation claims
-- [x] 3.6 Every decoy is genuinely innocent
-- [x] 3.7 Each diff reads as a plausible feature PR
-- [x] 3.8 Defect and decoy files are disjoint, one planted item each
+- [x] 3.5 Every planted defect is real and its cited rule says what the citation claims — e6024d4
+- [x] 3.6 Every decoy is genuinely innocent — e6024d4
+- [x] 3.7 Each diff reads as a plausible feature PR — e6024d4
+- [x] 3.8 Defect and decoy files are disjoint, one planted item each — e6024d4
 
 ### Phase 4: Run the sweep and decide
 
 #### Automated
 
-- [ ] 4.1 24 runs recorded, every variant complete across 3 fixtures × 2 repeats
-- [ ] 4.2 `npx promptfoo view` renders the grid with all four named metrics populated
-- [ ] 4.3 No worktrees leaked
+- [x] 4.1 24 runs recorded, every variant complete across 3 fixtures × 2 repeats
+- [x] 4.2 `npx promptfoo view` renders the grid with all four named metrics populated
+- [x] 4.3 No worktrees leaked
 
 #### Manual
 
