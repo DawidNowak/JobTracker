@@ -155,8 +155,16 @@ on real defect-detection quality, not a precise measurement. Worth weighing befo
 `workedExample`'s weak `multi-scraper-parser` showing as a genuine finding gap rather than partly a
 file-attribution artifact.
 
-## Pending: human approval
+## Decision
 
-Per the plan's Phase 4 manual verification, a human must review this grid, spot-check at least two
-runs' raw output against their grades, and explicitly approve a winner before Phase 5 applies
-anything. No decision is recorded here yet.
+**Winner: `workedExample`** — human-approved after reviewing this grid and the four prompt texts
+side by side (`packages/code-reviewer/promptfoo/variants/index.ts`).
+
+`workedExample` leads on mean composite (0.6389, +0.086–0.103 over the other three), and that lead
+is attributable to a named metric on both axes: highest mean recall (0.7361) and highest mean
+precision (0.8833) of the four variants — not a case of trading one for the other. It wins or ties
+on 2 of the 3 fixtures (`multi-board-filters`, `multi-followup-reminders`); its weaker
+`multi-scraper-parser` showing (0.167) is partly a scorer file-attribution artifact per the
+spot-check above, not purely a finding gap. `REVIEWER_APPEND`'s consistency paragraph moves from
+the `incumbent` wording to `workedExample`'s worked-example wording (adds a concrete correct/incorrect
+pairing after the rule) in Phase 5.

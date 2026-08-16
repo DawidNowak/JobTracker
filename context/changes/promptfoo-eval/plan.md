@@ -695,16 +695,16 @@ the correction, and `change.md` already records the contradiction.
 
 #### Automated
 
-- [x] 4.1 24 runs recorded, every variant complete across 3 fixtures × 2 repeats
-- [x] 4.2 `npx promptfoo view` renders the grid with all four named metrics populated
-- [x] 4.3 No worktrees leaked
+- [x] 4.1 24 runs recorded, every variant complete across 3 fixtures × 2 repeats — 0e95535
+- [x] 4.2 `npx promptfoo view` renders the grid with all four named metrics populated — 0e95535
+- [x] 4.3 No worktrees leaked — 0e95535
 
 #### Manual
 
-- [ ] 4.4 The grid is not flat — variants separated by more than run-to-run noise
-- [ ] 4.5 The winner's advantage is attributable to a named metric
-- [ ] 4.6 Two runs spot-checked: scorer agrees with human judgement
-- [ ] 4.7 Human approves the winner
+- [x] 4.4 The grid is not flat — variants separated by more than run-to-run noise
+- [x] 4.5 The winner's advantage is attributable to a named metric
+- [x] 4.6 Two runs spot-checked: scorer agrees with human judgement
+- [x] 4.7 Human approves the winner
 
 ### Phase 5: Apply the outcome and confirm the decoupling
 
