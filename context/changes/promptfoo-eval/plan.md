@@ -718,6 +718,6 @@ the correction, and `change.md` already records the contradiction.
 
 #### Manual
 
-- [ ] 5.6 A real PR review runs end-to-end and posts its comment
-- [ ] 5.7 Verdict labels still apply correctly
+- [x] 5.6 A real PR review runs end-to-end and posts its comment
+- [x] 5.7 Verdict labels still apply correctly
 - [x] 5.8 `promptfoo/README.md` accurately describes a cold-start re-run — 570782d
