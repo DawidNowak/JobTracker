@@ -701,23 +701,23 @@ the correction, and `change.md` already records the contradiction.
 
 #### Manual
 
-- [x] 4.4 The grid is not flat — variants separated by more than run-to-run noise
-- [x] 4.5 The winner's advantage is attributable to a named metric
-- [x] 4.6 Two runs spot-checked: scorer agrees with human judgement
-- [x] 4.7 Human approves the winner
+- [x] 4.4 The grid is not flat — variants separated by more than run-to-run noise — 94f7652
+- [x] 4.5 The winner's advantage is attributable to a named metric — 94f7652
+- [x] 4.6 Two runs spot-checked: scorer agrees with human judgement — 94f7652
+- [x] 4.7 Human approves the winner — 94f7652
 
 ### Phase 5: Apply the outcome and confirm the decoupling
 
 #### Automated
 
-- [ ] 5.1 Typecheck passes
-- [ ] 5.2 Repo-wide gates pass
-- [ ] 5.3 Fixtures and replay still pass
-- [ ] 5.4 Review flow untouched: `git diff master --stat -- .github/` is empty
-- [ ] 5.5 Rig still runs after the prompt change (1×1 smoke)
+- [x] 5.1 Typecheck passes
+- [x] 5.2 Repo-wide gates pass
+- [x] 5.3 Fixtures and replay still pass
+- [x] 5.4 Review flow untouched: `git diff master --stat -- .github/` is empty
+- [x] 5.5 Rig still runs after the prompt change (1×1 smoke)
 
 #### Manual
 
 - [ ] 5.6 A real PR review runs end-to-end and posts its comment
 - [ ] 5.7 Verdict labels still apply correctly
-- [ ] 5.8 `promptfoo/README.md` accurately describes a cold-start re-run
+- [x] 5.8 `promptfoo/README.md` accurately describes a cold-start re-run

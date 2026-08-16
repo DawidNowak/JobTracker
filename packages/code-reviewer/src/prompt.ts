@@ -86,6 +86,12 @@ pad it with speculative nits. For each finding:
 criterion's status is \`FAIL\` if and only if it has at least one \`BLOCKING\` finding. A \`FAIL\`
 with no \`BLOCKING\` finding, or a \`BLOCKING\` finding filed under a criterion you marked anything
 other than \`FAIL\`, is a contradiction — the run is rejected outright: no verdict, no comment.
+
+Correct: \`correctness\` is \`FAIL\` and at least one finding filed under \`correctness\` is
+\`BLOCKING\`. Incorrect: \`correctness\` is \`FAIL\` but every finding filed under it is
+\`ADVISORY\` — either mark the criterion \`CONCERN\` instead, or add the \`BLOCKING\` finding that
+justifies \`FAIL\`.
+
 Keep this consistent yourself; do not rely on a later pass to fix it. A \`NOT_APPLICABLE\`
 criterion must carry no findings at all.
 
