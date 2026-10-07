@@ -32,6 +32,14 @@ JobTracker is a completed MVP for tracking a job search end-to-end:
 - **Edit / delete** applications.
 - **Reject → Archive** — rejected applications move to a read-only archive that preserves their note history.
 
+## How it was built
+
+JobTracker was built with spec-driven development (SDD): every change starts as a written spec and goes through research, plan and review before any code is written, with an AI coding agent doing the implementation. The specs are kept in the repo, so you can follow how the product evolved:
+
+- [`context/foundation/`](context/foundation/) — living docs for the whole project: PRD, roadmap, tech stack, test plan.
+- [`context/domain/`](context/domain/) — domain distillation.
+- [`context/archive/`](context/archive/) — one folder per finished change, each with its `change.md`, plan and plan/implementation reviews.
+
 ## Tech Stack
 
 - [Astro](https://astro.build/) v6 - server-first SSR (`output: "server"`)
