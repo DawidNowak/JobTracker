@@ -4,6 +4,22 @@ JobTracker is a Polish-language job-application tracker: capture postings — by
 
 > The product UI is in Polish. This README (setup, development, deployment) is in English.
 
+**Live demo:** [job-tracker.nowak-dawid.workers.dev](https://job-tracker.nowak-dawid.workers.dev/) — sign up with email and password to try it.
+
+Hosted on [Cloudflare Workers](https://workers.cloudflare.com/), with [Supabase](https://supabase.com/) providing auth and Postgres (row-level security on every table).
+
+## Demo
+
+![JobTracker demo: adding a posting and dragging it across the Kanban board](docs/screenshots/demo.gif)
+
+| Kanban board                                             | Card details and notes                                                   |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ![Three-column Kanban board](docs/screenshots/board.png) | ![Card detail dialog with note history](docs/screenshots/card-notes.png) |
+
+| Sign in                                      | Archive of rejected applications                                  |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| ![Sign-in page](docs/screenshots/signin.png) | ![Archive of rejected applications](docs/screenshots/archive.png) |
+
 ## Features
 
 JobTracker is a completed MVP for tracking a job search end-to-end:
@@ -15,6 +31,14 @@ JobTracker is a completed MVP for tracking a job search end-to-end:
 - **Notes with history** — per-card follow-up notes you can add over time.
 - **Edit / delete** applications.
 - **Reject → Archive** — rejected applications move to a read-only archive that preserves their note history.
+
+## How it was built
+
+JobTracker was built with spec-driven development (SDD): every change starts as a written spec and goes through research, plan and review before any code is written, with an AI coding agent doing the implementation. The specs are kept in the repo, so you can follow how the product evolved:
+
+- [`context/foundation/`](context/foundation/) — living docs for the whole project: PRD, roadmap, tech stack, test plan.
+- [`context/domain/`](context/domain/) — domain distillation.
+- [`context/archive/`](context/archive/) — one folder per finished change, each with its `change.md`, plan and plan/implementation reviews.
 
 ## Tech Stack
 
