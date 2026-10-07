@@ -4,6 +4,22 @@ JobTracker is a Polish-language job-application tracker: capture postings — by
 
 > The product UI is in Polish. This README (setup, development, deployment) is in English.
 
+**Live demo:** [job-tracker.nowak-dawid.workers.dev](https://job-tracker.nowak-dawid.workers.dev/) — sign up with email and password to try it.
+
+Hosted on [Cloudflare Workers](https://workers.cloudflare.com/), with [Supabase](https://supabase.com/) providing auth and Postgres (row-level security on every table).
+
+## Demo
+
+![JobTracker demo: adding a posting and dragging it across the Kanban board](docs/screenshots/demo.gif)
+
+| Kanban board                                             | Card details and notes                                                   |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ![Three-column Kanban board](docs/screenshots/board.png) | ![Card detail dialog with note history](docs/screenshots/card-notes.png) |
+
+| Sign in                                      | Archive of rejected applications                                  |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| ![Sign-in page](docs/screenshots/signin.png) | ![Archive of rejected applications](docs/screenshots/archive.png) |
+
 ## Features
 
 JobTracker is a completed MVP for tracking a job search end-to-end:
